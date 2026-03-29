@@ -18,7 +18,7 @@ from pipeline.submodules.evaluate_loss import evaluate_loss
 
 def parse_arguments():
     """Parse model path argument from command line."""
-    load_dotenv("..", override=True)
+    load_dotenv("../.env", override=True)
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
     return parser.parse_args()

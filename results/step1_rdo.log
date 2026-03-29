@@ -1,0 +1,68 @@
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:03<00:03,  3.49s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.60s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.88s/it]
+You're using a GemmaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+The 'batch_size' argument of HybridCache is deprecated and will be removed in v4.49. Use the more precisely named 'max_batch_size' argument instead.
+The 'batch_size' attribute of HybridCache is deprecated and will be removed in v4.49. Use the more precisely named 'self.max_batch_size' attribute instead.
+Traceback (most recent call last):
+  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/rdo.py", line 174, in <module>
+    with model.trace("Hello") as tracer:
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/contexts/Tracer.py", line 102, in __exit__
+    super().__exit__(exc_type, exc_val, exc_tb)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/contexts/GraphBasedContext.py", line 217, in __exit__
+    self.backend(self)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/contexts/backends/LocalBackend.py", line 27, in __call__
+    obj.local_backend_execute()
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/contexts/Tracer.py", line 146, in local_backend_execute
+    self.model.interleave(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/models/NNsightModel.py", line 469, in interleave
+    with HookHandler(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/intervention.py", line 581, in __exit__
+    raise exc_val
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/models/NNsightModel.py", line 480, in interleave
+    fn(*inputs, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/models/mixins/Generation.py", line 20, in _execute
+    return self._execute_forward(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/models/LanguageModel.py", line 327, in _execute_forward
+    return self._model(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1844, in _call_impl
+    return inner()
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in inner
+    result = forward_call(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/accelerate/hooks.py", line 170, in new_forward
+    output = module._old_forward(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/models/gemma2/modeling_gemma2.py", line 977, in forward
+    outputs = self.model(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1844, in _call_impl
+    return inner()
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in inner
+    result = forward_call(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/models/gemma2/modeling_gemma2.py", line 763, in forward
+    layer_outputs = decoder_layer(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1844, in _call_impl
+    return inner()
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in inner
+    result = forward_call(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/accelerate/hooks.py", line 170, in new_forward
+    output = module._old_forward(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/models/gemma2/modeling_gemma2.py", line 479, in forward
+    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1844, in _call_impl
+    return inner()
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in inner
+    result = forward_call(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/accelerate/hooks.py", line 170, in new_forward
+    output = module._old_forward(*args, **kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/models/gemma2/modeling_gemma2.py", line 394, in forward
+    key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/cache_utils.py", line 1716, in update
+    return update_fn(
+  File "/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/cache_utils.py", line 1679, in _sliding_update
+    k_out = k_out[:, :, indices]
+RuntimeError: indices should be either on cpu or on the same device as the indexed tensor (cuda:0)

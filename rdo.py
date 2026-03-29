@@ -161,6 +161,21 @@ elif args.dtype == 'float32':
 else:
     raise ValueError(f"Unsupported dtype: {args.dtype}")
 
+# Workaround: nnsight's _load pops config on first call, losing it on dispatch.
+# So we monkey-patch cache_utils._sliding_update to fix the device mismatch.
+import transformers.cache_utils as _cache_utils
+_orig_sliding_update = _cache_utils.HybridCache._sliding_update
+def _fixed_sliding_update(self, cache_position, layer_idx, key_states, value_states):
+    k_out = self.key_cache[layer_idx]
+    v_out = self.value_cache[layer_idx]
+    indices = torch.arange(k_out.shape[2], device=k_out.device)
+    k_out[:, :, indices] = key_states
+    v_out[:, :, indices] = value_states
+    return k_out, v_out
+# Only patch if HybridCache exists and has _sliding_update
+if hasattr(_cache_utils, 'HybridCache') and hasattr(_cache_utils.HybridCache, '_sliding_update'):
+    _cache_utils.HybridCache._sliding_update = _fixed_sliding_update
+
 model = LanguageModel(MODEL_PATH, cache_dir=os.getenv("HUGGINGFACE_CACHE_DIR"), device_map='auto', torch_dtype=dtype)
 model.requires_grad_(False)
 
