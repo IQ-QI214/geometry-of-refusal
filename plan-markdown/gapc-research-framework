@@ -1,0 +1,705 @@
+# Gap C 研究思路梳理文档
+
+> **文档性质**：研究思路与框架梳理，面向顶会（NeurIPS / ICLR / ICML）投稿标准
+> **研究方向**：VLM Jailbreak Attack — Sequence-Level Refusal Suppression via Visual Perturbation
+> **最后更新**：基于与 PI 的完整讨论迭代，覆盖文献搜索、方向验证、pivot 过程
+
+---
+
+## 目录
+
+1. [研究背景与文献基础](#1-研究背景与文献基础)
+2. [已探索并终止的方向](#2-已探索并终止的方向)
+3. [第一性原理推导](#3-第一性原理推导)
+4. [Problem 定义](#4-problem-定义)
+5. [Motivation](#5-motivation)
+6. [Core Insight](#6-core-insight)
+7. [Task 形式化](#7-task-形式化)
+8. [Challenge 分析](#8-challenge-分析)
+9. [Novelty Mapping](#9-novelty-mapping)
+10. [完整 Framework 架构](#10-完整-framework-架构)
+11. [Potential Flaw 与审稿人视角](#11-potential-flaw-与审稿人视角)
+12. [验证计划（Pilot Experiments）](#12-验证计划pilot-experiments)
+13. [Research Roadmap](#13-research-roadmap)
+14. [关键文献列表](#14-关键文献列表)
+15. [已踩过的坑与设计原则](#15-已踩过的坑与设计原则)
+
+---
+
+## 1. 研究背景与文献基础
+
+以下 observations 有顶会文献直接支撑，是整个讨论的出发点，无需重新验证。
+
+### Observation A：视觉模态结构性破坏 safety boundary
+
+**来源**：VLLM Safety Paradox, NeurIPS 2025
+
+实验设计：三组对照——LLM-Base / VLLM-Text（VLM 只输入文字）/ VLLM-MM（VLM 输入图文）
+
+核心结论：
+- LLM-Base 和 VLLM-Text 的 hidden state 中，safe/unsafe 边界清晰可分
+- VLLM-MM 加入图像后，特征空间分布崩塌，边界消失
+- **图像的加入是结构性破坏，与图像内容是否有害无关——blank image 也有同样效果**
+- 根本原因不是 fine-tuning 的灾难性遗忘，而是视觉模态本身引起了 activation shift
+
+**对 Gap C 的 implication**：Visual modality 对整个 hidden state 序列都有持续影响，不只是初始 token。这是 sequence-level 攻击的 modality 基础。
+
+---
+
+### Observation B：Refusal 是 hidden state 中的线性方向（LLM）
+
+**来源**：Arditi et al., NeurIPS 2024
+
+核心结论：
+- 在纯 LLM 中，refusal 对应 hidden state 空间中一个可被 mean-difference 提取的方向向量 $v_{\text{refusal}}$
+- Ablate 这个方向后，refusal 大幅下降；restore 后恢复
+- **模型不是因为"无法识别有害意图"而拒绝，而是有一个专门的 refusal 激活机制**
+- Safety fine-tuning 没有删除有害生成能力，只是建立了 refusal direction 来压制它
+
+**对 Gap C 的 implication**：Refusal 可以被精确定位和操控——这是 mechanistic 攻击的理论基础。
+
+---
+
+### Observation C：Refusal 不是单一方向，而是多维 Concept Cone
+
+**来源**：Wollschläger et al., "The Geometry of Refusal in LLMs: Concept Cones and Representational Independence", ICML 2025
+
+核心结论：
+- Refusal 不由单一方向控制，而是由多维的 **concept cones（概念锥体）** 介导
+- Cone 内任意方向都能触发 refusal——这解释了为什么单方向 ablation 不能 100% 消除 refusal
+- 正交性 ≠ 干预下的独立性；提出 **representational independence** 作为更严格标准
+- 提出 Refusal Direction Optimization（RDO）方法，超越了 mean-difference 的局限
+
+**对 Gap C 的 implication**：这直接推翻了 Arditi et al. 的单向量假设，我们的攻击目标必须升级为抑制整个 refusal cone，而非单一方向。单一方向的攻击天然脆弱，cone-level 的攻击才是 robust 的。
+
+---
+
+### Observation D：Safety Alignment 是浅层的（Shallow）
+
+**来源**：Qi et al., "Safety Alignment Should Be Made More Than Just a Few Tokens Deep", ICLR 2025 **Outstanding Paper Award**
+
+核心结论：
+- Safety alignment 采取了 shortcut：主要只适配模型**前几个 output token** 的生成分布
+- 这个 shallow alignment 统一解释了 adversarial suffix attacks、prefilling attacks、decoding parameter attacks、fine-tuning attacks 的共同脆弱性
+- 一旦前几个 token 偏离 refusal pattern，auto-regressive 机制会自动维持有害方向
+
+**对 Gap C 的 implication**：现有所有攻击方法（包括 UltraBreak）都在利用 shallow alignment 的初始 token 弱点。这篇 Outstanding Paper 提出了这个问题，但没有在 VLM visual modality 上系统解决其攻击侧对应问题——这是 Gap C 的直接入口。
+
+---
+
+### Observation E：VLM 具有 Delayed Safety Awareness
+
+**来源**：The Safety Reminder（SAPT）, arXiv 2025
+
+核心结论：
+- VLM 在被 jailbreak 后会先输出有害内容，但随后识别风险并尝试自我纠正（添加免责声明，拒绝继续）
+- **Jailbreak 攻击没有抹去模型的安全意识，而是延迟了它的激活**
+- Auto-regressive 目标 $p(y_t | y_{<t}, x)$ 驱使模型维持与有害前缀的一致性，但安全意识会在若干步后重新激活
+- SAPT 在防御侧通过周期性注入 soft prompt 来重新激活 safety awareness
+
+**对 Gap C 的 implication**：这是 Gap C 最直接的 motivation 来源。SAPT 解决了防御侧的 delayed safety awareness 问题；攻击侧的问题——**如何使 delayed safety awareness 永远无法被激活**——至今没有人系统解决。Gap C 就是 SAPT 在攻击侧的直接镜像。
+
+---
+
+### Observation F：Safety Signal 在整个 Generation 过程中持续存在
+
+**来源**：SafeProbing, arXiv 2026
+
+核心结论：
+- 模型在生成有害内容的过程中，其内部对自身生成有害性的识别信号在 decoding 的 hidden state 中始终存在
+- **Safety 意识在 latent space 层面持续存在，只是没有被转化为行为层面的拒绝**
+- 一旦 safety alignment 被绕过，decoding 过程就会优先考虑流畅性和上下文一致性，而不是自我纠正
+
+**对 Gap C 的 implication**：这是 sequence-level suppression 的 mechanistic basis。我们需要压制的是整个序列中持续存在的 safety probe signal，而不只是初始 token。
+
+---
+
+### Observation G：直接抑制 Refusal Direction 优于最大化 Affirmative Token
+
+**来源**：DSN, ACL 2025 Findings
+
+核心结论：
+- 在纯 LLM 中，直接在 hidden state 中抑制 refusal direction 的 ASR（Attack Success Rate）显著高于最大化 affirmative token 概率
+- 理论解释：affirmative token 优化是 output space 的间接干预；refusal direction 抑制是 hidden state space 的直接上游干预
+
+**对 Gap C 的 implication**：这支持了我们从 output space 转向 hidden state space 的 mechanistic 攻击思路。DSN 在纯 LLM + text space 做了这件事；我们在 VLM + visual space 做。
+
+---
+
+### Observation H：Instruction Fine-tuning 导致 Refusal Direction Drift
+
+**来源**：Du et al. (多模态安全相关工作), 2025
+
+核心结论：
+- Instruction fine-tuning（包括 VLM 的 visual instruction tuning）会导致 LLM backbone 的 refusal direction 发生 "drift"（方向偏移）
+- Drift 幅度与安全性下降相关
+- 这说明 VLM 中的 refusal direction 与纯 LLM 中的方向存在系统性偏差
+
+**对 Gap C 的 implication**：不能直接复用 Arditi et al. 在纯 LLM 上提取的 $v_{\text{refusal}}$，必须在 VLM 的 multimodal 模式下重新提取。
+
+---
+
+### Observation I：VLM Hidden State 在不同 Image 输入下可分离
+
+**来源**：CMRM, ACL 2025 Findings
+
+核心结论：
+- 在 PCA 可视化中，VLM 的 hidden state 在五种输入变体（纯文本、text+caption、原始图像、blank image、Gaussian noise）下的表征是可分离的
+- Visual modality 在 hidden state 层面引入了系统性的分布偏移
+- 这在 representation 层面独立验证了 VLLM Safety Paradox 的结论
+
+**对 Gap C 的 implication**：Visual perturbation 对 hidden state 的影响是可观测、可优化的——这是攻击设计的 empirical 基础。
+
+---
+
+## 2. 已探索并终止的方向
+
+以下方向在讨论过程中被排除，新文档不应重新提出。
+
+| 方向 | 终止原因 |
+|---|---|
+| Per-token Safety Shift 浓度分析（H1） | 依赖 DTR（ICLR 2026 撤稿），其根本假设被 reviewer 指出存在 confounding 问题 |
+| 不同粒度攻击是否推向同一 Jailbreak State | 研究问题本身没有攻击侧的直接 implication：收敛 → JailBound 已做；不收敛 → 防御只需画大圈 |
+| Coverage Gap Attack（针对防御正交） | 防御手段种类繁多，"与所有 direction 正交"在数学上几乎不可能；范围过广无法定义 |
+| 基于 ShiftDC 直接设计攻击 | 与 Jailbreak in Pieces (ICLR 2024)、JailBound (NeurIPS 2025) 区分度不足；线性可分假设稳定性存疑 |
+| 单一 v_refusal 方向抑制（原 Question B） | 被 Wollschläger et al. (ICML 2025) 证伪：refusal 是多维 cone，单方向攻击天然脆弱且 novelty 不足 |
+
+---
+
+## 3. 第一性原理推导
+
+**从最基本的问题出发**：
+
+> VLM 为什么会拒绝有害请求？
+
+Safety fine-tuning 在 LLM backbone 的 hidden state 空间中建立了一个 refusal mechanism。**Arditi et al. (NeurIPS 2024)** 证明这个 mechanism 对应 hidden state 中的可提取的几何结构（方向/锥体）。**Wollschläger et al. (ICML 2025)** 进一步证明这是多维的 concept cone，而非单一方向。
+
+> 这个 mechanism 在生成过程中如何工作？
+
+Auto-regressive 生成的每一步，模型都在 hidden state 中计算安全信号。**SafeProbing (2026)** 证明 safety signal 在整个 generation 过程中持续存在于 hidden state。**The Safety Reminder (2025)** 证明即使攻击成功使模型开始生成有害内容，safety awareness 也会在若干步后重新激活——这是 delayed safety awareness 现象。
+
+> 现有攻击为什么不够？
+
+**Qi et al. (ICLR 2025)** 证明现有攻击利用的是 shallow alignment——只在前几个 token 处有效。一旦初始 refusal 被绕过，auto-regressive 一致性会帮助维持有害生成，但 delayed safety awareness 仍会在序列中途触发自我纠正。**现有攻击只解决了必要条件（初始 refusal 抑制），没有解决充分条件（持续 safety signal 压制）。**
+
+> 为什么 Visual Modality 是特殊的攻击工具？
+
+**VLLM Safety Paradox (NeurIPS 2025)** 证明 visual modality 天然对整个 LLM backbone 的 safety mechanism 有持续性的 activation shift 效果——这种效果是 generic 的、model-agnostic 的，且覆盖整个 token 序列。这使 visual perturbation 成为 sequence-level safety suppression 的天然载体——比 text-level 攻击更难被 token-level 防御检测，且对整个生成序列都有影响。
+
+**第一性原理结论**：
+
+> 既然 (1) refusal 是 hidden state 中持续存在的多维 cone 结构（Wollschläger et al.），(2) safety signal 在整个 generation 过程中持续存在（SafeProbing），(3) visual modality 天然对 LLM backbone 的整个序列都有 activation shift 效果（Safety Paradox），那么**设计 visual perturbation 在整个 generation trajectory 上持续抑制 refusal cone 的激活**，是从机理出发最直接、最 mechanistically grounded 的攻击设计——这也是 delayed safety awareness 在攻击侧的直接对应。
+
+---
+
+## 4. Problem 定义
+
+**精确陈述**：
+
+现有 VLM jailbreak 攻击只在生成初期破坏 shallow alignment（Qi et al., ICLR 2025），未能解决 **delayed safety awareness**（The Safety Reminder, 2025）问题：VLM 在初始 refusal 被抑制后，会在 generation 过程中重新激活 safety awareness 并尝试自我纠正。这个 safety reactivation 机制的 hidden state 层面的几何结构（refusal cone，Wollschläger et al., ICML 2025）在整个 generation trajectory 中持续存在（SafeProbing, 2026），但**目前没有任何攻击方法系统地在 sequence level 上压制这个持续的 safety signal**。
+
+**问题的唯一性说明**：
+
+- **SAPT（防御侧）** 解决了 delayed safety awareness 的防御问题，通过周期性注入 soft prompt 重新激活 safety
+- **攻击侧的对应问题**（如何使 safety reactivation 在整个序列中永远无法被激活）至今没有系统研究
+- **Visual modality** 作为序列级别的攻击工具，在 sequence-level safety suppression 这个特定目标上没有被先前工作使用过
+
+---
+
+## 5. Motivation
+
+**以问句形式重构**：
+
+> Prior attacks exploit shallow alignment by targeting only the first few output tokens (Qi et al., ICLR 2025 Outstanding Paper). However, VLMs exhibit **delayed safety awareness**—even after initial refusal suppression succeeds, the model can self-correct mid-generation (The Safety Reminder, 2025). This self-correction is driven by a persistent safety signal in the hidden state (SafeProbing, 2026), corresponding to a multi-dimensional refusal cone (Wollschläger et al., ICML 2025) that remains active throughout the generation trajectory.
+>
+> Given that (1) visual modality induces a generic, sequence-spanning activation shift in the LLM backbone (VLLM Safety Paradox, NeurIPS 2025), and (2) this shift naturally suppresses safety boundary signals across the entire input sequence, **can we design visual perturbations that suppress the refusal cone activation across the entire generation trajectory, preventing delayed safety reactivation?**
+
+**动机的核心逻辑链**：
+
+```
+Shallow Alignment (Qi et al., ICLR 2025)
+    ↓ 现有攻击只利用这一点
+Delayed Safety Awareness (SAPT, 2025)  ← 现有攻击没有解决这个
+    ↓ 安全信号在 generation 中持续存在的机制
+Persistent Safety Signal in Hidden State (SafeProbing, 2026)
+    ↓ 这个信号的几何结构
+Refusal Cone (Wollschläger et al., ICML 2025)
+    ↓ 如何在序列级别持续抑制
+Visual Modality as Sequence-Level Suppression Tool (Safety Paradox, NeurIPS 2025)
+    ↓
+Gap C：Sequence-Level Refusal Cone Suppression via Visual Perturbation
+```
+
+---
+
+## 6. Core Insight
+
+**Inspiration 来源**：
+
+- **Cross-domain**：SAPT 在防御侧周期性激活 safety；我们在攻击侧持续抑制 safety——防御侧的设计揭示了攻击侧的 open problem
+- **Geometric intuition**：Refusal cone 是 hidden state 空间中的几何结构，visual perturbation 改变 hidden state 的分布，这是 geometry-level 的攻击工具
+- **Sequence-level thinking**：将 jailbreak 从 single-token 问题升级为 trajectory-level 问题，是从 shallow alignment 的发现自然推导出的必要升级
+
+**Core Insight（一句话）**：
+
+> Visual perturbation 天然地、持续地影响整个 generation trajectory 的 hidden state，使其成为 sequence-level refusal cone suppression 的理想工具——这是任何 text-level 攻击都不具备的 modality 特性。
+
+**与先前框架的根本区别**：
+
+之前（原 Question B）的 insight 是"用 visual input 抑制 refusal direction"，目标是单次、初始 token 的操作。**Gap C 的升级是**：把攻击目标从"初始 token 的 refusal direction 抑制"升级为"整个 generation trajectory 的 refusal cone 持续抑制"，这个升级由 Qi et al. + SAPT + SafeProbing 三篇文献的组合 observation 直接驱动。
+
+---
+
+## 7. Task 形式化
+
+### 输入输出定义
+
+- **Input**：有害文本指令 $q$，原始图像 $x$，白盒目标 VLM $f_\theta$（pilot 阶段；迁移性在后续解决）
+- **Output**：扰动图像 $x' = x + \delta$，使得 $f_\theta(x', q)$ 在完整 generation trajectory 上输出有害内容，且不触发 mid-generation self-correction
+
+### 优化目标（序列级别）
+
+$$\min_{\delta} \underbrace{\sum_{t=1}^{T} \langle \Delta h_t(\delta, q, y_{<t}), \mathcal{C}_{\text{refusal}} \rangle}_{\text{sequence-level refusal cone suppression}} + \lambda \cdot \underbrace{\mathcal{L}_{\text{harmful}}(\delta, q)}_{\text{harmful direction alignment}}$$
+
+其中：
+- $h_t(\delta, q, y_{<t})$：第 $t$ 个 decoding step 的 LLM backbone 中间层 hidden state
+- $\Delta h_t(\delta, q, y_{<t}) = h_t(x+\delta, q, y_{<t}) - h_t(x, q, y_{<t})$：扰动引入的 hidden state 变化
+- $\mathcal{C}_{\text{refusal}}$：由 RDO（Wollschläger et al., ICML 2025）提取的 refusal cone，包含多个独立 basis vectors
+- $\langle \cdot, \mathcal{C}_{\text{refusal}} \rangle$：hidden state 变化在 refusal cone 所有 basis vectors 上投影之和（maximizing suppression of all refusal directions simultaneously）
+- $\mathcal{L}_{\text{harmful}}$：有害方向对齐项（确保模型知道"往哪个方向回答"，解决 blank image 效果不足问题）
+- $T$：目标 generation 长度（覆盖 delayed safety reactivation 通常发生的时间窗口）
+
+### 约束条件
+
+$$\|\delta\|_p \leq \varepsilon \quad \text{（感知不可见性约束）}$$
+
+### Bimodal Objective 的必要性
+
+仅优化 refusal cone suppression（component 1）是**必要条件**，不是充分条件。VLLM Safety Paradox 已证明 blank image 天然有 refusal suppression 效果，但不足以触发完整 jailbreak——因为没有 harmful direction 的引导（component 2）。两个 component 缺一不可。
+
+### 与先前攻击的形式化区别
+
+| 攻击 | 优化目标 | 作用时间步 |
+|---|---|---|
+| GCG (NeurIPS 2023) | $\max p(\text{"Sure"} \mid q, \delta)$ | 初始 token（$t=1$） |
+| DSN (ACL 2025) | $\min \langle h_1, v_{\text{refusal}} \rangle$ | 初始 token（$t=1$），纯 LLM |
+| JailBound (NeurIPS 2025) | boundary crossing in fusion layer | prefill 阶段 |
+| UltraBreak (ICLR 2026) | semantic embedding loss（平滑版） | 初始 token 语义 |
+| **Gap C（我们）** | $\min \sum_t \langle \Delta h_t, \mathcal{C}_{\text{refusal}} \rangle$ | **整个 trajectory（$t=1$ 到 $T$）** |
+
+---
+
+## 8. Challenge 分析
+
+### Challenge A：现有攻击的 Proxy Objective 问题（已有文献支撑）
+
+**来源**：GCG (NeurIPS 2023) + HarmBench (ICML 2024) + DSN (ACL 2025)
+
+最大化 affirmative token 是 output space 的间接干预（proxy objective）。HarmBench 评估显示 GCG 类攻击在 safety-aligned 模型上 ASR 有上限。DSN 证明 hidden state 层的直接干预效率更高。
+
+**这个 challenge 是否足以支撑顶会**：不足够单独支撑，但作为 motivation 背景是必要的。
+
+### Challenge B：Shallow Alignment 被绕过后的 Delayed Safety Reactivation（核心 Challenge）
+
+**来源**：Qi et al. (ICLR 2025) + SAPT (2025) + SafeProbing (2026)
+
+这是 Gap C 的核心 challenge，也是真正**没有被现有攻击系统解决**的问题：
+- 现有攻击在初始 token 处绕过 shallow alignment（必要条件满足）
+- 但 VLM 在 generation 过程中持续计算 safety signal（SafeProbing）
+- Delayed safety awareness 使模型在若干步后自我纠正（SAPT）
+- 这使得攻击成功率在长序列生成中显著下降
+
+**这个 challenge 是否足以支撑顶会**：**Yes**。它由 ICLR 2025 Outstanding Paper 揭示，在 VLM visual modality 上的攻击侧对应至今是 open problem。
+
+### Challenge C：Refusal Cone 而非单一方向的攻击复杂度
+
+**来源**：Wollschläger et al. (ICML 2025)
+
+单方向 ablation 不能 100% 消除 refusal，因为 cone 内的其他方向仍然激活。这使攻击设计从"单向量优化"升级为"多维 cone 空间优化"，技术难度显著增加。
+
+**这个 challenge 是否足以支撑顶会**：单独不够，但作为我们攻击设计比先前工作更 robust 的 justification 是关键的。
+
+### Challenge D：跨模型迁移性
+
+**来源**：Schaeffer et al. (ICLR 2025)：图像 jailbreak 在跨模型迁移时极为困难
+
+UltraBreak（ICLR 2026）通过 semantic loss 平滑 loss landscape 部分解决了这个问题。我们的 sequence-level 攻击需要在迁移性上给出答案，但这是后续 challenge，不是 pilot 阶段的核心问题。
+
+**这个 challenge 能否被解决的方向**：VLLM Safety Paradox 证明 blank image 对所有 VLM 有 model-agnostic refusal suppression 效果，说明 sequence-level activation shift 的某个 component 是跨模型稳定的——这是 transferability 的理论基础。
+
+---
+
+## 9. Novelty Mapping
+
+### 创新点 1：攻击目标从单时间步升级到 Sequence-Level
+
+**[Problem Solved]** Delayed safety awareness / mid-generation self-correction
+
+**[Inspired by]** Qi et al. (ICLR 2025) 揭示 shallow alignment + SAPT (2025) 证明 delayed awareness + SafeProbing (2026) 证明 safety signal 贯穿序列
+
+**[Specific Innovation]** 将攻击优化目标从 $t=1$ 的初始 token 扩展到 $\sum_{t=1}^{T}$ 的整个 generation trajectory
+
+**创新类型**：**Methodology 创新**——新的 objective function formulation
+
+**Novelty 等级**：Incremental-to-significant（相对于 shallow alignment 的 "more than a few tokens" 这一方向，在 VLM visual space 的攻击侧实现是新的）
+
+---
+
+### 创新点 2：攻击目标从单一 Direction 升级到 Refusal Cone
+
+**[Problem Solved]** 单方向攻击的脆弱性（单一方向被防御修复后，其他 refusal 方向仍然激活）
+
+**[Inspired by]** Wollschläger et al. (ICML 2025)：refusal 是多维 concept cone
+
+**[Specific Innovation]** 优化对象从 $\langle \cdot, v_{\text{refusal}} \rangle$ 升级为 $\langle \cdot, \mathcal{C}_{\text{refusal}} \rangle$，覆盖 cone 的所有独立 basis vectors
+
+**创新类型**：**Methodology 创新**——更 robust 的几何攻击目标
+
+**Novelty 等级**：Incremental（建立在 ICML 2025 的 cone 理论上，但将其应用于攻击设计是新的）
+
+---
+
+### 创新点 3：Visual Modality 作为 Sequence-Level Suppression 的工具
+
+**[Problem Solved]** Text-level 攻击无法持续影响整个序列的 hidden state；token-by-token 干预会被检测
+
+**[Inspired by]** VLLM Safety Paradox (NeurIPS 2025)：visual input 的 activation shift 对整个序列都有影响，不只是初始 token
+
+**[Specific Innovation]** 将 visual perturbation 设计为 sequence-level safety suppression 的载体，利用 visual modality 对 hidden state 的 generic、序列级持续影响
+
+**创新类型**：**Strategy 创新**——利用 VLM 的 modality 特性做 sequence-level 干预
+
+**Novelty 等级**：Significant（没有先前工作在 sequence-level safety suppression 这个目标上使用 visual modality）
+
+---
+
+## 10. 完整 Framework 架构
+
+### 整体流程
+
+```
+阶段 0：Refusal Cone 提取（一次性，白盒）
+    ↓
+    使用 RDO（Wollschläger et al., ICML 2025 开源代码）
+    在目标 VLM（LLaVA-1.5-7B 等）上提取 refusal cone C_refusal
+    输入：harmful/harmless paired prompts + blank image（控制变量）
+    输出：多维 basis vectors {v_1, v_2, ..., v_k} spanning the refusal cone
+    层选择：middle layers（layer 16-20，参考 Arditi et al. 的稳定性分析）
+
+阶段 1：Sequence-Level 视觉扰动优化（PGD-style UAP）
+    ↓
+    优化目标：min Σ_t <Δh_t(δ,q,y_{<t}), C_refusal> + λ·L_harmful
+    扰动类型：Universal Adversarial Perturbation（input-agnostic，提升迁移性）
+    约束：||δ||_p ≤ ε（感知不可见性）
+    生成方式：白盒 PGD 梯度下降，在目标 VLM 上直接优化
+
+阶段 2：攻击执行与评估
+    ↓
+    输入：(x + δ, q) → 目标 VLM → 完整 generation sequence
+    评估：ASR（Attack Success Rate）on HarmBench / MM-SafetyBench
+    关键指标（Gap C 特有）：
+      - Self-correction rate：序列中途出现 safety reactivation 的比例
+      - Harmful completion length：有害内容持续的平均 token 数
+      - Full harmful completion rate：无 mid-generation correction 的比例
+
+阶段 3（后续）：迁移性验证
+    ↓
+    Phase 1（model-agnostic）：利用 Safety Paradox 的 generic activation shift
+    Phase 2（白盒精化）：在有访问权限时沿 cone 方向进一步优化
+    跨模型测试：LLaVA → InstructBLIP → LLaMA-Vision
+```
+
+### 关键设计决策
+
+**为什么用 UAP 而非 input-specific perturbation**：
+- Input-specific（PGD per sample）会导致 overfit（Schaeffer et al., ICLR 2025 的悲观结论根源）
+- UAP 的 input-agnostic 性质是迁移性的基础
+- UltraBreak（ICLR 2026）证明 semantic-level 平滑可以提高 UAP 的迁移性，可参考其 loss smoothing 技巧
+
+**为什么需要 bimodal objective**：
+- Component 1 是必要条件：VLLM Safety Paradox 证明 blank image 已有 refusal suppression 效果，但不足以 jailbreak
+- Component 2 是充分条件：模型需要知道"往哪个方向回答"
+- 两者缺一不可，这是在之前讨论中由第一性原理推导的结论
+
+**如何定义 harmful direction alignment（Component 2）**：
+- 方案 X（推荐）：$h_{\text{target}}$ 直接用 compliant harmful responses 的 hidden state mean
+- 这与 Jailbreak in Pieces (ICLR 2024) 的区别：我们在 LLM decoder 的 hidden state 层操作，而非 input embedding 层；后者经过多层 transformer 处理后有害信号可能被稀释
+
+---
+
+## 11. Potential Flaw 与审稿人视角
+
+### 弱点 1（最致命）：Refusal Cone 在 VLM 中是否存在且稳定
+
+**审稿人攻击**：
+> "Wollschläger et al. 在纯 LLM 中验证了 refusal cone 的存在。但 VLM 的 instruction fine-tuning 会导致 refusal direction drift（Du et al., 2025）。你没有证明 refusal cone 在 VLM 的 multimodal 模式下仍然存在且可提取。如果 cone 在 VLM 中不稳定，你的整个攻击框架就失去了 mechanistic basis。"
+
+**Rebuttal 方向**：
+- Pilot experiment A（见第 12 节）直接验证这个 assumption
+- VLM-Guard（2025）的成功说明从 LLM backbone 中提取 safety direction 在 VLM 设置下是可行的
+- 关键实验：text-only vs text+blank_image 模式下 refusal cone 的 cosine similarity
+
+**风险评级**：Critical——整个 framework 的 load-bearing assumption
+
+---
+
+### 弱点 2：Refusal Cone 在 Decoding 过程中是否时间步稳定
+
+**审稿人攻击**：
+> "你假设可以用静态 refusal cone 做 sequence-level suppression。但 refusal cone 在不同时间步可能会变化（因为 context $y_{<t}$ 在变化）。用静态 cone 优化动态目标，会导致后期 time steps 的 suppression 效果大幅下降。"
+
+**Rebuttal 方向**：
+- Pilot experiment B（见第 12 节）直接验证
+- 如果 cone 不稳定：这本身是 novel finding，可以提出 dynamic cone estimation 作为升级方案，反而增加 paper 的贡献量
+- 理论 argument：refusal 对应 LLM 中的稳定语义特征，不应该随 decoding context 大幅漂移（参考 Arditi et al. 的跨 prompt 稳定性结果）
+
+**风险评级**：High——但有 fallback 方案
+
+---
+
+### 弱点 3：与 UltraBreak（ICLR 2026）的区分度
+
+**审稿人攻击**：
+> "UltraBreak 已经解决了 VLM jailbreak 的迁移性问题，并且有更好的实验覆盖。你的方法的 sequence-level 目标相比 UltraBreak 的 semantic loss 有什么根本优势？"
+
+**Rebuttal 方向**：
+- UltraBreak 的目标仍然是 initial token semantic loss，没有覆盖 delayed safety reactivation
+- 核心实验：测量 UltraBreak 攻击成功的样本中，有多少比例出现 mid-generation self-correction。如果这个比例显著不为零，就证明了 Gap C 的存在性
+- 我们的 novelty 不在迁移性本身，而在**攻击目标的层次**（shallow vs. sequence-level）
+
+**风险评级**：Medium——需要专门的实验来区分
+
+---
+
+### 弱点 4（情境局限）：Visual Modality 的必要性
+
+**审稿人攻击**：
+> "为什么一定要用 visual perturbation？在 text space 也可以做 sequence-level refusal cone suppression（例如 adversarial suffix + DSN 的结合）。Visual modality 的特殊性体现在哪里？"
+
+**Rebuttal 方向**：
+- Visual modality 的 activation shift 是 generic 的、序列级别的、model-agnostic 的（Safety Paradox 证明）——text-level perturbation 没有这个性质
+- Visual perturbation 更难被 token-level 防御（如 PPL 过滤器）检测
+- 在 multimodal 攻击场景下，image 是攻击者最容易控制的输入维度（用户通常需要提供图片）
+
+**风险评级**：Low——有明确 argument
+
+---
+
+### 弱点 5：Sequence-Level 优化的计算复杂度
+
+**审稿人攻击**：
+> "在整个 generation trajectory 上做反向传播，计算成本是单 token 攻击的 T 倍。这在实际攻击场景中是否可行？"
+
+**Rebuttal 方向**：
+- 攻击是 offline 计算的（一次优化，多次使用），计算成本不影响攻击的实用性
+- 可以用截断 TBPTT（Truncated Backpropagation Through Time）在有限时间步窗口内近似
+- UAP 的一次性优化特性使 per-sample 推理开销为零
+
+**风险评级**：Low——工程问题，有标准解法
+
+---
+
+## 12. 验证计划（Pilot Experiments）
+
+### 前置条件
+
+- **模型**：LLaVA-1.5-7B（HuggingFace 开源，完全白盒访问）
+- **GPU**：单张 A100 40GB（或 3090 24GB + 4bit 量化）
+- **代码依赖**：HuggingFace Transformers、RDO 开源实现（cs.cit.tum.de/daml/geometry-of-refusal）
+- **数据**：AdvBench（400 条 harmful）+ 自构造 harmless pairs（topic-matched，控制 confounding）
+
+---
+
+### Pilot Experiment A：Refusal Cone 在 VLM 中的模态稳定性
+
+**目标**：验证 visual modality 是否改变 refusal cone 的方向（vs. 只改变激活幅度）
+
+**设计**：
+1. 构造 harmful/harmless paired prompts（8-16 对，topic 相近，只有 safety 属性不同）
+2. 条件 1：text-only forward pass，在 layer 16 提取 mean-difference → $v_{\text{refusal}}^{\text{text}}$
+3. 条件 2：text + blank image forward pass，同样提取 → $v_{\text{refusal}}^{\text{MM}}$
+4. 计算 $\cos(v_{\text{refusal}}^{\text{text}}, v_{\text{refusal}}^{\text{MM}})$ 和 norm 比值
+
+**判断标准**：
+- $\cos > 0.85$：方向稳定，只是幅度被压制 → **Exp A PASS，继续 Gap C**
+- $\cos < 0.85$：方向改变 → 必须用 $v_{\text{MM}}$ 替换 $v_{\text{text}}$，调整 pipeline
+
+**为什么用 blank image**：排除 visual semantics 的干扰，使 activation shift 纯粹来自 visual modality 的存在，与 Safety Paradox 的实验设计一致。
+
+---
+
+### Pilot Experiment B：Refusal Cone 的时间步一致性
+
+**目标**：验证 refusal cone 在 generation 过程中是否跨时间步稳定
+
+**设计**：
+1. 固定一个 harmful prompt，使用目标 VLM 运行 generate
+2. 在 $t = 1, 5, 10, 20, 50$ 个 decoding step 时分别提取 last token 的 hidden state
+3. 对每个时间步分别提取 refusal direction（使用 Exp A 中相同的 paired prompts）
+4. 计算所有时间步对之间的 pairwise cosine similarity
+
+**判断标准**：
+- All pairs $\cos > 0.80$：cone 时间步稳定 → **Exp B PASS，可用静态 cone 做 sequence-level 优化**
+- 存在 pairs $\cos < 0.80$：cone 动态变化 → 需要 dynamic cone estimation（更复杂，但 novelty 更高）
+
+**特别关注**：prefill 阶段（$t=0$）到第一个 generate step（$t=1$）之间的跳跃——这是 context 变化最大的时刻。
+
+---
+
+### Pilot Experiment C：Delayed Safety Reactivation 的基线测量
+
+**目标**：量化 delayed safety awareness 的实际发生频率，证明 Gap C 问题的真实存在性
+
+**设计**：
+1. 使用现有最好的 VLM jailbreak 攻击（UltraBreak 或 JailBound）攻击 LLaVA
+2. 收集攻击"成功"（初始 token 通过 safety filter）的 generation sequences
+3. 测量：(a) 完整有害内容生成率；(b) 序列中途出现 self-correction 的比例；(c) self-correction 发生的平均时间步
+
+**判断标准**：
+- 如果 self-correction rate > 30%，说明 delayed safety awareness 是真实的、普遍的问题，Gap C 的研究必要性得到证明
+- 这个实验本身可以作为 paper 的 motivation 实验（Figure 1）
+
+---
+
+### 决策矩阵
+
+| Exp A | Exp B | 决策 |
+|---|---|---|
+| PASS | PASS | 推进 Gap C，使用静态 cone + sequence-level UAP |
+| PASS | FAIL | 升级为 dynamic cone estimation，novelty 更高 |
+| FAIL | PASS | 用 $v_{\text{MM}}$ 替换 $v_{\text{text}}$，pipeline 不变 |
+| FAIL | FAIL | Pivot 到 ShiftDC 的 task/safety subspace 方向 |
+
+---
+
+## 13. Research Roadmap
+
+### Phase 1：Load-bearing Assumptions 验证（2-3 周）
+
+**目标**：用最小实验成本裁决 framework 可行性
+
+- Pilot Exp A + B + C
+- 预期时间：Exp A（20 min on A100）+ Exp B（40 min）+ Exp C（取决于 UltraBreak 复现难度，约 1-2 天）
+- 关键 deliverable：实验结果 JSON + 决策矩阵填写完毕
+
+**可行性**：High
+
+---
+
+### Phase 2：核心攻击实现（4-6 周）
+
+**前提**：Exp A + B 至少 PASS 其中一项
+
+- 实现 sequence-level UAP 优化（PGD-style，基于 $\sum_t$ 目标）
+- 实现 bimodal objective（component 1 + component 2）
+- 在 LLaVA-1.5-7B 上的白盒 ASR 达到 baseline（> 60%）
+- Ablation study：component 1 alone vs. component 1 + 2；single token vs. sequence-level
+- 参考代码库：Image Hijacks（Bailey et al., NeurIPS 2023，开源）
+
+**可行性**：Medium（取决于 Exp A/B 结果）
+
+**潜在产出**：ICLR/NeurIPS workshop
+
+---
+
+### Phase 3：迁移性与黑盒场景（4-6 周）
+
+**目标**：解决 transferability 问题
+
+- 测量白盒 UAP 的跨模型 ASR（LLaVA → InstructBLIP → LLaMA-Vision）
+- 如果迁移性不足，参考 UltraBreak 的 semantic loss 平滑技巧
+- 利用 Safety Paradox 的 model-agnostic component 设计 transfer-optimized Phase 1
+
+**可行性**：Medium-Low
+
+---
+
+### Phase 4：完整实验 + Paper 写作（6-8 周）
+
+**必须包含的实验**：
+1. 白盒 ASR on HarmBench（覆盖所有攻击类别）
+2. 黑盒迁移 ASR（至少 3 个目标模型）
+3. 与 baseline 的对比（UltraBreak、JailBound、GCG、HIMRD）
+4. Ablation：sequence-level vs. single-token；cone vs. single direction；bimodal vs. unimodal
+5. Gap C 特有指标：self-correction rate、harmful completion length 分布
+
+**潜在产出**：
+- 完整迁移性 + ASR > 80% + solid ablation → NeurIPS / ICLR main（competitive）
+- 白盒强结果 + 部分迁移性 → ICLR main 或 NeurIPS（conditional accept 风险）
+- 白盒强结果 + 无迁移性 → workshop，需要 pivot
+
+---
+
+## 14. 关键文献列表
+
+### 核心支撑文献（必须精读）
+
+| 文献 | 发表状态 | 角色 |
+|---|---|---|
+| Arditi et al., "Refusal in LLMs is Mediated by a Single Direction" | NeurIPS 2024 | Refusal direction 的存在性与提取方法 |
+| Wollschläger et al., "Geometry of Refusal in LLMs: Concept Cones and Representational Independence" | ICML 2025 | Refusal cone 的多维结构；**推翻单向量假设**；RDO 方法（有开源代码） |
+| Qi et al., "Safety Alignment Should Be Made More Than Just a Few Tokens Deep" | ICLR 2025 Outstanding Paper | Shallow alignment 的系统性分析；Gap C 的入口 |
+| The Safety Reminder（SAPT） | arXiv 2025 | Delayed safety awareness；**Gap C 在防御侧的镜像** |
+| SafeProbing | arXiv 2026 | Safety signal 在 hidden state 中贯穿整个生成序列 |
+| VLLM Safety Paradox | NeurIPS 2025 | Visual modality 对 safety boundary 的结构性破坏；blank image 实验 |
+| DSN | ACL 2025 Findings | 直接抑制 refusal direction 优于最大化 affirmative token |
+
+### 需要精读以确认区别的文献
+
+| 文献 | 发表状态 | 角色 |
+|---|---|---|
+| UltraBreak | ICLR 2026 | 最新 SOTA；我们的主要竞争文献；semantic loss + transferability |
+| JailBound | NeurIPS 2025 | Fusion layer boundary crossing；与我们的几何操作有区别 |
+| ASTRA | CVPR 2025 | 防御侧 refusal direction 增强；我们的理论镜像 |
+| Image Hijacks (Bailey et al.) | NeurIPS 2023 | VLM UAP 攻击先驱；**推荐作为 baseline + 参考代码库** |
+| Jailbreak in Pieces | ICLR 2024 Spotlight | Input embedding 层攻击；与我们的 hidden state 层操作有区别 |
+| JRS-Rem | arXiv 2603.17372, 2026 | Jailbreak state 几何结构（注意：预印本，需谨慎引用） |
+
+### 评估用文献
+
+| 文献 | 角色 |
+|---|---|
+| HarmBench (Mazeika et al., ICML 2024) | 标准攻击评估协议，任何攻击论文必须使用 |
+| MM-SafetyBench | 多模态 safety 评估数据集 |
+| Schaeffer et al. (ICLR 2025) | VLM adversarial image 迁移性的大规模评估；迁移性难度的基线参考 |
+
+### 已放弃方向的文献（了解即可）
+
+| 文献 | 角色 |
+|---|---|
+| DTR (arXiv 2505.17132) | ICLR 2026 撤稿；per-token safety shift；**不可引用** |
+| ShiftDC | 2025；task/safety subspace disentanglement；已放弃直接使用，但 subspace 概念仍有背景价值 |
+
+---
+
+## 15. 已踩过的坑与设计原则
+
+以下是讨论过程中多次出现的错误模式，新方向设计必须避免。
+
+**坑 1**：声称"没有人做过"之前没有做彻底的文献搜索
+→ **原则**：每个 claim 必须有顶会文献支撑，或明确标注 "This needs further verification"
+
+**坑 2**：依赖 arXiv 预印本或撤稿论文的结论
+→ **原则**：单篇 arXiv 文章的结论必须有独立发表文献的联合支撑；撤稿文献不可引用
+
+**坑 3**：研究问题没有攻击侧的直接 implication
+→ **原则**：好的 research question 必须满足"因为 X 的机理，所以攻击必须是 Y 这种形式，Y 是 X 的直接推论"
+
+**坑 4**：攻击方向定义为"相对于某种防御有效"
+→ **原则**：攻击应该基于机理理解设计，而不是针对防御的 reactive 设计
+
+**坑 5**：优化目标只有必要条件，没有充分条件
+→ **原则**：refusal suppression（component 1）是必要条件；harmful direction alignment（component 2）是充分条件；两者缺一不可
+
+**坑 6**：忽视 load-bearing assumptions 的验证
+→ **原则**：在推进实现之前，必须先用 pilot experiment 验证所有 load-bearing assumptions；未验证的假设必须明确标注
+
+**坑 7**：单一 v_refusal 的直接使用
+→ **原则**：Wollschläger et al. (ICML 2025) 已证伪单向量假设；攻击目标必须是 refusal cone；单方向攻击天然脆弱且 novelty 不足
+
+**坑 8**：对 UltraBreak 等最新文献的遗漏
+→ **原则**：在 formalize contribution 之前，必须搜索 2025-2026 年的最新发表文献，安全领域一年内变化极大
+
+---
+
+*文档结束。下一步行动：运行 Pilot Experiment A + B + C，根据决策矩阵确认推进路径。*
