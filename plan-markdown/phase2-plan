@@ -1,0 +1,191 @@
+Here is Claude's plan:                                                                                             
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Phase 2 实验计划：Gap C 核心攻击实现                                                                               
+                                                                                                                  
+ Context
+
+ Pilot 实验已完成，结果为 Exp A PASS (cos=0.918) + Exp B FAIL (min cos=0.018) + Exp C 确认 delayed reactivation
+ (baseline 80% self-correction)。按决策矩阵，需升级为 dynamic cone estimation。但 Exp B 存在关键 confound（不同
+ decode step 的 content difference 混入了 refusal signal），必须先解决才能确定是否真的需要 dynamic cone。
+
+ 实验序列与依赖
+
+ Exp 2A (confound resolution)  ──┐
+                                  ├──→  Exp 2C (PGD visual perturbation)  →  Exp 2D (ablation study)
+ Exp 2B (ablation attack)     ──┘
+         ↑ 可并行 ↑                      ↑ 依赖 2A 的 direction 决策 + 2B 的 target completions
+
+ ---
+ Exp 2A: Confound Resolution (~2 min GPU)
+
+ 目标: 确认 Exp B 的 refusal direction 时间步漂移是真实的还是 content difference artifact。
+
+ 方法: Teacher-forced controlled experiment。给所有 harmful/harmless prompt
+ 拼接相同的固定前缀作为生成内容，然后在前缀的不同位置提取 hidden state。由于两组 prompt
+ 共享完全相同的续写文本，mean-difference 只能捕获指令的安全属性差异（refusal signal），而非内容差异。
+
+ 固定前缀: "Sure, here is a detailed explanation. First, let me provide some background information. Then, I will
+ describe the step-by-step process. Let me begin by" (~30 tokens)
+
+ 关键实现细节:
+ - LLaVA 的 <image> token 在 forward 时会被替换为 576 个 patch token，导致 hidden_states 比 input_ids 长 575
+ - 必须从序列末端定位前缀 token：prefix_start_in_hidden = hidden_seq_len - prefix_token_count
+ - 在前缀内的 position {5, 10, 15, 20, 25} 提取 hidden state，模拟不同 "生成深度"
+
+ 判断标准:
+
+ ┌────────────────────┬───────────────────────────────────┬────────────────────────────────────────┐
+ │ controlled min_sim │               结论                │                后续路径                │
+ ├────────────────────┼───────────────────────────────────┼────────────────────────────────────────┤
+ │ > 0.80             │ drift 是 artifact，静态 cone 可行 │ Exp 2C 用单一 direction                │
+ ├────────────────────┼───────────────────────────────────┼────────────────────────────────────────┤
+ │ 0.40-0.80          │ 部分真实漂移                      │ Exp 2C 用 SVD 提取 2-3 维 cone         │
+ ├────────────────────┼───────────────────────────────────┼────────────────────────────────────────┤
+ │ < 0.40             │ 真实动态旋转                      │ Exp 2C 用 timestep-specific directions │
+ └────────────────────┴───────────────────────────────────┴────────────────────────────────────────┘
+
+ 文件: experiments/phase2/exp_2a/exp_2a_confound_resolution.py
+ 复用: Exp A 的 PAIRED_PROMPTS (12对)、model loading pattern、blank image
+
+ ---
+ Exp 2B: Direction Ablation Attack Validation (~30 min GPU)
+
+ 目标: 验证 Exp A 提取的 mean-diff direction 在 LLaVA generation 中有因果效力。同时生成 Exp 2C 所需的 target
+ harmful completions。
+
+ 方法: 用 PyTorch native forward hooks 在 LLaVA 的 model.language_model.model.layers[i] 上注册 ablation
+ hook。生成时实时移除 hidden state 在 refusal direction 上的投影分量。
+
+ 复用: hook_utils.py 的 get_direction_ablation_input_pre_hook() 和 add_hooks() context manager 可直接用于 LLaVA 的
+ LLM backbone layers。
+
+ Hook 适配: 原 hook 通过 model_base.model_block_modules[layer] 索引层。LLaVA 对应为
+ model.language_model.model.layers[layer]，attention 为 .self_attn，MLP 为 .mlp。
+
+ 消融层配置:
+ - Config A: 全部 32 层
+ - Config B: 浅层 0-15（Exp A 发现此区间 visual modality 天然压制 refusal）
+ - Config C: 深层 16-31（补偿区）
+ - Config D: 仅 layer 16
+
+ 评估: 用 Exp C 的 8 个 test prompts + SaladBench harmful_test 前 50 条。对比 baseline / blank image /
+ ablation+blank image / ablation+text-only 四种模式。
+
+ 额外输出: 保存 ablation 攻击成功的 harmful completions（作为 Exp 2C 的 teacher-forcing targets）。
+
+ 文件: experiments/phase2/exp_2b/exp_2b_ablation_attack.py
+ 复用: hook_utils.py (直接)、Exp C 的 detect_self_correction() /
+ detect_initial_refusal()、results/exp_a_directions.pt (v_mm, layer 16)
+
+ ---
+ Exp 2C: Core Attack — Sequence-Level Visual Perturbation (PGD) (~3h GPU with sweeps)
+
+ 目标: 优化图像扰动 delta，使 LLaVA 在整个生成过程中持续抑制 refusal cone。
+
+ 梯度流路径:
+ pixels + delta → CLIP ViT → MM Projector → [576 visual tokens] → LLaMA decoder (teacher-forced) → hidden states →
+ Loss
+ 所有模块权重冻结，仅优化 delta。整个前向传播可微。
+
+ 关键设计决策:
+ 1. Teacher-forcing 而非 generate(): 将 target harmful response 拼接到 prompt 后做单次 forward，得到所有位置的
+ hidden states。model.generate() 用 KV-cache 不可微分。
+ 2. 扰动空间: 在 processor 输出的归一化空间操作 delta，epsilon 按 ImageNet normalize 参数缩放。
+ 3. 内存管理: 32 层 x ~800 tokens x 4096 dim x 4 bytes ≈ 400MB hidden states + backward activations
+ ~8-12GB/sample。H100 80GB 可支持 mini-batch 4-6 prompts。
+
+ Loss 函数:
+ L = L_suppress + λ * L_harmful
+
+ L_suppress = (1/T) Σ_t Σ_l (h_t^l · r)^2    # 最小化 refusal direction 投影
+ L_harmful  = -(1/T) Σ_t (h_t · d_harmful)     # 对齐 harmful direction (Component 2)
+
+ 其中 r 根据 Exp 2A 结果决定：
+ - 静态: 单一 direction (来自 Exp A layer 16)
+ - 动态: timestep-specific directions 或 SVD cone basis
+
+ PGD 参数:
+ - epsilon: 16/255 (L∞), alpha: 1/255, steps: 200
+ - 基础图像: blank gray (336x336)
+ - 训练 prompts: 16 条 (SaladBench harmful_train) + Exp 2B 生成的 target completions
+
+ 评估: SaladBench harmful_test 前 100 条。指标: ASR, self-correction rate, full harmful completion rate, mean
+ response length。对比: blank image / random noise / ablation attack。
+
+ 文件:
+ - experiments/phase2/exp_2c/exp_2c_visual_perturbation.py (主循环)
+ - experiments/phase2/exp_2c/perturbation_utils.py (loss, PGD step, pixel handling)
+
+ Fallback: 如果 CLIP 梯度消失，改为直接优化 MM projector 输出空间的 576x4096 visual tokens。
+
+ ---
+ Exp 2D: Ablation Study (~8.5h GPU, 4 GPU 并行 ~2.5h)
+
+ 消融轴:
+ 1. Single-step vs Sequence-level: L 只在 t=1 vs 全序列 Σ_t
+ 2. Component 2: λ_harmful = 0 vs 0.1
+ 3. Layer targeting: shallow (0-15) / deep (16-31) / all / layer 16 only
+ 4. Epsilon: {4, 8, 16, 32}/255
+
+ 文件: experiments/phase2/exp_2d/exp_2d_ablation_study.py
+
+ ---
+ 公共模块 (减少代码重复)
+
+ experiments/phase2/common/
+     llava_utils.py       # load_llava(), prepare_mm_inputs(), get_blank_image()
+     hook_utils.py        # ablation_context() for LLaVA native HF model
+     eval_utils.py        # detect_self_correction() (改进版: 加 "It is not")
+     direction_utils.py   # load directions, build cone basis (SVD)
+
+ ---
+ GPU 并行策略
+
+ ┌────────────────────┬───────────────────────┬─────────┐
+ │        阶段        │       GPU 分配        │  时间   │
+ ├────────────────────┼───────────────────────┼─────────┤
+ │ Exp 2A + 2B (并行) │ GPU 0: 2A, GPU 1: 2B  │ ~30 min │
+ ├────────────────────┼───────────────────────┼─────────┤
+ │ Exp 2C (sweep)     │ GPU 0-3: 4 个超参配置 │ ~45 min │
+ ├────────────────────┼───────────────────────┼─────────┤
+ │ Exp 2D (ablation)  │ GPU 0-3: 各 4 个配置  │ ~2.5 h  │
+ ├────────────────────┼───────────────────────┼─────────┤
+ │ Total              │                       │ ~4 h    │
+ └────────────────────┴───────────────────────┴─────────┘
+
+ ---
+ 实现顺序
+
+ 1. common/ 模块 — 从 pilot 代码抽取共享逻辑
+ 2. Exp 2A — confound resolution（决定后续方向）
+ 3. Exp 2B — ablation attack（并行于 2A，产生 target completions）
+ 4. 根据 2A 结果调整 2C 的 direction 策略
+ 5. Exp 2C — 核心 PGD 攻击
+ 6. Exp 2D — ablation study
+ 7. 分析报告 — analysis/phase2_report.md
+
+ 验证方法
+
+ - Exp 2A: 对比 controlled vs uncontrolled similarity matrix
+ - Exp 2B: ASR 应 > blank image baseline (Exp C 的 75%)
+ - Exp 2C: full harmful completion rate > Exp 2B; self-correction rate < Exp 2B
+ - Exp 2D: sequence-level > single-step; bimodal > unimodal
+ - 所有结果保存到 results/exp_2{a,b,c,d}_results.json
+
+ 关键文件引用
+
+ ┌───────────────────────────────────────────────────────┬────────────────────────────────────────────┐
+ │                         文件                          │                    用途                    │
+ ├───────────────────────────────────────────────────────┼────────────────────────────────────────────┤
+ │ experiments/pilot/exp_a/exp_a_modality_stability.py   │ 模板: model loading, hidden state 提取     │
+ ├───────────────────────────────────────────────────────┼────────────────────────────────────────────┤
+ │ refusal_direction/pipeline/utils/hook_utils.py        │ 复用: ablation/addition hook 实现          │
+ ├───────────────────────────────────────────────────────┼────────────────────────────────────────────┤
+ │ experiments/pilot/exp_c/exp_c_delayed_reactivation.py │ 复用: self-correction 检测                 │
+ ├───────────────────────────────────────────────────────┼────────────────────────────────────────────┤
+ │ results/exp_a_directions.pt                           │ 数据: v_text, v_mm (layer 16, dim 4096)    │
+ ├───────────────────────────────────────────────────────┼────────────────────────────────────────────┤
+ │ data/saladbench_splits/harmful_{train,test}.json      │ 数据: prompts                              │
+ ├───────────────────────────────────────────────────────┼────────────────────────────────────────────┤
+ │ scoring.py                                            │ 复用: projection_einops(), refusal_score() │
+ └───────────────────────────────────────────────────────┴────────────────────────────────────────────┘
