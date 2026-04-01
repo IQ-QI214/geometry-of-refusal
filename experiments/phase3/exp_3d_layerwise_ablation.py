@@ -237,7 +237,6 @@ def run_exp_3d(model_name: str, device: str,
         "n_prompts": n_prompts,
         "max_new_tokens": max_new_tokens,
         "narrow_waist_layer": nw_layer,
-        "direction_source": "exp_3a_directions.pt (nw_layer v_mm)",
         "layer_results": layer_results,
     }
     save_dir = _PROJ_ROOT / "results" / "phase3" / model_name
