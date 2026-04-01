@@ -98,6 +98,10 @@ def load_directions(model_name: str) -> dict:
     v_mm   = data["directions"][nw_layer]["v_mm"]
     print(f"[directions] narrow_waist_layer={nw_layer}, "
           f"v_mm.shape={v_mm.shape}, v_mm.norm={v_mm.norm():.4f}")
+    # Directions should be unit-norm (exp_3a normalises before saving)
+    assert abs(v_mm.norm().item() - 1.0) < 0.01, (
+        f"v_mm is not unit-norm (norm={v_mm.norm():.4f}); ablation formula assumes ‖d‖=1"
+    )
     return {"narrow_waist_layer": nw_layer, "v_text": v_text, "v_mm": v_mm}
 
 
