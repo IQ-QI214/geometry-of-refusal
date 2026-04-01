@@ -20,15 +20,15 @@ CUDA_VISIBLE_DEVICES=0 conda run -n rdo \
     > "$LOG_DIR/3d_llava7b.log" 2>&1 &
 
 CUDA_VISIBLE_DEVICES=1 conda run -n qwen3-vl \
-    python "$SCRIPT" --model qwen2vl_7b --device cuda:1 --n_prompts "$N_PROMPTS" \
+    python "$SCRIPT" --model qwen2vl_7b --device cuda:0 --n_prompts "$N_PROMPTS" \
     > "$LOG_DIR/3d_qwen2vl.log" 2>&1 &
 
 CUDA_VISIBLE_DEVICES=2 conda run -n rdo \
-    python "$SCRIPT" --model internvl2_8b --device cuda:2 --n_prompts "$N_PROMPTS" \
+    python "$SCRIPT" --model internvl2_8b --device cuda:0 --n_prompts "$N_PROMPTS" \
     > "$LOG_DIR/3d_internvl2.log" 2>&1 &
 
 CUDA_VISIBLE_DEVICES=3 conda run -n rdo \
-    python "$SCRIPT" --model instructblip_7b --device cuda:3 --n_prompts "$N_PROMPTS" \
+    python "$SCRIPT" --model instructblip_7b --device cuda:0 --n_prompts "$N_PROMPTS" \
     > "$LOG_DIR/3d_instructblip.log" 2>&1 &
 
 wait

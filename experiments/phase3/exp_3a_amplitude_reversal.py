@@ -164,11 +164,16 @@ def compute_layer_metrics(
 
 
 # ── 主实验函数 ─────────────────────────────────────────────────────────────────
-def run_exp_3a(model_name: str, device: str) -> dict:
-    """Exp 3A 完整流程。"""
+def run_exp_3a(model_name: str, device: str, full_layers: bool = False) -> dict:
+    """Exp 3A 完整流程。full_layers=True 时使用 stride=2 覆盖所有层。"""
     cfg = MODEL_CONFIGS[model_name]
-    probe_layers = cfg["probe_layers"]
     total_layers = cfg["total_layers"]
+
+    if full_layers:
+        probe_layers = list(range(0, total_layers, 2))
+        print(f"[{model_name}] FULL LAYERS mode: {len(probe_layers)} probe layers (stride=2)")
+    else:
+        probe_layers = cfg["probe_layers"]
 
     # ── 1. 加载模型 ───────────────────────────────────────────────────────────
     model, processor = load_model_by_name(model_name, device)
@@ -313,13 +318,14 @@ def run_exp_3a(model_name: str, device: str) -> dict:
     save_dir = _PROJ_ROOT / "results" / "phase3" / model_name
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    results_path = save_dir / "exp_3a_results.json"
+    suffix = "_full" if full_layers else ""
+    results_path = save_dir / f"exp_3a_results{suffix}.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\n[{model_name}] Results saved to: {results_path}")
 
     # 保存 directions.pt (供 3B/3C 复用)
-    directions_path = save_dir / "exp_3a_directions.pt"
+    directions_path = save_dir / f"exp_3a_directions{suffix}.pt"
     torch.save({
         "model": model_name,
         "probe_layers": probe_layers,
@@ -345,6 +351,8 @@ def main():
                         help="模型名称")
     parser.add_argument("--device", type=str, default="cuda:0",
                         help="GPU device (e.g. cuda:0)")
+    parser.add_argument("--full_layers", action="store_true",
+                        help="使用 stride=2 覆盖所有层 (P0-B 全层曲线)")
     args = parser.parse_args()
 
     # GPU 离线环境设置
@@ -353,10 +361,10 @@ def main():
 
     print(f"=" * 60)
     print(f"Exp 3A: Amplitude Reversal Verification")
-    print(f"Model: {args.model}, Device: {args.device}")
+    print(f"Model: {args.model}, Device: {args.device}, Full layers: {args.full_layers}")
     print(f"=" * 60)
 
-    results = run_exp_3a(args.model, args.device)
+    results = run_exp_3a(args.model, args.device, full_layers=args.full_layers)
 
     print(f"\n{'='*60}")
     print(f"Exp 3A complete for {args.model}")
