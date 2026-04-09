@@ -3,7 +3,9 @@ Phase 3 模型配置与统一加载接口。
 
 支持模型:
   llava_7b       - LLaVA-1.5-7B  (from HF hub cache)
+  llava_13b      - LLaVA-1.5-13B  (from HF hub cache)
   qwen2vl_7b     - Qwen2.5-VL-7B-Instruct  (from local models/)
+  qwen2vl_32b    - Qwen2.5-VL-32B-Instruct  (from public models/)
   internvl2_8b   - InternVL2-8B  (from local models/)
   instructblip_7b - InstructBLIP-Vicuna-7B  (from local models/)
 """
