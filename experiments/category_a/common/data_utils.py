@@ -14,16 +14,21 @@ _DATA_DIR = _PROJ_ROOT / "data"
 def load_saladbench_test() -> List[Dict[str, str]]:
     """
     加载 SaladBench harmful_test.json 全量 (572 条)。
-    返回 [{"instruction": str, "source": str}, ...]
+    返回 [{"instruction": str, "category": str}, ...]
     """
     path = _DATA_DIR / "saladbench_splits" / "harmful_test.json"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"SaladBench data not found at {path}. "
+            "Expected data/saladbench_splits/harmful_test.json in project root."
+        )
     with open(path) as f:
         data = json.load(f)
     prompts = []
     for item in data:
         prompts.append({
             "instruction": item["instruction"],
-            "source": item.get("source", "unknown"),
+            "category": item.get("category", "unknown"),
         })
     print(f"[data_utils] Loaded {len(prompts)} prompts from SaladBench harmful_test")
     return prompts
