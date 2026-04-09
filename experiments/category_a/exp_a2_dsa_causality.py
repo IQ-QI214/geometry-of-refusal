@@ -25,9 +25,11 @@ from PIL import Image
 
 _PROJ_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(_PROJ_ROOT))
-sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase3"))
-sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase2" / "common"))
 sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "category_a"))
+sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase2" / "common"))
+# phase3 inserted last → becomes sys.path[0] → 'common' resolves to phase3/common
+# (which has model_configs.py and model_adapters.py, not category_a/common)
+sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase3"))
 
 from common.model_configs import MODEL_CONFIGS, load_model_by_name
 from common.model_adapters import create_adapter, ModelAdapter

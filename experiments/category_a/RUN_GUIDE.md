@@ -26,19 +26,11 @@ mkdir -p results/phase3/qwen2vl_32b
 
 ## 1. Smoke Test（先用 n=10 验证整个流程，再跑正式实验）
 
-### 1.1 A1 Smoke Test（LLaVA-7B，10 prompts，baseline_mm only）
+### 1.1 A1 Smoke Test（LLaVA-7B，10 prompts，5 configs）
 
 ```bash
-HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python -c "
-import sys
-sys.path.insert(0, 'experiments/category_a')
-import common.data_utils as du
-_orig = du.load_saladbench_test
-du.load_saladbench_test = lambda: _orig()[:10]
-du.load_dataset = lambda name: du.load_saladbench_test()
-from exp_a1_dsa_validation import run_a1
-run_a1('llava_7b', 'cuda:0', 'saladbench', max_new_tokens=50)
-"
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python experiments/category_a/exp_a1_dsa_validation.py \
+    --model llava_7b --device cuda:0 --n_prompts 10 --max_new_tokens 50
 ```
 
 验证输出：
@@ -59,15 +51,8 @@ print('response is full text (not truncated):', len(d['responses'][0]['response'
 ### 1.2 A3 Smoke Test（LLaVA-7B，10 prompts）
 
 ```bash
-HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python -c "
-import sys
-sys.path.insert(0, 'experiments/category_a')
-import common.data_utils as du
-_orig = du.load_saladbench_test
-du.load_saladbench_test = lambda: _orig()[:10]
-from exp_a3_norm_prediction import run_a3
-run_a3('llava_7b', 'cuda:0', max_new_tokens=50)
-"
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python experiments/category_a/exp_a3_norm_prediction.py \
+    --model llava_7b --device cuda:0 --n_prompts 10 --max_new_tokens 50
 ```
 
 验证输出：

@@ -25,14 +25,23 @@ from PIL import Image
 # ── Path setup ──────────────────────────────────────────────────────────────
 _PROJ_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(_PROJ_ROOT))
-sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase3"))
 sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase2" / "common"))
 sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "category_a"))
+# phase3 inserted last → becomes sys.path[0] → 'common' resolves to phase3/common
+# (which has model_configs.py and model_adapters.py)
+sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase3"))
 
 from common.model_configs import MODEL_CONFIGS, load_model_by_name
 from common.model_adapters import create_adapter, ModelAdapter
 from eval_utils import evaluate_response, compute_attack_metrics
-from common.data_utils import load_dataset
+# Import data_utils directly from category_a/common (avoids 'common' namespace conflict)
+import importlib.util as _ilu
+_du_spec = _ilu.spec_from_file_location(
+    "cat_a_data_utils",
+    _PROJ_ROOT / "experiments" / "category_a" / "common" / "data_utils.py")
+_du_mod = _ilu.module_from_spec(_du_spec)
+_du_spec.loader.exec_module(_du_mod)
+load_dataset = _du_mod.load_dataset
 
 
 # ── Ablation hooks (copied from exp_3c for self-containment) ────────────────
@@ -150,12 +159,14 @@ def save_partial_results(result_path: Path, results: List[Dict]):
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def run_a1(model_name: str, device: str, dataset_name: str = "saladbench",
-           max_new_tokens: int = 200, resume: bool = False):
+           max_new_tokens: int = 200, resume: bool = False, n_prompts_limit: int = 0):
 
     cfg = MODEL_CONFIGS[model_name]
     total_layers = cfg["total_layers"]
     prompts_data = load_dataset(dataset_name)
     prompts = [item["instruction"] for item in prompts_data]
+    if n_prompts_limit > 0:
+        prompts = prompts[:n_prompts_limit]
     n_prompts = len(prompts)
 
     save_dir = _PROJ_ROOT / "results" / "category_a" / model_name
@@ -251,12 +262,14 @@ def main():
                         choices=["saladbench", "harmbench"])
     parser.add_argument("--max_new_tokens", type=int, default=200)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--n_prompts", type=int, default=0,
+                        help="Limit number of prompts (0 = use all). Use 10 for smoke test.")
     args = parser.parse_args()
 
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
-    run_a1(args.model, args.device, args.dataset, args.max_new_tokens, args.resume)
+    run_a1(args.model, args.device, args.dataset, args.max_new_tokens, args.resume, args.n_prompts)
 
 
 if __name__ == "__main__":

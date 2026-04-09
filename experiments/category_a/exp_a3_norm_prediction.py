@@ -22,14 +22,22 @@ from PIL import Image
 
 _PROJ_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(_PROJ_ROOT))
-sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase3"))
 sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase2" / "common"))
 sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "category_a"))
+# phase3 inserted last → becomes sys.path[0] → 'common' resolves to phase3/common
+sys.path.insert(0, str(_PROJ_ROOT / "experiments" / "phase3"))
 
 from common.model_configs import MODEL_CONFIGS, load_model_by_name
 from common.model_adapters import create_adapter
-from common.data_utils import load_saladbench_test
 from eval_utils import evaluate_response
+# Import data_utils directly from category_a/common (avoids 'common' namespace conflict)
+import importlib.util as _ilu
+_du_spec = _ilu.spec_from_file_location(
+    "cat_a_data_utils",
+    _PROJ_ROOT / "experiments" / "category_a" / "common" / "data_utils.py")
+_du_mod = _ilu.module_from_spec(_du_spec)
+_du_spec.loader.exec_module(_du_mod)
+load_saladbench_test = _du_mod.load_saladbench_test
 
 
 # ── Norm recorder hook ──────────────────────────────────────────────────────
@@ -203,10 +211,12 @@ def analyze_norm_prediction(results: List[Dict]) -> Dict:
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-def run_a3(model_name: str, device: str, max_new_tokens: int = 200):
+def run_a3(model_name: str, device: str, max_new_tokens: int = 200, n_prompts_limit: int = 0):
     cfg = MODEL_CONFIGS[model_name]
     prompts_data = load_saladbench_test()
     prompts = [item["instruction"] for item in prompts_data]
+    if n_prompts_limit > 0:
+        prompts = prompts[:n_prompts_limit]
 
     save_dir = _PROJ_ROOT / "results" / "category_a" / model_name
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -286,12 +296,14 @@ def main():
                         choices=list(MODEL_CONFIGS.keys()))
     parser.add_argument("--device", type=str, default="cuda:0")
     parser.add_argument("--max_new_tokens", type=int, default=200)
+    parser.add_argument("--n_prompts", type=int, default=0,
+                        help="Limit number of prompts (0 = use all). Use 10 for smoke test.")
     args = parser.parse_args()
 
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
-    run_a3(args.model, args.device, args.max_new_tokens)
+    run_a3(args.model, args.device, args.max_new_tokens, args.n_prompts)
 
 
 if __name__ == "__main__":
