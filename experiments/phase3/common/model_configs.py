@@ -31,6 +31,17 @@ MODEL_CONFIGS = {
         "blank_image_size": (336, 336),
         "visual_token_count": 576,   # CLIP 336px → 576 patch tokens (固定)
     },
+    "llava_13b": {
+        "model_path": "llava-hf/llava-1.5-13b-hf",
+        "use_hub_cache": True,
+        "model_class": "llava",
+        "total_layers": 40,
+        # probe_layers 相对深度约 25%/38%/50%/63%/88%
+        "probe_layers": [10, 15, 20, 25, 35],
+        "hidden_dim": 5120,
+        "blank_image_size": (336, 336),
+        "visual_token_count": 576,
+    },
     "qwen2vl_7b": {
         "model_path": os.path.join(_LOCAL_MODELS_DIR, "Qwen2.5-VL-7B-Instruct"),
         "use_hub_cache": False,
@@ -41,6 +52,17 @@ MODEL_CONFIGS = {
         "hidden_dim": 3584,
         "blank_image_size": (336, 336),
         "visual_token_count": "dynamic",  # 由 image_grid_thw 决定，运行时计算
+    },
+    "qwen2vl_32b": {
+        "model_path": "/inspire/hdd/global_public/public_models/Qwen/Qwen2.5-VL-32B-Instruct",
+        "use_hub_cache": False,
+        "model_class": "qwen2vl",
+        "total_layers": 64,
+        # probe_layers 相对深度约 25%/39%/50%/64%/86%
+        "probe_layers": [16, 25, 32, 41, 55],
+        "hidden_dim": 5120,
+        "blank_image_size": (336, 336),
+        "visual_token_count": "dynamic",
     },
     "internvl2_8b": {
         "model_path": os.path.join(_LOCAL_MODELS_DIR, "InternVL2-8B"),
