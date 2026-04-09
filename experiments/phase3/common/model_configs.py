@@ -35,9 +35,9 @@ MODEL_CONFIGS = {
         "visual_token_count": 576,   # CLIP 336px → 576 patch tokens (固定)
     },
     "llava_13b": {
-        # 从 HF hub 缓存加载
-        "model_path": "llava-hf/llava-1.5-13b-hf",
-        "use_hub_cache": True,
+        # 本地路径 (已下载到 models/)
+        "model_path": os.path.join(_LOCAL_MODELS_DIR, "llava-1.5-13b-hf"),
+        "use_hub_cache": False,
         "model_class": "llava",
         "total_layers": 40,
         # probe_layers 相对深度约 25%/38%/50%/63%/88%

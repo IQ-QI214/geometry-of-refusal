@@ -137,7 +137,7 @@ def create_judge(judge_name: str, device: str = "cuda:0") -> JudgeBase:
     """工厂函数。judge_name: 'qwen3guard' 或 'llamaguard3'。"""
     paths = {
         "qwen3guard": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen3Guard-Gen-8B",
-        "llamaguard3": "/inspire/hdd/global_user/wenming-253108090054/models/Llama-Guard-3-8B",
+        "llamaguard3": "/inspire/hdd/global_user/wenming-253108090054/models/llama-guard-3-8b",
     }
     if judge_name not in paths:
         raise ValueError(f"Unknown judge: {judge_name}. Use 'qwen3guard' or 'llamaguard3'.")

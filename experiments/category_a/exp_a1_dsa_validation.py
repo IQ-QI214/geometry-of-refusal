@@ -99,7 +99,7 @@ def load_directions(model_name: str) -> dict:
     if not directions_path.exists():
         raise FileNotFoundError(
             f"Directions not found: {directions_path}. Run Exp 3A first.")
-    data = torch.load(directions_path, map_location="cpu")
+    data = torch.load(directions_path, map_location="cpu", weights_only=False)
     nw_layer = data["narrow_waist_layer"]
     v_text = data["directions"][nw_layer]["v_text"]
     v_mm = data["directions"][nw_layer]["v_mm"]
