@@ -19,6 +19,7 @@ _HF_CACHE_DIR = os.getenv(
     "HUGGINGFACE_CACHE_DIR",
     "/inspire/hdd/global_user/wenming-253108090054/models/hub"
 )
+_PUBLIC_MODELS_DIR = "/inspire/hdd/global_public/public_models"
 
 MODEL_CONFIGS = {
     "llava_7b": {
@@ -34,6 +35,7 @@ MODEL_CONFIGS = {
         "visual_token_count": 576,   # CLIP 336px → 576 patch tokens (固定)
     },
     "llava_13b": {
+        # 从 HF hub 缓存加载
         "model_path": "llava-hf/llava-1.5-13b-hf",
         "use_hub_cache": True,
         "model_class": "llava",
@@ -42,7 +44,7 @@ MODEL_CONFIGS = {
         "probe_layers": [10, 15, 20, 25, 35],
         "hidden_dim": 5120,
         "blank_image_size": (336, 336),
-        "visual_token_count": 576,
+        "visual_token_count": 576,   # CLIP 336px → 576 patch tokens (固定)
     },
     "qwen2vl_7b": {
         "model_path": os.path.join(_LOCAL_MODELS_DIR, "Qwen2.5-VL-7B-Instruct"),
@@ -56,7 +58,7 @@ MODEL_CONFIGS = {
         "visual_token_count": "dynamic",  # 由 image_grid_thw 决定，运行时计算
     },
     "qwen2vl_32b": {
-        "model_path": "/inspire/hdd/global_public/public_models/Qwen/Qwen2.5-VL-32B-Instruct",
+        "model_path": os.path.join(_PUBLIC_MODELS_DIR, "Qwen/Qwen2.5-VL-32B-Instruct"),
         "use_hub_cache": False,
         "model_class": "qwen2vl",
         "total_layers": 64,
@@ -64,7 +66,7 @@ MODEL_CONFIGS = {
         "probe_layers": [16, 25, 32, 41, 55],
         "hidden_dim": 5120,
         "blank_image_size": (336, 336),
-        "visual_token_count": "dynamic",
+        "visual_token_count": "dynamic",  # 由 image_grid_thw 决定，运行时计算
     },
     "internvl2_8b": {
         "model_path": os.path.join(_LOCAL_MODELS_DIR, "InternVL2-8B"),
