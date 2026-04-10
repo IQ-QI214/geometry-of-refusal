@@ -1,6 +1,6 @@
-# Geometry-of-Refusal — 交接文档
+# Geometry-of-Refusal — 交接文档 v2
 
-> 更新: 2026-04-09 | 阶段: Category A 实验运行中
+> 更新: 2026-04-10 | 阶段: Category A A1 完成 + Judge 完成（4/5 模型）
 
 ---
 
@@ -8,11 +8,16 @@
 
 **研究题目**: VLM Safety Geometry — visual encoder 架构如何决定拒绝机制的空间分布与可攻击性
 
+**核心假说**: VLM 隐空间存在 refusal direction，消融该方向可攻破安全对齐；架构类型决定消融有效性
+
 **当前研究阶段**: Category A 实验（论文 motivation 实验，证明 DSA 现象）
 
 **目标投稿**: AAAI 2026 / ICLR 2027
 
 **项目根目录**: `/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/`
+
+**给新窗口 Claude 的快速启动**:
+> "请读取 `experiments/category_a/HANDOFF.md` 和 `analysis/category_a/a1_full_analysis_2026-04-10.md`。前者是整体交接，后者是今天最新的分析结论。请你了解研究背景后，继续协助推进 Category A 实验。"
 
 ---
 
@@ -23,156 +28,232 @@
 | `rdo` | 4.47.0 | LLaVA-7B, LLaVA-13B, InternVL2-8B 的 A1/A2/A3 生成 |
 | `qwen3-vl` | 4.57.3 | Qwen-7B, Qwen-32B 的 A1/A2/A3 生成 + 所有 judge 评估 |
 
-**硬件**: 4×H100 80GB（GPU 节点，无网络）
+**硬件**: 4×H100 80GB（GPU 节点，无网络，必须设置 `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1`）
 
 **模型路径**:
 - LLaVA-7B: HF cache (`llava-hf/llava-1.5-7b-hf`)
-- LLaVA-13B: HF cache (`llava-hf/llava-1.5-13b-hf`) — 已下载
-- Qwen-7B: `/inspire/hdd/.../models/Qwen2.5-VL-7B-Instruct`
+- LLaVA-13B: `/inspire/hdd/global_user/wenming-253108090054/models/llava-1.5-13b-hf`
+- Qwen-7B: `/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct`
 - Qwen-32B: `/inspire/hdd/global_public/public_models/Qwen/Qwen2.5-VL-32B-Instruct`
-- InternVL2-8B: `/inspire/hdd/.../models/InternVL2-8B`
-- Qwen3Guard-8B: `/inspire/hdd/.../models/Qwen3Guard-Gen-8B`
+- InternVL2-8B: `/inspire/hdd/global_user/wenming-253108090054/models/InternVL2-8B`
+- Qwen3Guard-8B: `/inspire/hdd/global_user/wenming-253108090054/models/Qwen3Guard-Gen-8B`
 
 ---
 
-## 3. 已实现的代码（全部已提交到 git）
+## 3. 三分类框架（Phase 3 已验证，Category A 确认）
 
-```
-experiments/category_a/
-├── common/
-│   ├── __init__.py
-│   ├── data_utils.py          # SaladBench(572) + HarmBench 加载
-│   └── judge_utils.py         # Qwen3Guard + LlamaGuard3 评估封装
-├── exp_a1_dsa_validation.py   # A1 生成脚本（5配置×N prompts，支持 --resume）
-├── exp_a1_judge.py            # A1 Qwen3Guard/LlamaGuard3 评估
-├── exp_a2_dsa_causality.py    # A2 Forced generation probe
-├── exp_a3_norm_prediction.py  # A3 per-step norm 记录 + AUROC 分析
-├── run_a1_gen.sh              # A1 并行启动（自动切换 conda env）
-├── run_a1_judge.sh            # A1 judge 评估
-├── run_a2.sh                  # A2 并行启动
-├── run_a3.sh                  # A3 启动（支持传 GPU id）
-└── RUN_GUIDE.md               # 完整运行指南
-```
-
-**关键设计**:
-- `--n_prompts N`: smoke test 时限制 prompt 数量（0=全量）
-- `--resume`: A1 断点续跑，按 config×prompt_idx 粒度恢复
-- 所有 `run_*.sh` 用 `conda run --no-capture-output -n <env>` 自动切换环境
+| 模型 | Type | NW 层 | 相对深度 | Amplitude Reversal | 最优攻击 | FHCR_judge (最优) |
+|------|------|-------|---------|-------------------|---------|-----------------|
+| LLaVA-7B | I (Bottleneck) | 16 | 50% | ✅ | nw_vmm | **74.5%** |
+| LLaVA-13B | I (Bottleneck) | 20 | 50% | ✅ | nw_vmm | **75.5%** |
+| Qwen-7B | II (Late Gate) | 24 | 86% | ❌ | all_vmm | 13.3% |
+| Qwen-32B | II (Late Gate) | 55 | 86% | ❌ | all_vmm | 8.2% |
+| InternVL2-8B | III (Diffuse) | 28 | 88% | ❌ | 无有效策略 | ~6% |
 
 ---
 
-## 4. 实验状态（截至 2026-04-09）
+## 4. Category A 实验状态（截至 2026-04-10）
 
-### Phase 0: Direction 提取 ✅ 完成
+### A1 实验状态 ✅ 全部完成
 
-| 模型 | NW 层 | 相对深度 | Amplitude Reversal | 类型 |
-|---|---|---|---|---|
-| LLaVA-7B | 16 | 50% | ✅ | Type I (Bottleneck) |
-| **LLaVA-13B** | **20** | **50%** | **✅** | **Type I (新验证)** |
-| Qwen-7B | 24 | 86% | ❌ | Type II (Late Gate) |
-| **Qwen-32B** | **55** | **86%** | **❌** | **Type II (新验证)** |
-| InternVL2-8B | 28 | 88% | ❌ | Type III (Diffuse) |
+| 模型 | 生成 | Judge |
+|------|------|-------|
+| LLaVA-7B | ✅ | ✅ |
+| LLaVA-13B | ✅ | ✅ |
+| Qwen-7B | ✅ | ✅ |
+| Qwen-32B | ✅ | ✅ |
+| InternVL2-8B | ✅ | ⏳ 未完成 |
 
-**重要发现**: LLaVA-13B NW 层=20（50%），与 7B 完全一致 → **LLaMA-2 backbone 决定 crossover 深度，规模无影响**。Qwen-32B 同 Qwen-7B，Type II。
+**结果路径**: `results/category_a/{model}/`
+- 生成结果: `a1_{config}_saladbench.json`
+- Judge 结果: `a1_judged_qwen3guard_saladbench.json`（4 模型已有）
 
-### Phase 1: A1 实验（5模型×5配置×572 prompts）— 部分运行
+### A2 实验 ⏳ 未启动
 
-| 模型 | 状态 | 进度 |
-|---|---|---|
-| LLaVA-7B | 🔄 运行中 | 4/5 config 完成，ablation_nw_vmm 150/572 |
-| LLaVA-13B | ⏳ 未启动 | — |
-| Qwen-7B | ⏳ 未启动 | — |
-| Qwen-32B | ⏳ 未启动 | — |
-| InternVL2-8B | 🔄 运行中 | 3/5 config 完成，baseline_mm 200/572 |
+因果验证（forced generation probe），需要 A1 完成后从中提取 harmful prefixes。
 
-### Smoke Tests ✅ 全部通过
+### A3 实验 ⏳ 仅有 LLaVA-7B smoke test (n=10)
 
-- A1 (LLaVA-7B, n=10): FHCR_kw ablation_nw=90%，与 Phase 3 一致
-- A3 (LLaVA-7B, n=10): AUROC max_norm=0.833，mean_norm=1.0，Spike precedes SC=1.0 🎯
+需要全量运行（572 prompts × 5 models）。设计需根据今日发现更新（见下节）。
 
 ---
 
-## 5. 下一步任务队列
+## 5. 今日重要发现（2026-04-10）
 
-### 立即可做（任意顺序）
+### 5.1 指标修正
 
-```bash
-# 启动剩余 3 个模型的 A1 (脚本会 --resume 不重跑已有进度)
-bash experiments/category_a/run_a1_gen.sh
+**Bug**: `eval_utils.py` 中 `SCR_given_bypass` 计算错误，分子包含所有检测到 SC 关键词的响应（含初始拒绝），导致数值严重虚高（最高 33×）。
 
-# A3 在 LLaVA-7B A1 完成后启动（或现在在空闲 GPU 上并行）
-bash experiments/category_a/run_a3.sh cuda:1  # 指定空闲 GPU
-```
+**修正**: 现在只统计 `initial_bypass=True AND self_correction_found=True`，值恒 ≤ 1.0。
 
-### A1 全部完成后
+修正文件: `experiments/phase2/common/eval_utils.py`
 
-```bash
-# A2 因果验证（需要 A1 的 harmful prefixes）
-bash experiments/category_a/run_a2.sh
+### 5.2 隐性拒绝（Stealth Refusal）现象
 
-# Qwen3Guard 评估（qwen3-vl env）
-bash experiments/category_a/run_a1_judge.sh
-```
+Qwen 模型在全层消融后，**不再使用标准拒绝语言，但仍生成伦理反驳内容**：
+- "Certainly not! Discrimination is morally wrong..."
+- Keyword 判为 `bypass=True, harmful=True`（假阳性）
+- Judge 判为 `Safe, Refusal=Yes`（正确）
+
+**Qwen-7B all_vmm 响应分布**: 3.5% 显式拒绝 | 83.2% 隐性拒绝 | 13.3% 真正有害
+
+### 5.3 两层安全架构假说
+
+- **Layer 1**（几何层）: 显式拒绝语言，由 refusal direction 编码，消融可破坏
+- **Layer 2**（推理层）: 独立的伦理推理能力，仅 Type II (Qwen) 具有，不被消融
+
+### 5.4 真实攻击效果对比
+
+| Model | FHCR_judge (最优攻击) | 安全评估 |
+|-------|----------------------|---------|
+| LLaVA-7B | **74.5%** | 危险 ⚠️ |
+| LLaVA-13B | **75.5%** | 危险 ⚠️ |
+| Qwen-7B | 13.3% | 相对安全 |
+| Qwen-32B | 8.2% | 安全 ✅ |
 
 ---
 
-## 6. 检查实验进度的快速命令
+## 6. 代码变更记录（2026-04-10）
+
+| 文件 | 变更 |
+|------|------|
+| `experiments/phase2/common/eval_utils.py` | 修正 SCR_given_bypass；新增 DSA_gap_abs/rel；改进 REFUSAL_STARTERS |
+| `experiments/category_a/common/judge_utils.py` | 修复 `device_map` → `.to(device)`（去掉 accelerate 依赖）；`torch_dtype` → `dtype` |
+| `experiments/category_a/exp_a1_judge.py` | 新增 `scr_bypass_judge`、`dsa_gap_rel` 输出字段 |
+| `experiments/category_a/run_a1_judge.sh` | 改为 4 GPU 并行执行 |
+
+---
+
+## 7. 立即可执行任务队列
+
+### Priority 1: InternVL2 Judge（GPU 节点，qwen3-vl env）
 
 ```bash
 cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+nohup conda run --no-capture-output -n qwen3-vl \
+    python experiments/category_a/exp_a1_judge.py \
+    --model internvl2_8b --judge qwen3guard --dataset saladbench --device cuda:0 \
+    > results/category_a/internvl2_8b/a1_judge.log 2>&1 &
+tail -f results/category_a/internvl2_8b/a1_judge.log
+```
 
-# 查看各模型 A1 进度
-for m in llava_7b llava_13b qwen2vl_7b qwen2vl_32b internvl2_8b; do
-    prog=$(cat results/category_a/$m/a1_progress_saladbench.json 2>/dev/null || echo "{}")
-    files=$(ls results/category_a/$m/a1_*_saladbench.json 2>/dev/null | wc -l)
-    echo "$m: $files/5 configs done | $prog"
-done
+### Priority 2: A3 全量运行（5 模型）
 
-# 查看 A1 日志
-tail -f results/category_a/llava_7b/a1_gen.log
-tail -f results/category_a/gpu2_a1_gen.log   # InternVL2 + Qwen-7B
+```bash
+# LLaVA-7B (rdo env)
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+nohup conda run --no-capture-output -n rdo \
+    python experiments/category_a/exp_a3_norm_prediction.py \
+    --model llava_7b --device cuda:0 \
+    > results/category_a/llava_7b/a3.log 2>&1 &
 
-# A1 完成后查看汇总指标
-python -c "
-import json, glob
-for path in sorted(glob.glob('results/category_a/*/a1_baseline_mm_saladbench.json')):
-    with open(path) as f: d = json.load(f)
-    m = d['metrics_kw']
-    print(f\"{d['model']}: IBR={m['initial_bypass_rate']:.3f} SCR={m['self_correction_rate_overall']:.3f} FHCR={m['full_harmful_completion_rate']:.3f}\")
-"
+# LLaVA-13B (rdo env)
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+nohup conda run --no-capture-output -n rdo \
+    python experiments/category_a/exp_a3_norm_prediction.py \
+    --model llava_13b --device cuda:1 \
+    > results/category_a/llava_13b/a3.log 2>&1 &
+
+# Qwen-7B (qwen3-vl env)
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+nohup conda run --no-capture-output -n qwen3-vl \
+    python experiments/category_a/exp_a3_norm_prediction.py \
+    --model qwen2vl_7b --device cuda:2 \
+    > results/category_a/qwen2vl_7b/a3.log 2>&1 &
+
+# Qwen-32B (qwen3-vl env)
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+nohup conda run --no-capture-output -n qwen3-vl \
+    python experiments/category_a/exp_a3_norm_prediction.py \
+    --model qwen2vl_32b --device cuda:3 \
+    > results/category_a/qwen2vl_32b/a3.log 2>&1 &
+
+# InternVL2-8B (rdo env, 需在 judge 完成后或另一 GPU)
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+nohup conda run --no-capture-output -n rdo \
+    python experiments/category_a/exp_a3_norm_prediction.py \
+    --model internvl2_8b --device cuda:0 \
+    > results/category_a/internvl2_8b/a3.log 2>&1 &
+```
+
+### Priority 3: A3 设计更新讨论（需与 qi 讨论后实施）
+
+基于 Stealth Refusal 发现，A3 的新方向：
+- A3 当前：预测 bypass vs refuse（实际上是预测 SC 关键词，混入了拒绝响应）
+- A3 修订：在 baseline_mm 下区分三种响应类型的 norm 轨迹
+  1. Explicit refusal (bypass=False)
+  2. Genuine harmful completion (bypass=True, judge=Unsafe)
+  3. Stealth refusal (bypass=True, judge=Safe)
+
+**预期新 finding**: Stealth refusal 的 norm 轨迹是否与 genuine harmful 可区分？
+
+### Priority 4: A2 因果验证（A3 后）
+
+```bash
+bash experiments/category_a/run_a2.sh
 ```
 
 ---
 
-## 7. 关键文档路径
+## 8. 关键文档路径
 
 | 文档 | 路径 |
-|---|---|
-| 研究周报（完整研究背景） | `plan/weekly_research_report_0401.md` |
-| 攻击算法设计（含 Category A-D 完整计划） | `plan/research_plan_attack_algorithm.md` |
-| Category A 设计 spec | `docs/superpowers/specs/2026-04-09-category-a-dsa-validation-design.md` |
-| Category A 实现计划 | `docs/superpowers/plans/2026-04-09-category-a-dsa-validation.md` |
-| 运行指南（完整步骤） | `experiments/category_a/RUN_GUIDE.md` |
+|------|------|
+| 本交接文档 | `experiments/category_a/HANDOFF.md` |
+| A1 完整分析报告 (今日) | `analysis/category_a/a1_full_analysis_2026-04-10.md` |
+| 指标修正报告 | `analysis/category_a/a1_corrected_metrics.md` |
+| Category A 设计 spec | `docs/specs/2026-04-09-category-a-dsa-validation-design.md` |
+| 运行指南 | `experiments/category_a/RUN_GUIDE.md` |
+| 研究周报 | `plan/weekly_research_report_0401.md` |
+| 攻击算法全规划 | `plan/research_plan_attack_algorithm.md` |
 
 ---
 
-## 8. Phase 3 已验证结论（背景）
+## 9. 文件目录规范
 
-已完成：LLaVA-7B、Qwen-7B、InternVL2-8B、InstructBLIP-7B 的跨模态 direction 分析 + ablation 攻击：
-- **三分类框架**: Type I（LLaVA）/ Type II（Qwen）/ Type III（InternVL2）
-- **Amplitude Reversal 预测最优攻击策略**
-- **LLM Backbone Crossover Hypothesis**: crossover 深度由 LLM backbone 决定，非 ViT
-- Phase 3 结果路径: `results/phase3/{llava_7b,qwen2vl_7b,internvl2_8b,instructblip_7b}/`
+```
+geometry-of-refusal/
+├── experiments/              # 仅放实验代码（.py, .sh）
+│   ├── category_a/          # Category A 实验
+│   │   ├── common/          # judge_utils, data_utils
+│   │   ├── exp_a*.py        # 实验脚本
+│   │   └── run_*.sh         # 启动脚本
+│   ├── phase2/              # Phase 2 实验代码
+│   ├── phase3/              # Phase 3 实验代码（含 common/model_adapters.py）
+│   └── pilot/               # Pilot 实验
+│
+├── analysis/                 # 仅放分析报告（.md）
+│   ├── category_a/          # Category A 分析（含今日报告）
+│   │   ├── a1_full_analysis_2026-04-10.md  ← 今日新增
+│   │   └── a1_corrected_metrics.md
+│   └── phase3/              # Phase 3 分析报告
+│       ├── phase3_exp3a_report.md
+│       └── ...
+│
+├── scripts/                  # 一次性分析脚本（不属于实验流程）
+│   └── recompute_a1_metrics.py   ← 从 analysis/ 迁移至此
+│
+├── docs/                     # 设计文档
+│   ├── specs/               # 实验设计 spec（从 docs/superpowers/specs/ 迁移）
+│   └── plans/               # 实现计划（从 docs/superpowers/plans/ 迁移）
+│
+├── plan/                     # 研究规划文档（保持现状）
+│   ├── base_instructions-phase1.md
+│   ├── weekly_research_report_0401.md
+│   └── research_plan_attack_algorithm.md
+│
+├── data/                     # 数据集
+│   └── saladbench_splits/
+│
+└── results/                  # 实验结果（.json, .pt）不在 git 跟踪
+    ├── category_a/{model}/
+    └── phase3/{model}/
+```
 
----
-
-## 9. 给 Claude 的快速上手指令
-
-新会话开始时，告诉 Claude：
-
-> "请读取 `plan/base_instructions-phase1.md`、`plan/weekly_research_report_0401.md` 和 `experiments/category_a/HANDOFF.md`，这是我的研究项目。"
-
-然后可以直接问：
-- "检查 A1 实验进度"
-- "A1 完成了，帮我启动 A2"
-- "分析 A1 结果，写分析报告"
+**迁移建议**（当前可先不动，后续整理时遵照）:
+- `analysis/recompute_a1_metrics.py` → `scripts/recompute_a1_metrics.py`
+- `analysis/phase3_*.md` → `analysis/phase3/`
+- `docs/superpowers/specs/` → `docs/specs/`
+- `docs/superpowers/plans/` → `docs/plans/`
+- 项目根目录的 `*.py`（plots.py, rdo.py 等）→ `scripts/`
