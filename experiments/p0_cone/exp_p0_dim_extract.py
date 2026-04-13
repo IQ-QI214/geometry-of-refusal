@@ -238,12 +238,6 @@ def main():
     print(f"  Selected: pos={best_pos}, layer={best_layer}")
     print(f"  best_direction shape: {best_direction.shape}")
 
-    # Save k=1 cone as the single best mean_diff direction
-    # Shape: (1, d_model) — consistent with k>1 cone shapes
-    dim_cone_k1 = best_direction.unsqueeze(0).float()
-    torch.save(dim_cone_k1, os.path.join(save_dir, "dim_cone_k1.pt"))
-    print(f"  Saved dim_cone_k1.pt (shape={dim_cone_k1.shape})")
-
     # Save metadata
     metadata = {"pos": int(best_pos), "layer": int(best_layer)}
     with open(os.path.join(save_dir, "dim_metadata.json"), "w") as f:
