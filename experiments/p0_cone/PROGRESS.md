@@ -188,20 +188,26 @@ results/p0_cone/qwen2vl_7b/...               # 同上，d_model=3584
 ```bash
 cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
 
+# 先创建结果目录（必须）
+mkdir -p results/p0_cone/llava_7b results/p0_cone/qwen2vl_7b
+
 # LLaVA (rdo env, cuda:0)，约 10-20 分钟
+# tee 让输出同时显示在终端并写入 log
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-nohup conda run --no-capture-output -n rdo \
+conda run --no-capture-output -n rdo \
     python experiments/p0_cone/exp_p0_dim_extract.py --model llava_7b --device cuda:0 \
-    > results/p0_cone/llava_7b/dim_extract.log 2>&1 &
-echo "LLaVA DIM PID: $!"
+    2>&1 | tee results/p0_cone/llava_7b/dim_extract.log
+echo "=== LLaVA DIM DONE ==="
 
 # Qwen (qwen3-vl env, cuda:1)
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-nohup conda run --no-capture-output -n qwen3-vl \
+conda run --no-capture-output -n qwen3-vl \
     python experiments/p0_cone/exp_p0_dim_extract.py --model qwen2vl_7b --device cuda:1 \
-    > results/p0_cone/qwen2vl_7b/dim_extract.log 2>&1 &
-echo "Qwen DIM PID: $!"
+    2>&1 | tee results/p0_cone/qwen2vl_7b/dim_extract.log
+echo "=== Qwen DIM DONE ==="
 ```
+
+> 如果想两个模型并行跑（分别在两个终端窗口执行），各窗口分别运行对应的那条命令即可。
 
 **CP2 验证**:
 ```bash
@@ -238,22 +244,25 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 ```bash
 cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
 
-# LLaVA k=1,3,5 (rdo env, cuda:0)
+# 确保结果目录存在（Task 5 应已创建，但以防万一）
+mkdir -p results/p0_cone/llava_7b results/p0_cone/qwen2vl_7b
+
+# LLaVA k=1,3,5 (rdo env, cuda:0) — 顺序执行，每轮结束后打印提示
 for K in 1 3 5; do
   HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
   conda run --no-capture-output -n rdo \
     python experiments/p0_cone/exp_p0_dim_ablate.py --model llava_7b --k $K \
-    > results/p0_cone/llava_7b/dim_k${K}_ablate.log 2>&1
-  echo "LLaVA k=$K done"
+    2>&1 | tee results/p0_cone/llava_7b/dim_k${K}_ablate.log
+  echo "=== LLaVA k=$K DONE ==="
 done
 
-# Qwen k=1,3,5 (qwen3-vl env, cuda:1)
+# Qwen k=1,3,5 (qwen3-vl env, cuda:1) — 可与 LLaVA 在另一终端并行
 for K in 1 3 5; do
   HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
   conda run --no-capture-output -n qwen3-vl \
     python experiments/p0_cone/exp_p0_dim_ablate.py --model qwen2vl_7b --k $K \
-    > results/p0_cone/qwen2vl_7b/dim_k${K}_ablate.log 2>&1
-  echo "Qwen k=$K done"
+    2>&1 | tee results/p0_cone/qwen2vl_7b/dim_k${K}_ablate.log
+  echo "=== Qwen k=$K DONE ==="
 done
 ```
 
