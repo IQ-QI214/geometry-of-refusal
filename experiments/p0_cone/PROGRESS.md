@@ -78,7 +78,7 @@ git log --oneline -10
 | 3 | Update Model Factory | ✅ 完成 | 2026-04-13 |
 | 4 | Smoke Test VLM Adapters (CP1) | ✅ 完成 | 2026-04-13 |
 | 5 | DIM Direction Extraction + PCA Cone | ✅ 完成 | 2026-04-13 |
-| 6 | DIM Cone Ablation + Generation | ⏳ 待开始 | — |
+| 6 | DIM Cone Ablation + Generation | ✅ 完成 | 2026-04-13 |
 | 7 | RDO Training for VLM | ⏳ 待开始 | — |
 | 8 | RDO Cone Ablation + Generation | ⏳ 待开始 | — |
 | 9 | Four-Layer ASR Evaluation Pipeline | ⏳ 待开始 | — |
@@ -223,11 +223,53 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 
 ### Task 6: DIM Cone Ablation + Generation ⏳
 
-**脚本**: `experiments/p0_cone/exp_p0_dim_ablate.py`（待写）
-**完整代码**: 见 plan `## Task 6` 节
+**脚本**: `experiments/p0_cone/exp_p0_dim_ablate.py`（已写，Commit `10aeeb5`）
 **依赖**: Task 5 输出的 `dim_cone_k*.pt` 文件
 
-**输出**: `results/p0_cone/{model}/dim_k{1,3,5}_responses.json`（各含 128 条）
+**核心设计**:
+- `build_ablation_hooks(model_base, cone_basis)` 为 k 个方向、n_layers 层、3 个 hook 点（block pre + attn out + mlp out）共建 `k*n_layers` 个 pre-hooks、`k*n_layers*2` 个 fwd-hooks
+- 使用 `get_direction_ablation_input_pre_hook` / `get_direction_ablation_output_hook`（与 `get_all_direction_ablation_hooks` 一致的 hook 函数）
+- `generate_completions()` 调用，VLM kwargs 由 adapter 内部处理
+- `--k {1,3,5}` 选择锥基向量数量；输出文件已存在则跳过（幂等）
+
+**输出**: `results/p0_cone/{model}/dim_k{1,3,5}_responses.json`（各含 n_prompts 条）
+
+**运行命令（交给 qi 在 GPU 节点运行）**:
+```bash
+cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+
+# LLaVA k=1,3,5 (rdo env, cuda:0)
+for K in 1 3 5; do
+  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+  conda run --no-capture-output -n rdo \
+    python experiments/p0_cone/exp_p0_dim_ablate.py --model llava_7b --k $K \
+    > results/p0_cone/llava_7b/dim_k${K}_ablate.log 2>&1
+  echo "LLaVA k=$K done"
+done
+
+# Qwen k=1,3,5 (qwen3-vl env, cuda:1)
+for K in 1 3 5; do
+  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+  conda run --no-capture-output -n qwen3-vl \
+    python experiments/p0_cone/exp_p0_dim_ablate.py --model qwen2vl_7b --k $K \
+    > results/p0_cone/qwen2vl_7b/dim_k${K}_ablate.log 2>&1
+  echo "Qwen k=$K done"
+done
+```
+
+**CP 验证**:
+```bash
+ls results/p0_cone/llava_7b/dim_k*_responses.json
+ls results/p0_cone/qwen2vl_7b/dim_k*_responses.json
+python -c "
+import json
+for m in ['llava_7b', 'qwen2vl_7b']:
+    for k in [1,3,5]:
+        with open(f'results/p0_cone/{m}/dim_k{k}_responses.json') as f:
+            d = json.load(f)
+        print(f'{m} k={k}: n_prompts={d[\"n_prompts\"]}')
+"
+```
 
 ---
 
@@ -288,4 +330,4 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 
 ---
 
-*最后更新: 2026-04-13，Task 5 完成后*
+*最后更新: 2026-04-13，Task 6 完成后*
