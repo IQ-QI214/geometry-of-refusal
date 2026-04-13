@@ -25,10 +25,7 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../refusal_direction"))
 
 from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.utils.hook_utils import (
-    get_direction_ablation_input_pre_hook,
-    get_direction_ablation_output_hook,
-)
+from pipeline.utils.hook_utils import get_all_direction_ablation_hooks
 
 # ---------------------------------------------------------------------------
 # Model paths
@@ -48,38 +45,18 @@ MODEL_PATHS = {
 def build_ablation_hooks(model_base, cone_basis):
     """
     Build (fwd_pre_hooks, fwd_hooks) that ablate every direction in cone_basis
-    from every layer.
+    from every layer, delegating to get_all_direction_ablation_hooks per direction.
 
     cone_basis: (k, d_model) tensor — each row is one basis direction.
-
-    For each direction and each layer we register:
-      - get_direction_ablation_input_pre_hook  on model_block_modules[layer]
-      - get_direction_ablation_output_hook     on model_attn_modules[layer]
-      - get_direction_ablation_output_hook     on model_mlp_modules[layer]
     """
-    n_layers = model_base.model.config.num_hidden_layers
-    k = cone_basis.shape[0]
-
-    fwd_pre_hooks = []
-    fwd_hooks = []
-
-    for direction_idx in range(k):
-        direction = cone_basis[direction_idx]  # (d_model,)
-        for layer in range(n_layers):
-            fwd_pre_hooks.append((
-                model_base.model_block_modules[layer],
-                get_direction_ablation_input_pre_hook(direction=direction),
-            ))
-            fwd_hooks.append((
-                model_base.model_attn_modules[layer],
-                get_direction_ablation_output_hook(direction=direction),
-            ))
-            fwd_hooks.append((
-                model_base.model_mlp_modules[layer],
-                get_direction_ablation_output_hook(direction=direction),
-            ))
-
-    return fwd_pre_hooks, fwd_hooks
+    all_pre_hooks = []
+    all_fwd_hooks = []
+    for i in range(cone_basis.shape[0]):
+        # .clone() guards against the nonlocal-mutation pattern inside hook closures
+        pre, fwd = get_all_direction_ablation_hooks(model_base, cone_basis[i].clone())
+        all_pre_hooks.extend(pre)
+        all_fwd_hooks.extend(fwd)
+    return all_pre_hooks, all_fwd_hooks
 
 
 def main():
@@ -160,17 +137,18 @@ def main():
     d_model = model_base.model.config.hidden_size
     print(f"  Layers     : {n_layers}")
     print(f"  hidden_size: {d_model}")
+    assert cone_basis.shape[1] == d_model, (
+        f"cone_basis d_model mismatch: file has {cone_basis.shape[1]}, "
+        f"model has {d_model}. Wrong cone file loaded?"
+    )
 
     # -----------------------------------------------------------------------
     # Build ablation hooks (k directions x n_layers x 3 hook points)
     # -----------------------------------------------------------------------
     print("[4/4] Building ablation hooks and generating completions...")
-    n_hooks_pre = args.k * n_layers
-    n_hooks_fwd = args.k * n_layers * 2
-    print(f"  Pre-hooks  : {n_hooks_pre}  (k={args.k} dirs x {n_layers} layers)")
-    print(f"  Fwd-hooks  : {n_hooks_fwd}  (k={args.k} dirs x {n_layers} layers x 2 [attn+mlp])")
-
     fwd_pre_hooks, fwd_hooks = build_ablation_hooks(model_base, cone_basis)
+    print(f"  Pre-hooks  : {len(fwd_pre_hooks)}  (k={args.k} dirs x {n_layers} layers)")
+    print(f"  Fwd-hooks  : {len(fwd_hooks)}  (k={args.k} dirs x {n_layers} layers x 2 [attn+mlp])")
 
     # generate_completions handles VLM kwargs (pixel_values etc.) internally
     completions = model_base.generate_completions(
