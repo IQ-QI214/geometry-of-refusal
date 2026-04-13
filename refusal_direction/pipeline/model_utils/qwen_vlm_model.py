@@ -57,7 +57,7 @@ class QwenVLMModel(ModelBase):
     def _load_model(self, model_path, dtype=torch.bfloat16):
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
             model_path,
-            torch_dtype=dtype,
+            dtype=dtype,
             local_files_only=True,
             trust_remote_code=True,
         ).eval()
