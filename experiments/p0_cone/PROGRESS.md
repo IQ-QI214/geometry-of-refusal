@@ -176,12 +176,12 @@ VLM 检测（`llava-hf`, `qwen2.5-vl`）在 text-only Qwen 检测之前，防止
 
 **输出文件**（运行后应存在）:
 ```
-results/p0/llava_7b/dim_cone_k1.pt      # shape: (1, 4096)
-results/p0/llava_7b/dim_cone_k3.pt      # shape: (3, 4096)
-results/p0/llava_7b/dim_cone_k5.pt      # shape: (5, 4096)
-results/p0/llava_7b/dim_metadata.json   # {"pos": int, "layer": int}
-results/p0/llava_7b/dim_singular_values.pt
-results/p0/qwen2vl_7b/...               # 同上，d_model=3584
+results/p0_cone/llava_7b/dim_cone_k1.pt      # shape: (1, 4096)
+results/p0_cone/llava_7b/dim_cone_k3.pt      # shape: (3, 4096)
+results/p0_cone/llava_7b/dim_cone_k5.pt      # shape: (5, 4096)
+results/p0_cone/llava_7b/dim_metadata.json   # {"pos": int, "layer": int}
+results/p0_cone/llava_7b/dim_singular_values.pt
+results/p0_cone/qwen2vl_7b/...               # 同上，d_model=3584
 ```
 
 **运行命令（写完脚本后交给 qi 运行）**:
@@ -192,29 +192,29 @@ cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup conda run --no-capture-output -n rdo \
     python experiments/p0_cone/exp_p0_dim_extract.py --model llava_7b --device cuda:0 \
-    > results/p0/llava_7b/dim_extract.log 2>&1 &
+    > results/p0_cone/llava_7b/dim_extract.log 2>&1 &
 echo "LLaVA DIM PID: $!"
 
 # Qwen (qwen3-vl env, cuda:1)
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup conda run --no-capture-output -n qwen3-vl \
     python experiments/p0_cone/exp_p0_dim_extract.py --model qwen2vl_7b --device cuda:1 \
-    > results/p0/qwen2vl_7b/dim_extract.log 2>&1 &
+    > results/p0_cone/qwen2vl_7b/dim_extract.log 2>&1 &
 echo "Qwen DIM PID: $!"
 ```
 
 **CP2 验证**:
 ```bash
 # 检查输出文件是否存在
-ls results/p0/llava_7b/dim_cone_k*.pt results/p0/llava_7b/dim_metadata.json
-ls results/p0/qwen2vl_7b/dim_cone_k*.pt results/p0/qwen2vl_7b/dim_metadata.json
+ls results/p0_cone/llava_7b/dim_cone_k*.pt results/p0_cone/llava_7b/dim_metadata.json
+ls results/p0_cone/qwen2vl_7b/dim_cone_k*.pt results/p0_cone/qwen2vl_7b/dim_metadata.json
 
 # 检查 shape
 python -c "
 import torch
 for m in ['llava_7b', 'qwen2vl_7b']:
     for k in [1,3,5]:
-        t = torch.load(f'results/p0/{m}/dim_cone_k{k}.pt')
+        t = torch.load(f'results/p0_cone/{m}/dim_cone_k{k}.pt')
         print(f'{m} k={k}: {t.shape}')
 "
 ```
@@ -227,7 +227,7 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 **完整代码**: 见 plan `## Task 6` 节
 **依赖**: Task 5 输出的 `dim_cone_k*.pt` 文件
 
-**输出**: `results/p0/{model}/dim_k{1,3,5}_responses.json`（各含 128 条）
+**输出**: `results/p0_cone/{model}/dim_k{1,3,5}_responses.json`（各含 128 条）
 
 ---
 

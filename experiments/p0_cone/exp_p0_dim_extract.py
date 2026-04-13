@@ -162,7 +162,7 @@ def main():
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../")
     )
-    save_dir = os.path.join(project_root, "results", "p0", args.model)
+    save_dir = os.path.join(project_root, "results", "p0_cone", args.model)
     os.makedirs(save_dir, exist_ok=True)
 
     data_dir = os.path.join(project_root, "data", "saladbench_splits")
