@@ -41,10 +41,15 @@ def get_refusal_scores(model, instructions, tokenize_instructions_fn, refusal_to
         tokenized_instructions = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
 
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-            logits = model(
-                input_ids=tokenized_instructions.input_ids.to(model.device),
-                attention_mask=tokenized_instructions.attention_mask.to(model.device),
-            ).logits
+            forward_kwargs = {
+                "input_ids": tokenized_instructions.input_ids.to(model.device),
+                "attention_mask": tokenized_instructions.attention_mask.to(model.device),
+            }
+            for _key in ("pixel_values", "image_grid_thw", "image_sizes"):
+                if _key in tokenized_instructions and tokenized_instructions[_key] is not None:
+                    _val = tokenized_instructions[_key]
+                    forward_kwargs[_key] = _val.to(model.device) if hasattr(_val, "to") else _val
+            logits = model(**forward_kwargs).logits
 
         refusal_scores[i:i+batch_size] = refusal_score_fn(logits=logits)
 
@@ -57,10 +62,15 @@ def get_last_position_logits(model, tokenizer, instructions, tokenize_instructio
         tokenized_instructions = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
 
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-            logits = model(
-                input_ids=tokenized_instructions.input_ids.to(model.device),
-                attention_mask=tokenized_instructions.attention_mask.to(model.device),
-            ).logits
+            forward_kwargs = {
+                "input_ids": tokenized_instructions.input_ids.to(model.device),
+                "attention_mask": tokenized_instructions.attention_mask.to(model.device),
+            }
+            for _key in ("pixel_values", "image_grid_thw", "image_sizes"):
+                if _key in tokenized_instructions and tokenized_instructions[_key] is not None:
+                    _val = tokenized_instructions[_key]
+                    forward_kwargs[_key] = _val.to(model.device) if hasattr(_val, "to") else _val
+            logits = model(**forward_kwargs).logits
 
         if last_position_logits is None:
             last_position_logits = logits[:, -1, :]

@@ -31,11 +31,17 @@ def get_mean_activations(model, tokenizer, instructions, tokenize_instructions_f
     for i in tqdm(range(0, len(instructions), batch_size)):
         inputs = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
 
+        forward_kwargs = {
+            "input_ids": inputs.input_ids.to(model.device),
+            "attention_mask": inputs.attention_mask.to(model.device),
+        }
+        for _key in ("pixel_values", "image_grid_thw", "image_sizes"):
+            if _key in inputs and inputs[_key] is not None:
+                _val = inputs[_key]
+                forward_kwargs[_key] = _val.to(model.device) if hasattr(_val, "to") else _val
+
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=[]):
-            model(
-                input_ids=inputs.input_ids.to(model.device),
-                attention_mask=inputs.attention_mask.to(model.device),
-            )
+            model(**forward_kwargs)
 
     return mean_activations
 

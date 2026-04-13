@@ -14,6 +14,8 @@ from pipeline.model_utils.model_base import ModelBase
 # LLaVA-1.5 uses LLaMA-2 tokenizer
 LLAVA_REFUSAL_TOKS = [306]  # token "I" in LLaMA-2 tokenizer
 
+_LLAVA_EOI_SUFFIX = "\nASSISTANT:"
+
 # Blank image: 336x336 white
 _BLANK_IMAGE = Image.new("RGB", (336, 336), (255, 255, 255))
 
@@ -65,6 +67,9 @@ class LlavaVLMModel(ModelBase):
             local_files_only=True,
         ).eval()
         model.requires_grad_(False)
+        # Patch top-level config for downstream pipeline compatibility
+        model.config.num_hidden_layers = model.config.text_config.num_hidden_layers
+        model.config.hidden_size = model.config.text_config.hidden_size
         return model
 
     def _load_tokenizer(self, model_path):
@@ -88,15 +93,7 @@ class LlavaVLMModel(ModelBase):
         )
 
     def _get_eoi_toks(self):
-        # End-of-instruction tokens for LLaVA (after user message)
-        # Using the template suffix after {instruction}
-        template = self._processor.apply_chat_template(
-            [{"role": "user", "content": [{"type": "text", "text": "X"}]}],
-            add_generation_prompt=True,
-        )
-        # Get tokens after "X"
-        suffix = template.split("X")[-1]
-        return self.tokenizer.encode(suffix, add_special_tokens=False)
+        return self.tokenizer.encode(_LLAVA_EOI_SUFFIX, add_special_tokens=False)
 
     def _get_refusal_toks(self):
         return LLAVA_REFUSAL_TOKS
