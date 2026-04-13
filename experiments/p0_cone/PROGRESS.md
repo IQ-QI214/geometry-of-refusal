@@ -77,7 +77,7 @@ git log --oneline -10
 | 2 | Qwen VLM Model Adapter | ✅ 完成 | 2026-04-13 |
 | 3 | Update Model Factory | ✅ 完成 | 2026-04-13 |
 | 4 | Smoke Test VLM Adapters (CP1) | ✅ 完成 | 2026-04-13 |
-| 5 | DIM Direction Extraction + PCA Cone | ⏳ 待开始（脚本未写） | — |
+| 5 | DIM Direction Extraction + PCA Cone | ✅ 完成 | 2026-04-13 |
 | 6 | DIM Cone Ablation + Generation | ⏳ 待开始 | — |
 | 7 | RDO Training for VLM | ⏳ 待开始 | — |
 | 8 | RDO Cone Ablation + Generation | ⏳ 待开始 | — |
@@ -169,9 +169,9 @@ VLM 检测（`llava-hf`, `qwen2.5-vl`）在 text-only Qwen 检测之前，防止
 
 ---
 
-### Task 5: DIM Direction Extraction + PCA Cone ⏳
+### Task 5: DIM Direction Extraction + PCA Cone ✅
 
-**脚本**: `experiments/p0_cone/exp_p0_dim_extract.py`（待写）
+**脚本**: `experiments/p0_cone/exp_p0_dim_extract.py`（已写，Commit `60195c0`）
 **完整代码**: 见 plan `## Task 5` 节
 
 **输出文件**（运行后应存在）:
@@ -288,4 +288,4 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 
 ---
 
-*最后更新: 2026-04-13，Task 4 完成后*
+*最后更新: 2026-04-13，Task 5 完成后*
