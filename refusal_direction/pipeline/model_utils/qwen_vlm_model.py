@@ -1,6 +1,5 @@
 import torch
 import functools
-import os
 
 from torch import Tensor
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
@@ -34,11 +33,13 @@ def tokenize_instructions_qwen_vlm(
         text = processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-        if outputs is not None:
-            idx = len(prompts)
-            if idx < len(outputs) and outputs[idx] is not None:
-                text += outputs[idx]
         prompts.append(text)
+
+    if outputs is not None:
+        prompts = [
+            p + o if o is not None else p
+            for p, o in zip(prompts, outputs)
+        ]
 
     images = [_BLANK_IMAGE] * len(prompts)
     result = processor(
