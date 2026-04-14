@@ -208,13 +208,19 @@ def main():
     # -----------------------------------------------------------------------
     # Step 1: Generate mean_diffs on the full train set
     # -----------------------------------------------------------------------
-    print("[1/4] Extracting mean_diffs (generate_directions) on train set...")
     artifact_dir = os.path.join(save_dir, "dim_directions")
     os.makedirs(artifact_dir, exist_ok=True)
+    mean_diffs_cache = os.path.join(artifact_dir, "mean_diffs.pt")
 
-    mean_diffs = generate_directions(
-        model_base, harmful_train_inst, harmless_train_inst, artifact_dir
-    )
+    if os.path.exists(mean_diffs_cache):
+        print(f"[1/4] Loading cached mean_diffs from {mean_diffs_cache} ...")
+        mean_diffs = torch.load(mean_diffs_cache, map_location="cpu")
+    else:
+        print("[1/4] Extracting mean_diffs (generate_directions) on train set...")
+        mean_diffs = generate_directions(
+            model_base, harmful_train_inst, harmless_train_inst, artifact_dir
+        )
+
     # mean_diffs shape: (n_eoi_toks, n_layers, d_model)
     print(f"  mean_diffs shape: {mean_diffs.shape}")
     assert not mean_diffs.isnan().any(), "mean_diffs contains NaN!"
@@ -226,14 +232,50 @@ def main():
     selection_dir = os.path.join(save_dir, "dim_selection")
     os.makedirs(selection_dir, exist_ok=True)
 
-    best_pos, best_layer, best_direction = select_direction(
-        model_base,
-        harmful_val_inst,
-        harmless_val_inst,
-        mean_diffs,
-        artifact_dir=selection_dir,
-        batch_size=args.select_batch_size,
-    )
+    evals_cache = os.path.join(selection_dir, "direction_evaluations.json")
+    if os.path.exists(evals_cache):
+        # Fast path: all KL/ablation/steering scores already computed.
+        # Apply relaxed filter (induce_refusal_threshold=None for VLMs) and pick best.
+        print(f"  [cache hit] Loading scores from {evals_cache} ...")
+        import math
+        evals = json.load(open(evals_cache))
+        n_layers = len(model_base.model_block_modules)
+        kl_threshold = 0.1
+        prune_layer_percentage = 0.20
+        max_ok_layer = int(n_layers * (1.0 - prune_layer_percentage))
+
+        filtered = []
+        for e in evals:
+            pos = e["position"]
+            layer = e["layer"]
+            rs = e["refusal_score"]
+            ss = e["steering_score"]
+            kl = e["kl_div_score"]
+            if any(math.isnan(v) for v in [rs, ss, kl]):
+                continue
+            if layer >= max_ok_layer:
+                continue
+            if kl > kl_threshold:
+                continue
+            # induce_refusal_threshold=None → steering filter disabled for VLMs
+            filtered.append((-rs, pos, layer))
+
+        assert len(filtered) > 0, "Still no valid directions after relaxed filter!"
+        filtered.sort(key=lambda x: x[0], reverse=True)
+        _, best_pos, best_layer = filtered[0]
+        best_direction = mean_diffs[best_pos, best_layer].to(model_base.model.device)
+        print(f"  [fast path] Selected from cache: pos={best_pos}, layer={best_layer}")
+    else:
+        best_pos, best_layer, best_direction = select_direction(
+            model_base,
+            harmful_val_inst,
+            harmless_val_inst,
+            mean_diffs,
+            artifact_dir=selection_dir,
+            batch_size=args.select_batch_size,
+            induce_refusal_threshold=None,  # VLM: steering filter disabled
+        )
+
     # best_pos is a NEGATIVE integer (e.g. -1, -2)
     print(f"  Selected: pos={best_pos}, layer={best_layer}")
     print(f"  best_direction shape: {best_direction.shape}")
