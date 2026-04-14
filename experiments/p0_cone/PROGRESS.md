@@ -80,8 +80,8 @@ git log --oneline -10
 | 4 | Smoke Test VLM Adapters (CP1) | ✅ 完成 | 2026-04-13 |
 | 5 | DIM Direction Extraction + PCA Cone | ✅ 完成（LLaVA: 2026-04-13, Qwen: 运行中） | — |
 | 6 | DIM Cone Ablation + Generation | ✅ LLaVA 完成 2026-04-14，Qwen 待运行 | — |
-| 7 | RDO Training for VLM | ⏳ 脚本待写 | — |
-| 8 | RDO Cone Ablation + Generation | ⏳ 脚本待写 | — |
+| 7 | RDO Training for VLM | ✅ 脚本完成 2026-04-14，待运行 | — |
+| 8 | RDO Cone Ablation + Generation | ✅ 脚本完成 2026-04-14，待运行 | — |
 | 9 | Four-Layer ASR Evaluation Pipeline | ⏳ 脚本待写 | — |
 | 10 | Shell Scripts for Execution | ⏳ 待开始 | — |
 | 11 | Analysis Report | ⏳ 待开始（等实验结果） | — |
@@ -251,7 +251,7 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 
 **结果解读（LLaVA keyword ASR）**:
 
-1. **非单调趋势 k=1 > k=3 < k=5**：PCA 第2、3主成分对拒绝方向贡献有限，反而消融了有助于流畅生成的方向，导致 k=3 输出退化更多（重复 token 如 "A A A A..."）从而被判为 "refusal"
+1. **非单调趋势 k=1 > k=3 < k=5**：PCA 第2、3主成分对拒绝方向贡献有限，不是纯拒绝方向，消融了破坏了 LLaVA language decoder 对视觉 token 的对齐信号，导致 token 概率坍塌，输出退化更多（重复 token 如 "A A A A..."）-> keyword 检测把这些判为不拒绝 (没有 “I'm sorry” 前缀)
 
 2. **退化生成（degenerate generation）现象**：k=1 的 69 个 bypass 中，40 个是重复 token / token collapse（如 "A A A A..."），21 个有实质语义内容，8 个极短（≤3词）。**真实语义 bypass 率远低于 keyword bypass rate**
 
@@ -260,6 +260,12 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 4. **对假说 A/B 的影响**：LLaVA 本身不是核心判定模型（smoke test 就已发现 stealth refusal 信号弱），keyword ASR 不区分语义质量。需要 ASR_judge（Layer 3-4）才能判断 bypass 是真实有害还是退化噪声
 
 5. **SRR 预期**：LLaVA 的 `SRR = ASR_keyword − ASR_judge` 预计较小（judge 会过滤退化输出），说明 LLaVA 的高 keyword bypass 多为模型退化而非真实安全绕过
+
+这是当前结果的局限性：
+这是 4 层评估中最粗糙的 Layer 1（keyword）。不能用来判断假说 A/B，原因：
+
+  1. keyword ASR 对 stealth refusal 盲目：模型可能说了"这里是药品合成步骤"（绕过keyword），但实际上只给了无用内容（stealth refusal），keyword 会把它算成"成功绕过"
+  2. 反过来也成立：模型可能真正有害但用 "Sure, here's how..." 开头，反而被正确计为绕过
 
 **运行命令（交给 qi 在 GPU 节点运行）**:
 ```bash
