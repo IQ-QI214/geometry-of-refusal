@@ -65,7 +65,8 @@ git log --oneline -10
 | 8 | Qwen `from_pretrained` 的 `torch_dtype=` | 应改为 `dtype=`（已修复） |
 | 9 | `temperature=0` + `do_sample=False` 的警告 | 无害，后续若清理可只在 `do_sample=True` 时设置 temperature |
 | 10 | LLaVA 模型路径用 snapshot 绝对路径更可靠 | `/inspire/hdd/.../models/hub/models--llava-hf--llava-1.5-7b-hf/snapshots/b234b804b114d9e37bb655e11cbbb5f5e971b7a9` |
-| 11 | smoke test 里 Qwen 即使消融也拒绝 | 正常现象：smoke test 用的是随机方向，不是最优方向；是 stealth refusal 的早期信号 |
+| 12 | `select_direction` steering 过滤器对 VLM 全失效 | 改为 `induce_refusal_threshold=None` + 缓存快速路径（Commit `2419f17`）|
+| 13 | LLaVA `device_map="auto"` 扩散到所有可见 GPU，同事占用时 OOM | 改为 `device_map={"": "cuda:0"}`；如需其他卡用 `CUDA_VISIBLE_DEVICES=N`（Commit `3b8bf92`）|
 
 ---
 
