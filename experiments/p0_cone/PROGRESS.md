@@ -78,11 +78,11 @@ git log --oneline -10
 | 2 | Qwen VLM Model Adapter | ✅ 完成 | 2026-04-13 |
 | 3 | Update Model Factory | ✅ 完成 | 2026-04-13 |
 | 4 | Smoke Test VLM Adapters (CP1) | ✅ 完成 | 2026-04-13 |
-| 5 | DIM Direction Extraction + PCA Cone | ✅ 完成 | 2026-04-13 |
-| 6 | DIM Cone Ablation + Generation | ✅ 完成 | 2026-04-13 |
-| 7 | RDO Training for VLM | ⏳ 待开始 | — |
-| 8 | RDO Cone Ablation + Generation | ⏳ 待开始 | — |
-| 9 | Four-Layer ASR Evaluation Pipeline | ⏳ 待开始 | — |
+| 5 | DIM Direction Extraction + PCA Cone | ✅ 完成（LLaVA: 2026-04-13, Qwen: 运行中） | — |
+| 6 | DIM Cone Ablation + Generation | ✅ LLaVA 完成 2026-04-14，Qwen 待运行 | — |
+| 7 | RDO Training for VLM | ⏳ 脚本待写 | — |
+| 8 | RDO Cone Ablation + Generation | ⏳ 脚本待写 | — |
+| 9 | Four-Layer ASR Evaluation Pipeline | ⏳ 脚本待写 | — |
 | 10 | Shell Scripts for Execution | ⏳ 待开始 | — |
 | 11 | Analysis Report | ⏳ 待开始（等实验结果） | — |
 
@@ -228,7 +228,7 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 
 ---
 
-### Task 6: DIM Cone Ablation + Generation ⏳
+### Task 6: DIM Cone Ablation + Generation ✅ (LLaVA)
 
 **脚本**: `experiments/p0_cone/exp_p0_dim_ablate.py`（已写，Commit `10aeeb5`）
 **依赖**: Task 5 输出的 `dim_cone_k*.pt` 文件
@@ -237,9 +237,29 @@ for m in ['llava_7b', 'qwen2vl_7b']:
 - `build_ablation_hooks(model_base, cone_basis)` 为 k 个方向、n_layers 层、3 个 hook 点（block pre + attn out + mlp out）共建 `k*n_layers` 个 pre-hooks、`k*n_layers*2` 个 fwd-hooks
 - 使用 `get_direction_ablation_input_pre_hook` / `get_direction_ablation_output_hook`（与 `get_all_direction_ablation_hooks` 一致的 hook 函数）
 - `generate_completions()` 调用，VLM kwargs 由 adapter 内部处理
-- `--k {1,3,5}` 选择锥基向量数量；输出文件已存在则跳过（幂等）
+- `--k {1,3,5}` 选择锥基向量数量；已存在则保存时间戳后缀（不覆盖）
 
-**输出**: `results/p0_cone/{model}/dim_k{1,3,5}_responses.json`（各含 n_prompts 条）
+**LLaVA-7B 结果（2026-04-14，keyword ASR）**:
+
+| k | n | refusals | ASR_keyword (bypass_rate) |
+|---|---|----------|--------------------------|
+| 1 | 128 | 59 | 0.539 |
+| 3 | 128 | 67 | 0.477 |
+| 5 | 128 | 45 | 0.648 |
+
+**输出文件**: `results/p0_cone/llava_7b/dim_k{1,3,5}_responses.json`
+
+**结果解读（LLaVA keyword ASR）**:
+
+1. **非单调趋势 k=1 > k=3 < k=5**：PCA 第2、3主成分对拒绝方向贡献有限，反而消融了有助于流畅生成的方向，导致 k=3 输出退化更多（重复 token 如 "A A A A..."）从而被判为 "refusal"
+
+2. **退化生成（degenerate generation）现象**：k=1 的 69 个 bypass 中，40 个是重复 token / token collapse（如 "A A A A..."），21 个有实质语义内容，8 个极短（≤3词）。**真实语义 bypass 率远低于 keyword bypass rate**
+
+3. **瓶颈层 & 反转放大假说**：LLaVA 的 best layer=22（32层中，约70%深度），ablation score 在 layer 20-25 形成宽峰（-5.59~-5.80），无明显单一瓶颈。退化生成的产生机制：消融 layer 22 方向的同时可能破坏了 LLaVA language decoder 对视觉 token 的对齐信号，导致 token 概率分布坍塌 → 重复采样。**这不是拒绝机制瓶颈的"放大反转"，而是 VLM cross-modal alignment 在消融扰动下的脆弱性**
+
+4. **对假说 A/B 的影响**：LLaVA 本身不是核心判定模型（smoke test 就已发现 stealth refusal 信号弱），keyword ASR 不区分语义质量。需要 ASR_judge（Layer 3-4）才能判断 bypass 是真实有害还是退化噪声
+
+5. **SRR 预期**：LLaVA 的 `SRR = ASR_keyword − ASR_judge` 预计较小（judge 会过滤退化输出），说明 LLaVA 的高 keyword bypass 多为模型退化而非真实安全绕过
 
 **运行命令（交给 qi 在 GPU 节点运行）**:
 ```bash
