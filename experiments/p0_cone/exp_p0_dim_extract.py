@@ -16,8 +16,10 @@ Usage:
 import sys
 import os
 import json
+import math
 import torch
 import argparse
+from datetime import datetime
 
 # Set up path so pipeline imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../refusal_direction"))
@@ -34,6 +36,32 @@ MODEL_PATHS = {
     "llava_7b": "/inspire/hdd/global_user/wenming-253108090054/models/hub/models--llava-hf--llava-1.5-7b-hf/snapshots/b234b804b114d9e37bb655e11cbbb5f5e971b7a9",
     "qwen2vl_7b": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct",
 }
+
+# Final output basenames (protected against overwrite)
+_OUTPUT_BASENAMES = [
+    "dim_cone_k1.pt",
+    "dim_cone_k3.pt",
+    "dim_cone_k5.pt",
+    "dim_metadata.json",
+    "dim_singular_values.pt",
+]
+
+
+def resolve_output_dir(save_dir):
+    """
+    If any final output file already exists in save_dir, return a new
+    timestamped subdirectory so we never overwrite previous results.
+    Otherwise return save_dir unchanged.
+    """
+    existing = [f for f in _OUTPUT_BASENAMES if os.path.exists(os.path.join(save_dir, f))]
+    if existing:
+        tag = datetime.now().strftime("%Y%m%d_%H%M")
+        new_dir = os.path.join(save_dir, f"run_{tag}")
+        print(f"  [PROTECT] Found existing outputs: {existing}")
+        print(f"  [PROTECT] Saving this run to: {new_dir}")
+        os.makedirs(new_dir, exist_ok=True)
+        return new_dir
+    return save_dir
 
 
 def extract_individual_diffs(
@@ -162,13 +190,20 @@ def main():
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../")
     )
-    save_dir = os.path.join(project_root, "results", "p0_cone", args.model)
-    os.makedirs(save_dir, exist_ok=True)
+    base_dir = os.path.join(project_root, "results", "p0_cone", args.model)
+    os.makedirs(base_dir, exist_ok=True)
+
+    # Protect existing results: if final outputs already exist in base_dir,
+    # redirect this run's outputs to a timestamped subdirectory.
+    # Cache files (mean_diffs.pt, direction_evaluations.json) are always read
+    # from base_dir regardless.
+    save_dir = resolve_output_dir(base_dir)  # == base_dir if first run, else base_dir/run_YYYYMMDD_HHMM
 
     data_dir = os.path.join(project_root, "data", "saladbench_splits")
 
     print(f"=== DIM Extraction + PCA Cone: {args.model} ===")
-    print(f"  Save dir: {save_dir}")
+    print(f"  Base dir : {base_dir}")
+    print(f"  Out dir  : {save_dir}")
 
     # -----------------------------------------------------------------------
     # Load model
@@ -207,8 +242,9 @@ def main():
 
     # -----------------------------------------------------------------------
     # Step 1: Generate mean_diffs on the full train set
+    # (cache always in base_dir, shared across re-runs)
     # -----------------------------------------------------------------------
-    artifact_dir = os.path.join(save_dir, "dim_directions")
+    artifact_dir = os.path.join(base_dir, "dim_directions")
     os.makedirs(artifact_dir, exist_ok=True)
     mean_diffs_cache = os.path.join(artifact_dir, "mean_diffs.pt")
 
@@ -227,9 +263,10 @@ def main():
 
     # -----------------------------------------------------------------------
     # Step 2: Select best (pos, layer) via select_direction on val set
+    # (cache always in base_dir)
     # -----------------------------------------------------------------------
     print("[2/4] Selecting best direction on val set...")
-    selection_dir = os.path.join(save_dir, "dim_selection")
+    selection_dir = os.path.join(base_dir, "dim_selection")
     os.makedirs(selection_dir, exist_ok=True)
 
     evals_cache = os.path.join(selection_dir, "direction_evaluations.json")

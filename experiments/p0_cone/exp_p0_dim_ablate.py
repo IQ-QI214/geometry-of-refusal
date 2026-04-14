@@ -92,12 +92,16 @@ def main():
 
     print(f"=== DIM Cone Ablation: {args.model}, k={args.k} ===")
     print(f"  Cone file : {cone_path}")
-    print(f"  Output    : {output_path}")
 
-    # Skip if already done
+    # Protect existing results: if output already exists, save to timestamped path
     if os.path.exists(output_path):
-        print(f"  Output already exists — skipping. Remove to re-run.")
-        return
+        from datetime import datetime
+        tag = datetime.now().strftime("%Y%m%d_%H%M")
+        root, ext = os.path.splitext(output_path)
+        output_path = f"{root}_{tag}{ext}"
+        print(f"  [PROTECT] Output exists → saving to: {output_path}")
+    else:
+        print(f"  Output    : {output_path}")
 
     # -----------------------------------------------------------------------
     # Load eval data
