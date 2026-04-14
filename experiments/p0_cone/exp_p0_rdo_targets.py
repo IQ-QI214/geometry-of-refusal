@@ -46,8 +46,9 @@ def main():
     args = parser.parse_args()
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-    base_dir = os.path.join(project_root, "results", "p0_cone", args.model)
-    targets_dir = os.path.join(base_dir, "rdo_targets")
+    model_dir = os.path.join(project_root, "results", "p0_cone", args.model)
+    dim_dir = os.path.join(model_dir, "dim")       # DIM cone files live here
+    targets_dir = os.path.join(model_dir, "rdo", "targets")  # RDO targets go here
     os.makedirs(targets_dir, exist_ok=True)
 
     harmful_targets_path = os.path.join(targets_dir, "harmful_targets.json")
@@ -59,14 +60,14 @@ def main():
 
     print(f"=== RDO Target Generation: {args.model} ===")
 
-    # Load DIM direction and metadata
+    # Load DIM direction and metadata (from dim/ subdir)
     dim_direction = torch.load(
-        os.path.join(base_dir, "dim_cone_k1.pt"), weights_only=True, map_location="cpu"
+        os.path.join(dim_dir, "dim_cone_k1.pt"), weights_only=True, map_location="cpu"
     )
     if dim_direction.dim() == 2:
         dim_direction = dim_direction[0]  # (d_model,)
 
-    meta = json.load(open(os.path.join(base_dir, "dim_metadata.json")))
+    meta = json.load(open(os.path.join(dim_dir, "dim_metadata.json")))
     add_layer = meta["layer"]
     alpha = dim_direction.norm().item()
     print(f"  DIM direction norm (alpha): {alpha:.4f}, add_layer: {add_layer}")

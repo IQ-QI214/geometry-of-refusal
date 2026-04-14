@@ -190,7 +190,8 @@ def main():
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../")
     )
-    base_dir = os.path.join(project_root, "results", "p0_cone", args.model)
+    # All DIM outputs go under results/p0_cone/{model}/dim/
+    base_dir = os.path.join(project_root, "results", "p0_cone", args.model, "dim")
     os.makedirs(base_dir, exist_ok=True)
 
     # Protect existing results: if final outputs already exist in base_dir,
@@ -242,9 +243,9 @@ def main():
 
     # -----------------------------------------------------------------------
     # Step 1: Generate mean_diffs on the full train set
-    # (cache always in base_dir, shared across re-runs)
+    # (cache always in base_dir/directions/, shared across re-runs)
     # -----------------------------------------------------------------------
-    artifact_dir = os.path.join(base_dir, "dim_directions")
+    artifact_dir = os.path.join(base_dir, "directions")
     os.makedirs(artifact_dir, exist_ok=True)
     mean_diffs_cache = os.path.join(artifact_dir, "mean_diffs.pt")
 
@@ -263,10 +264,10 @@ def main():
 
     # -----------------------------------------------------------------------
     # Step 2: Select best (pos, layer) via select_direction on val set
-    # (cache always in base_dir)
+    # (cache always in base_dir/selection/)
     # -----------------------------------------------------------------------
     print("[2/4] Selecting best direction on val set...")
-    selection_dir = os.path.join(base_dir, "dim_selection")
+    selection_dir = os.path.join(base_dir, "selection")
     os.makedirs(selection_dir, exist_ok=True)
 
     evals_cache = os.path.join(selection_dir, "direction_evaluations.json")

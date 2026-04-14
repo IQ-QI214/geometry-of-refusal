@@ -77,11 +77,11 @@ def main():
     )
     args = parser.parse_args()
 
-    # Resolve paths relative to project root (two levels above this file)
+    # All DIM files live under results/p0_cone/{model}/dim/
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../")
     )
-    results_dir = os.path.join(project_root, "results", "p0_cone", args.model)
+    results_dir = os.path.join(project_root, "results", "p0_cone", args.model, "dim")
     os.makedirs(results_dir, exist_ok=True)
 
     cone_path = os.path.join(results_dir, f"dim_cone_k{args.k}.pt")

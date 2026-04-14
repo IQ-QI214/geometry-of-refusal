@@ -68,7 +68,8 @@ def main():
     args = parser.parse_args()
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-    results_dir = os.path.join(project_root, "results", "p0_cone", args.model)
+    # RDO files live under results/p0_cone/{model}/rdo/
+    results_dir = os.path.join(project_root, "results", "p0_cone", args.model, "rdo")
     os.makedirs(results_dir, exist_ok=True)
 
     cone_path = os.path.join(results_dir, f"rdo_cone_k{args.k}.pt")
