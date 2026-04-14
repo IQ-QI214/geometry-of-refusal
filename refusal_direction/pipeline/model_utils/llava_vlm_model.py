@@ -62,7 +62,7 @@ class LlavaVLMModel(ModelBase):
         model = LlavaForConditionalGeneration.from_pretrained(
             model_path,
             torch_dtype=dtype,
-            device_map="auto",
+            device_map={"": "cuda:0"},  # Pin to single GPU; "auto" spreads across all visible GPUs
             cache_dir=os.getenv("HUGGINGFACE_CACHE_DIR"),
             local_files_only=True,
         ).eval()
