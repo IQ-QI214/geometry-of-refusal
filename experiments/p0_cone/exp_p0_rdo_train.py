@@ -56,20 +56,18 @@ DEFAULTS = {
 
 
 # ---------------------------------------------------------------------------
-# Non-inplace hook factories (critical: avoids backward version mismatch)
-# Direction must be .detach()-ed before passing to these hooks.
+# Non-inplace hook factories
+# Uses non-inplace ops (x - proj, x + c*d) to avoid backward version mismatch.
+# direction is NOT detached here — gradient must flow: cone.basis → direction → loss.
 # ---------------------------------------------------------------------------
 
 def make_ablation_pre_hook(direction: torch.Tensor):
     """Pre-hook: project out `direction` from layer input. NON-inplace."""
-    d = direction.detach()
-
     def hook_fn(module, input):
         x = input[0] if isinstance(input, tuple) else input
-        d_norm = d / (d.norm() + 1e-8)
+        d_norm = direction / (direction.norm() + 1e-8)
         d_cast = d_norm.to(dtype=x.dtype, device=x.device)
-        # Non-inplace: x - proj
-        proj = (x @ d_cast).unsqueeze(-1) * d_cast
+        proj = (x.detach() @ d_cast).unsqueeze(-1) * d_cast  # x.detach(): activation has no grad, safe
         x_new = x - proj
         if isinstance(input, tuple):
             return (x_new, *input[1:])
@@ -79,13 +77,11 @@ def make_ablation_pre_hook(direction: torch.Tensor):
 
 def make_ablation_out_hook(direction: torch.Tensor):
     """Post-hook: project out `direction` from layer output. NON-inplace."""
-    d = direction.detach()
-
     def hook_fn(module, input, output):
         x = output[0] if isinstance(output, tuple) else output
-        d_norm = d / (d.norm() + 1e-8)
+        d_norm = direction / (direction.norm() + 1e-8)
         d_cast = d_norm.to(dtype=x.dtype, device=x.device)
-        proj = (x @ d_cast).unsqueeze(-1) * d_cast
+        proj = (x.detach() @ d_cast).unsqueeze(-1) * d_cast
         x_new = x - proj
         if isinstance(output, tuple):
             return (x_new, *output[1:])
@@ -95,13 +91,10 @@ def make_ablation_out_hook(direction: torch.Tensor):
 
 def make_addition_pre_hook(direction: torch.Tensor, coeff: float):
     """Pre-hook: add `coeff * direction` to layer input. NON-inplace."""
-    d = direction.detach()
-    c = coeff
-
     def hook_fn(module, input):
         x = input[0] if isinstance(input, tuple) else input
-        d_cast = d.to(dtype=x.dtype, device=x.device)
-        x_new = x + c * d_cast
+        d_cast = direction.to(dtype=x.dtype, device=x.device)
+        x_new = x + coeff * d_cast
         if isinstance(input, tuple):
             return (x_new, *input[1:])
         return x_new
@@ -225,8 +218,8 @@ def train(model_base, harmful_targets, harmless_targets, cone, add_layer, cfg, s
         optimizer.zero_grad()
 
         for data_idx in tqdm(perm, desc=f"Epoch {epoch}"):
-            # Direction for this step — DETACHED so hooks don't pollute grad graph
-            direction = cone.get_direction(0).detach().to(model.device)
+            # Direction with grad_fn: cone.basis → get_direction() → direction → loss
+            direction = cone.get_direction(0).to(model.device)
 
             # ----------------------------------------------------------------
             # Ablation loss
