@@ -18,11 +18,11 @@
 ```bash
 # rdo
 conda activate rdo
-pip install --no-index --find-links /inspire/hdd/global_user/wenming-253108090054/pip_wheels/sklearn_rdo scikit-learn
+pip install --no-index --find-links [PROJECT_ROOT]/pip_wheels/sklearn_rdo scikit-learn
 
 # qwen3-vl
 conda activate qwen3-vl
-pip install --no-index --find-links /inspire/hdd/global_user/wenming-253108090054/pip_wheels/sklearn_qwen3vl scikit-learn
+pip install --no-index --find-links [PROJECT_ROOT]/pip_wheels/sklearn_qwen3vl scikit-learn
 ```
 
 Verify:

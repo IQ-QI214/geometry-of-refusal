@@ -48,7 +48,7 @@ Category A 实验发现：Qwen-7B 在 DIM 单一方向消融（k=1）后，ASR_k
 
 | 模型 | Type | 角色 | Conda Env | 模型路径 |
 |------|------|------|-----------|---------|
-| Qwen2.5-VL-7B | II (Late Gate) | Stealth refusal 主体 | qwen3-vl | `/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct` |
+| Qwen2.5-VL-7B | II (Late Gate) | Stealth refusal 主体 | qwen3-vl | `[PROJECT_ROOT]/models/Qwen2.5-VL-7B-Instruct` |
 | LLaVA-1.5-7B | I (Bottleneck) | 对照（无 stealth refusal） | rdo | HF cache `llava-hf/llava-1.5-7b-hf` |
 
 ### 2.2 消融方法 × 维度

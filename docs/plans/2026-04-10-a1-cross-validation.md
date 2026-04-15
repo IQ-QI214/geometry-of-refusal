@@ -6,7 +6,7 @@
 
 **Architecture:** A targeted cross-validation script reads existing Qwen3Guard judged results + original generation results, extracts the disputed subset, runs LLaMA-Guard only on those cases, and computes concordance metrics. A separate run shell script parallelizes across 4 GPUs. Results are analyzed in a markdown report.
 
-**Tech Stack:** Python 3, PyTorch, transformers ≥ 4.51 (qwen3-vl conda env), LLaMA-Guard-3-8B (at `/inspire/hdd/global_user/wenming-253108090054/models/llama-guard-3-8b`)
+**Tech Stack:** Python 3, PyTorch, transformers ≥ 4.51 (qwen3-vl conda env), LLaMA-Guard-3-8B (at `[PROJECT_ROOT]/models/llama-guard-3-8b`)
 
 ---
 

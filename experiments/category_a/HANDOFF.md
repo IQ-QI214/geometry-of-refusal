@@ -32,11 +32,11 @@
 
 **模型路径**:
 - LLaVA-7B: HF cache (`llava-hf/llava-1.5-7b-hf`)
-- LLaVA-13B: `/inspire/hdd/global_user/wenming-253108090054/models/llava-1.5-13b-hf`
-- Qwen-7B: `/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct`
+- LLaVA-13B: `[PROJECT_ROOT]/models/llava-1.5-13b-hf`
+- Qwen-7B: `[PROJECT_ROOT]/models/Qwen2.5-VL-7B-Instruct`
 - Qwen-32B: `/inspire/hdd/global_public/public_models/Qwen/Qwen2.5-VL-32B-Instruct`
-- InternVL2-8B: `/inspire/hdd/global_user/wenming-253108090054/models/InternVL2-8B`
-- Qwen3Guard-8B: `/inspire/hdd/global_user/wenming-253108090054/models/Qwen3Guard-Gen-8B`
+- InternVL2-8B: `[PROJECT_ROOT]/models/InternVL2-8B`
+- Qwen3Guard-8B: `[PROJECT_ROOT]/models/Qwen3Guard-Gen-8B`
 
 ---
 

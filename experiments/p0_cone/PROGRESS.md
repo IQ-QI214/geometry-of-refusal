@@ -19,9 +19,9 @@
 3. **离线包安装**:
    ```bash
    # CPU 节点（有网）下载
-   conda run -n <env> pip download <pkg> --dest /inspire/hdd/global_user/wenming-253108090054/pip_wheels --no-cache-dir
+   conda run -n <env> pip download <pkg> --dest [PROJECT_ROOT]/pip_wheels --no-cache-dir
    # GPU 节点（无网）安装
-   conda run -n <env> pip install --no-index --find-links /inspire/hdd/global_user/wenming-253108090054/pip_wheels <pkg>
+   conda run -n <env> pip install --no-index --find-links [PROJECT_ROOT]/pip_wheels <pkg>
    ```
 
 4. **称呼用户为 qi**

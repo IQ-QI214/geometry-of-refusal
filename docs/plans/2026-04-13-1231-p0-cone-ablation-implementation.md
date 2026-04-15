@@ -260,7 +260,7 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 conda run --no-capture-output -n rdo python -c "
 from transformers import AutoProcessor
 proc = AutoProcessor.from_pretrained('llava-hf/llava-1.5-7b-hf',
-    cache_dir='/inspire/hdd/global_user/wenming-253108090054/models/hub',
+    cache_dir='[PROJECT_ROOT]/models/hub',
     local_files_only=True)
 tok = proc.tokenizer
 print('Token ID for I:', tok.encode('I', add_special_tokens=False))
@@ -572,7 +572,7 @@ def main():
 
     MODEL_PATHS = {
         "llava_7b": "llava-hf/llava-1.5-7b-hf",
-        "qwen2vl_7b": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct",
+        "qwen2vl_7b": "[PROJECT_ROOT]/models/Qwen2.5-VL-7B-Instruct",
     }
 
     model_path = MODEL_PATHS[args.model]
@@ -707,7 +707,7 @@ from pipeline.utils.hook_utils import add_hooks
 
 MODEL_PATHS = {
     "llava_7b": "llava-hf/llava-1.5-7b-hf",
-    "qwen2vl_7b": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct",
+    "qwen2vl_7b": "[PROJECT_ROOT]/models/Qwen2.5-VL-7B-Instruct",
 }
 
 def extract_individual_diffs(model_base, harmful_instructions, harmless_instructions, best_layer, best_pos, batch_size=16):
@@ -916,7 +916,7 @@ from pipeline.utils.hook_utils import (
 
 MODEL_PATHS = {
     "llava_7b": "llava-hf/llava-1.5-7b-hf",
-    "qwen2vl_7b": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct",
+    "qwen2vl_7b": "[PROJECT_ROOT]/models/Qwen2.5-VL-7B-Instruct",
 }
 
 
@@ -1085,7 +1085,7 @@ from pipeline.utils.hook_utils import (
 
 MODEL_PATHS = {
     "llava_7b": "llava-hf/llava-1.5-7b-hf",
-    "qwen2vl_7b": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct",
+    "qwen2vl_7b": "[PROJECT_ROOT]/models/Qwen2.5-VL-7B-Instruct",
 }
 
 # Default hyperparams from Wollschläger

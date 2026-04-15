@@ -116,7 +116,7 @@ Per (model, config):
 
 - **Conda env**: `qwen3-vl` (transformers >= 4.51 required for LLaMA-Guard)
 - **Hardware**: 4× H100 80GB
-- **Model path**: `/inspire/hdd/global_user/wenming-253108090054/models/llama-guard-3-8b`
+- **Model path**: `[PROJECT_ROOT]/models/llama-guard-3-8b`
 - **Offline mode**: `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1`
 
 ### 3.2 Run Commands

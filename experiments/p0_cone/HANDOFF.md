@@ -86,8 +86,8 @@ REFUSAL_PREFIXES = (
 
 ```python
 GUARD_MODELS = {
-    "qwen3guard": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen3Guard-Gen-8B",
-    "llamaguard": "/inspire/hdd/global_user/wenming-253108090054/models/llama-guard-3-8b",
+    "qwen3guard": "[PROJECT_ROOT]/models/Qwen3Guard-Gen-8B",
+    "llamaguard": "[PROJECT_ROOT]/models/llama-guard-3-8b",
 }
 ```
 
