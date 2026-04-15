@@ -1,0 +1,90 @@
+{
+  "llava_7b": {
+    "dim_k1": {
+      "asr_keyword": 0.5390625,
+      "asr_sr": 0.140625,
+      "asr_qwen3guard": 0.125,
+      "asr_llamaguard": 0.3203125,
+      "mean_sr": 0.08613591641187668
+    },
+    "dim_k3": {
+      "asr_keyword": 0.46875,
+      "asr_sr": 0.0625,
+      "asr_qwen3guard": 0.046875,
+      "asr_llamaguard": 0.28125,
+      "mean_sr": 0.042571913450956345
+    },
+    "dim_k5": {
+      "asr_keyword": 0.640625,
+      "asr_sr": 0.0703125,
+      "asr_qwen3guard": 0.0546875,
+      "asr_llamaguard": 0.3515625,
+      "mean_sr": 0.044405450113117695
+    },
+    "rdo_k1": {
+      "asr_keyword": 0.6015625,
+      "asr_sr": 0.0859375,
+      "asr_qwen3guard": 0.0390625,
+      "asr_llamaguard": 0.3984375,
+      "mean_sr": 0.05690850596874952
+    },
+    "rdo_k3": {
+      "asr_keyword": 0.6640625,
+      "asr_sr": 0.1171875,
+      "asr_qwen3guard": 0.0703125,
+      "asr_llamaguard": 0.4375,
+      "mean_sr": 0.06942961737513542
+    },
+    "rdo_k5": {
+      "asr_keyword": 0.734375,
+      "asr_sr": 0.1171875,
+      "asr_qwen3guard": 0.0625,
+      "asr_llamaguard": 0.4765625,
+      "mean_sr": 0.07900216151028872
+    }
+  },
+  "qwen2vl_7b": {
+    "dim_k1": {
+      "asr_keyword": 0.609375,
+      "asr_sr": 0.1484375,
+      "asr_qwen3guard": 0.046875,
+      "asr_llamaguard": 0.0625,
+      "mean_sr": 0.05648096278309822
+    },
+    "dim_k3": {
+      "asr_keyword": 1.0,
+      "asr_sr": 0.1640625,
+      "asr_qwen3guard": 0.078125,
+      "asr_llamaguard": 0.1328125,
+      "mean_sr": 0.051082782447338104
+    },
+    "dim_k5": {
+      "asr_keyword": 1.0,
+      "asr_sr": 0.1328125,
+      "asr_qwen3guard": 0.2265625,
+      "asr_llamaguard": 0.5,
+      "mean_sr": 0.04517655819654465
+    },
+    "rdo_k1": {
+      "asr_keyword": 0.546875,
+      "asr_sr": 0.234375,
+      "asr_qwen3guard": 0.0625,
+      "asr_llamaguard": 0.0546875,
+      "mean_sr": 0.11004922538995743
+    },
+    "rdo_k3": {
+      "asr_keyword": 0.640625,
+      "asr_sr": 0.1875,
+      "asr_qwen3guard": 0.0390625,
+      "asr_llamaguard": 0.0390625,
+      "mean_sr": 0.07841789443045855
+    },
+    "rdo_k5": {
+      "asr_keyword": 0.6953125,
+      "asr_sr": 0.2265625,
+      "asr_qwen3guard": 0.0703125,
+      "asr_llamaguard": 0.09375,
+      "mean_sr": 0.1118643069639802
+    }
+  }
+}

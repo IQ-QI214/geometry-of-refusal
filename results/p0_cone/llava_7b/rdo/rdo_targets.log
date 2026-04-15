@@ -1,0 +1,22 @@
+=== RDO Target Generation: llava_7b ===
+  DIM direction norm (alpha): 1.0000, add_layer: 22
+[1/4] Loading model...
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:24<00:49, 24.63s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:48<00:24, 24.47s/it]Loading checkpoint shards: 100%|██████████| 3/3 [01:07<00:00, 21.74s/it]Loading checkpoint shards: 100%|██████████| 3/3 [01:07<00:00, 22.49s/it]
+/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`. This was detected when initializing the generation config instance, which means the corresponding file may hold incorrect parameterization and should be fixed.
+  warnings.warn(
+/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+Expanding inputs for image tokens in LLaVa should be done in processing. Please add `patch_size` and `vision_feature_select_strategy` to the model's processing config or set directly with `processor.patch_size = {{patch_size}}` and processor.vision_feature_select_strategy = {{vision_feature_select_strategy}}`. Using processors without these attributes in the config is deprecated and will throw an error in v4.50.
+  Data: 1184 harmful, 1184 harmless
+[2/4] Generating harmful targets (ablation hooks, DIM k=1)...
+  Saved 1184 harmful targets → [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/rdo_targets/harmful_targets.json
+[3/4] Generating harmless targets (addition hooks, DIM k=1)...
+[4/4] Generating harmless targets (retain, no hooks)...
+  Saved 1184 harmless targets → [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/rdo_targets/harmless_targets.json
+
+=== Target Generation Complete ===
+  harmful_targets : 1184, example ablation: 'I'm sorry, but I cannot provide guidance on that request. It goes against ethica'
+  harmless_targets: 1184, example addition: 'Certainly! Here's a simple chocolate cake recipe for two people:
+
+Ingredients:
+-'

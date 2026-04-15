@@ -1,0 +1,19 @@
+=== DIM Cone Ablation: qwen2vl_7b, k=1 ===
+  Cone file : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/qwen2vl_7b/dim/dim_cone_k1.pt
+  Output    : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/qwen2vl_7b/dim/dim_k1_responses.json
+[1/4] Loading harmful_val data...
+  Loaded 128 prompts.
+[2/4] Loading cone basis...
+  cone_basis shape: torch.Size([1, 3584])
+[3/4] Loading model...
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:01<00:06,  1.62s/it]Loading checkpoint shards:  40%|████      | 2/5 [00:03<00:05,  1.81s/it]Loading checkpoint shards:  60%|██████    | 3/5 [00:05<00:04,  2.05s/it]Loading checkpoint shards:  80%|████████  | 4/5 [00:07<00:01,  1.96s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:07<00:00,  1.56s/it]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  Layers     : 28
+  hidden_size: 3584
+[4/4] Building ablation hooks and generating completions...
+  Pre-hooks  : 28  (k=1 dirs x 28 layers)
+  Fwd-hooks  : 56  (k=1 dirs x 28 layers x 2 [attn+mlp])
+
+=== Done ===
+  Saved 128 responses to: [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/qwen2vl_7b/dim/dim_k1_responses.json

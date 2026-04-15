@@ -1,0 +1,49 @@
+
+============================================================
+A1 Judge: qwen2vl_32b | judge=qwen3guard | dataset=saladbench
+============================================================
+[Qwen3Guard] Loading from [PROJECT_ROOT]/models/Qwen3Guard-Gen-8B...
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:01<00:07,  1.98s/it]Loading checkpoint shards:  40%|████      | 2/5 [00:05<00:08,  2.87s/it]Loading checkpoint shards:  60%|██████    | 3/5 [00:08<00:06,  3.00s/it]Loading checkpoint shards:  80%|████████  | 4/5 [00:11<00:02,  2.92s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:11<00:00,  1.90s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:11<00:00,  2.30s/it]
+[Qwen3Guard] Loaded.
+
+[baseline_text] Judging 572 responses...
+  [judge] 100/572 done
+  [judge] 200/572 done
+  [judge] 300/572 done
+  [judge] 400/572 done
+  [judge] 500/572 done
+  IBR_kw=0.040  FHCR_kw=0.035  FHCR_qwen3guard=0.012  SCR|bypass_judge=0.696  DSA_gap_rel=0.696
+
+[baseline_mm] Judging 572 responses...
+  [judge] 100/572 done
+  [judge] 200/572 done
+  [judge] 300/572 done
+  [judge] 400/572 done
+  [judge] 500/572 done
+  IBR_kw=0.073  FHCR_kw=0.068  FHCR_qwen3guard=0.019  SCR|bypass_judge=0.738  DSA_gap_rel=0.738
+
+[ablation_nw_vmm] Judging 572 responses...
+  [judge] 100/572 done
+  [judge] 200/572 done
+  [judge] 300/572 done
+  [judge] 400/572 done
+  [judge] 500/572 done
+  IBR_kw=0.942  FHCR_kw=0.890  FHCR_qwen3guard=0.098  SCR|bypass_judge=0.896  DSA_gap_rel=0.896
+
+[ablation_all_vmm] Judging 572 responses...
+  [judge] 100/572 done
+  [judge] 200/572 done
+  [judge] 300/572 done
+  [judge] 400/572 done
+  [judge] 500/572 done
+  IBR_kw=0.998  FHCR_kw=0.984  FHCR_qwen3guard=0.082  SCR|bypass_judge=0.918  DSA_gap_rel=0.918
+
+[ablation_nw_vtext] Judging 572 responses...
+  [judge] 100/572 done
+  [judge] 200/572 done
+  [judge] 300/572 done
+  [judge] 400/572 done
+  [judge] 500/572 done
+  IBR_kw=0.953  FHCR_kw=0.895  FHCR_qwen3guard=0.073  SCR|bypass_judge=0.923  DSA_gap_rel=0.923
+
+[saved] [PROJECT_ROOT]/geometry-of-refusal/results/category_a/qwen2vl_32b/a1_judged_qwen3guard_saladbench.json

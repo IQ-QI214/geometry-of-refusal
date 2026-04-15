@@ -1,0 +1,40 @@
+=== DIM Extraction + PCA Cone: llava_7b ===
+  Save dir: [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b
+[0/4] Loading model...
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:03<00:07,  3.87s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:06<00:02,  2.87s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:08<00:00,  2.56s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:08<00:00,  2.75s/it]
+[PROJECT_ROOT]/geometry-of-refusal/experiments/p0_cone/exp_p0_dim_extract.py:217: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  mean_diffs = torch.load(mean_diffs_cache, map_location="cpu")
+  Layers: 32
+  hidden_size: 4096
+  EOI toks: [29871, 13, 22933, 9047, 13566, 29901] (len=6)
+[0/4] Loading data...
+  Train: 1184 harmful, 1184 harmless
+  Val:   128 harmful, 3132 harmless
+[1/4] Loading cached mean_diffs from [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/dim_directions/mean_diffs.pt ...
+  mean_diffs shape: torch.Size([6, 32, 4096])
+[2/4] Selecting best direction on val set...
+  [cache hit] Loading scores from [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/dim_selection/direction_evaluations.json ...
+  [fast path] Selected from cache: pos=-1, layer=22
+  Selected: pos=-1, layer=22
+  best_direction shape: torch.Size([4096])
+  Saved dim_metadata.json: {'pos': -1, 'layer': 22}
+[3/4] Extracting per-sample activation diffs for PCA...
+    Extracting harmful activations (1184 samples)...
+    Extracting harmless activations (1184 samples)...
+  diffs shape: torch.Size([1184, 4096])
+[4/4] Computing PCA cones (k=1, 3, 5)...
+  k=1: explained variance = 0.0656
+  k=3: explained variance = 0.1569
+  k=5: explained variance = 0.2111
+  Saved dim_cone_k1.pt, shape=torch.Size([1, 4096])
+  Saved dim_cone_k3.pt, shape=torch.Size([3, 4096])
+  Saved dim_cone_k5.pt, shape=torch.Size([5, 4096])
+  Saved dim_singular_values.pt, n_components=1184
+=== DIM Extraction Complete ===
+Outputs in: [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b
+Files created:
+  OK: dim_cone_k1.pt
+  OK: dim_cone_k3.pt
+  OK: dim_cone_k5.pt
+  OK: dim_metadata.json
+  OK: dim_singular_values.pt

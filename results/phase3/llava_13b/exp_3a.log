@@ -1,0 +1,58 @@
+nohup: ignoring input
+============================================================
+Exp 3A: Amplitude Reversal Verification
+Model: llava_13b, Device: cuda:0, Full layers: False
+============================================================
+[llava_13b] Loading from: [PROJECT_ROOT]/models/llava-1.5-13b-hf
+[llava_13b] Model class: llava, device: cuda:0
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:20<01:43, 20.67s/it]Loading checkpoint shards:  33%|███▎      | 2/6 [00:39<01:19, 19.82s/it]Loading checkpoint shards:  50%|█████     | 3/6 [00:58<00:58, 19.38s/it]Loading checkpoint shards:  67%|██████▋   | 4/6 [01:17<00:38, 19.15s/it]Loading checkpoint shards:  83%|████████▎ | 5/6 [01:36<00:19, 19.15s/it]Loading checkpoint shards: 100%|██████████| 6/6 [01:43<00:00, 15.06s/it]Loading checkpoint shards: 100%|██████████| 6/6 [01:43<00:00, 17.30s/it]
+[llava_13b] Model loaded successfully.
+
+[llava_13b] Config:
+  total_layers=40, probe_layers=[10, 15, 20, 25, 35]
+  blank_image_size=(336, 336)
+
+[llava_13b] Debug forward (first prompt)...
+  [DEBUG] MM forward - hidden states shapes:
+    Layer 10: torch.Size([5120]), norm=21.906
+    Layer 15: torch.Size([5120]), norm=38.177
+    Layer 20: torch.Size([5120]), norm=72.057
+    Layer 25: torch.Size([5120]), norm=106.274
+    Layer 35: torch.Size([5120]), norm=164.220
+  [DEBUG] Text forward - hidden states shapes:
+    Layer 10: torch.Size([5120]), norm=21.292
+    Layer 15: torch.Size([5120]), norm=33.796
+    Layer 20: torch.Size([5120]), norm=60.010
+    Layer 25: torch.Size([5120]), norm=85.272
+    Layer 35: torch.Size([5120]), norm=128.325
+[llava_13b] Processing pair 1/12...
+[llava_13b] Processing pair 2/12...
+[llava_13b] Processing pair 3/12...
+[llava_13b] Processing pair 4/12...
+[llava_13b] Processing pair 5/12...
+[llava_13b] Processing pair 6/12...
+[llava_13b] Processing pair 7/12...
+[llava_13b] Processing pair 8/12...
+[llava_13b] Processing pair 9/12...
+[llava_13b] Processing pair 10/12...
+[llava_13b] Processing pair 11/12...
+[llava_13b] Processing pair 12/12...
+  Layer 10 (depth=0.25): cos=0.8639, norm_text=6.156, norm_mm=4.728, ratio=0.768
+  Layer 15 (depth=0.38): cos=0.9034, norm_text=20.297, norm_mm=18.589, ratio=0.916
+  Layer 20 (depth=0.50): cos=0.9299, norm_text=42.281, norm_mm=47.614, ratio=1.126
+  Layer 25 (depth=0.62): cos=0.9168, norm_text=59.923, norm_mm=68.256, ratio=1.139
+  Layer 35 (depth=0.88): cos=0.8946, norm_text=86.260, norm_mm=96.905, ratio=1.123
+
+[llava_13b] Summary:
+  Narrow waist: layer 20 (rel_depth=0.50, cos=0.9299)
+  Amplitude reversal: True (shallow_mean=0.842, deep_mean=1.130)
+  Reversal crossover at layer: 20
+
+[llava_13b] Results saved to: [PROJECT_ROOT]/geometry-of-refusal/results/phase3/llava_13b/exp_3a_results.json
+[llava_13b] Directions saved to: [PROJECT_ROOT]/geometry-of-refusal/results/phase3/llava_13b/exp_3a_directions.pt
+
+============================================================
+Exp 3A complete for llava_13b
+  Narrow waist: layer 20 (cos=0.9299, rel_depth=0.50)
+  Amplitude reversal: True
+============================================================

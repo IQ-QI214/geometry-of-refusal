@@ -1,0 +1,179 @@
+{
+  "model": "internvl2_8b",
+  "total_layers": 32,
+  "probe_layers": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30
+  ],
+  "layer_results": [
+    {
+      "layer": 0,
+      "relative_depth": 0.0,
+      "cos_text_mm": 0.895,
+      "norm_text": 0.0414,
+      "norm_mm": 0.0364,
+      "norm_ratio": 0.8775
+    },
+    {
+      "layer": 2,
+      "relative_depth": 0.062,
+      "cos_text_mm": 0.8745,
+      "norm_text": 0.3089,
+      "norm_mm": 0.2481,
+      "norm_ratio": 0.8031
+    },
+    {
+      "layer": 4,
+      "relative_depth": 0.125,
+      "cos_text_mm": 0.8278,
+      "norm_text": 1.0183,
+      "norm_mm": 0.9674,
+      "norm_ratio": 0.95
+    },
+    {
+      "layer": 6,
+      "relative_depth": 0.188,
+      "cos_text_mm": 0.7826,
+      "norm_text": 2.2716,
+      "norm_mm": 2.0306,
+      "norm_ratio": 0.8939
+    },
+    {
+      "layer": 8,
+      "relative_depth": 0.25,
+      "cos_text_mm": 0.739,
+      "norm_text": 3.8201,
+      "norm_mm": 3.2141,
+      "norm_ratio": 0.8414
+    },
+    {
+      "layer": 10,
+      "relative_depth": 0.312,
+      "cos_text_mm": 0.6778,
+      "norm_text": 6.7117,
+      "norm_mm": 5.0199,
+      "norm_ratio": 0.7479
+    },
+    {
+      "layer": 12,
+      "relative_depth": 0.375,
+      "cos_text_mm": 0.7197,
+      "norm_text": 13.1418,
+      "norm_mm": 9.9325,
+      "norm_ratio": 0.7558
+    },
+    {
+      "layer": 14,
+      "relative_depth": 0.438,
+      "cos_text_mm": 0.8186,
+      "norm_text": 26.3442,
+      "norm_mm": 19.0836,
+      "norm_ratio": 0.7244
+    },
+    {
+      "layer": 16,
+      "relative_depth": 0.5,
+      "cos_text_mm": 0.8669,
+      "norm_text": 47.9413,
+      "norm_mm": 35.6816,
+      "norm_ratio": 0.7443
+    },
+    {
+      "layer": 18,
+      "relative_depth": 0.562,
+      "cos_text_mm": 0.8831,
+      "norm_text": 75.176,
+      "norm_mm": 59.2681,
+      "norm_ratio": 0.7884
+    },
+    {
+      "layer": 20,
+      "relative_depth": 0.625,
+      "cos_text_mm": 0.8935,
+      "norm_text": 110.7399,
+      "norm_mm": 86.345,
+      "norm_ratio": 0.7797
+    },
+    {
+      "layer": 22,
+      "relative_depth": 0.688,
+      "cos_text_mm": 0.8995,
+      "norm_text": 130.551,
+      "norm_mm": 105.4212,
+      "norm_ratio": 0.8075
+    },
+    {
+      "layer": 24,
+      "relative_depth": 0.75,
+      "cos_text_mm": 0.9185,
+      "norm_text": 167.1259,
+      "norm_mm": 137.2175,
+      "norm_ratio": 0.821
+    },
+    {
+      "layer": 26,
+      "relative_depth": 0.812,
+      "cos_text_mm": 0.917,
+      "norm_text": 192.9676,
+      "norm_mm": 159.5846,
+      "norm_ratio": 0.827
+    },
+    {
+      "layer": 28,
+      "relative_depth": 0.875,
+      "cos_text_mm": 0.9189,
+      "norm_text": 228.6173,
+      "norm_mm": 192.7416,
+      "norm_ratio": 0.8431
+    },
+    {
+      "layer": 30,
+      "relative_depth": 0.938,
+      "cos_text_mm": 0.9081,
+      "norm_text": 257.63,
+      "norm_mm": 220.9452,
+      "norm_ratio": 0.8576
+    }
+  ],
+  "narrow_waist_layer": 28,
+  "narrow_waist_relative_depth": 0.875,
+  "narrow_waist_cos": 0.9189,
+  "shallow_layers": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14
+  ],
+  "deep_layers": [
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30
+  ],
+  "shallow_mean_ratio": 0.8243,
+  "deep_mean_ratio": 0.8086,
+  "amplitude_reversal_exists": false,
+  "reversal_crossover_layer": null
+}

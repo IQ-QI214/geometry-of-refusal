@@ -1,0 +1,69 @@
+{
+  "model": "qwen2vl_7b",
+  "total_layers": 28,
+  "probe_layers": [
+    7,
+    11,
+    14,
+    18,
+    24
+  ],
+  "layer_results": [
+    {
+      "layer": 7,
+      "relative_depth": 0.25,
+      "cos_text_mm": 0.7662,
+      "norm_text": 2.733,
+      "norm_mm": 2.7148,
+      "norm_ratio": 0.9934
+    },
+    {
+      "layer": 11,
+      "relative_depth": 0.393,
+      "cos_text_mm": 0.6605,
+      "norm_text": 7.022,
+      "norm_mm": 5.9978,
+      "norm_ratio": 0.8541
+    },
+    {
+      "layer": 14,
+      "relative_depth": 0.5,
+      "cos_text_mm": 0.8323,
+      "norm_text": 26.6455,
+      "norm_mm": 15.1258,
+      "norm_ratio": 0.5677
+    },
+    {
+      "layer": 18,
+      "relative_depth": 0.643,
+      "cos_text_mm": 0.9041,
+      "norm_text": 62.7617,
+      "norm_mm": 55.6069,
+      "norm_ratio": 0.886
+    },
+    {
+      "layer": 24,
+      "relative_depth": 0.857,
+      "cos_text_mm": 0.9611,
+      "norm_text": 265.3267,
+      "norm_mm": 241.7363,
+      "norm_ratio": 0.9111
+    }
+  ],
+  "narrow_waist_layer": 24,
+  "narrow_waist_relative_depth": 0.857,
+  "narrow_waist_cos": 0.9611,
+  "shallow_layers": [
+    7,
+    11
+  ],
+  "deep_layers": [
+    14,
+    18,
+    24
+  ],
+  "shallow_mean_ratio": 0.9237,
+  "deep_mean_ratio": 0.7883,
+  "amplitude_reversal_exists": false,
+  "reversal_crossover_layer": null
+}

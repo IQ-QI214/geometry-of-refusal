@@ -1,0 +1,24 @@
+[PROJECT_ROOT]/geometry-of-refusal/experiments/p0_cone/exp_p0_dim_ablate.py:129: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  cone_basis = torch.load(cone_path, map_location="cpu")  # (k, d_model)
+=== DIM Cone Ablation: llava_7b, k=3 ===
+  Cone file : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/dim_cone_k3.pt
+  Output    : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/dim_k3_responses.json
+[1/4] Loading harmful_val data...
+  Loaded 128 prompts.
+[2/4] Loading cone basis...
+  cone_basis shape: torch.Size([3, 4096])
+[3/4] Loading model...
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:03<00:06,  3.02s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:05<00:02,  2.50s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:07<00:00,  2.20s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:07<00:00,  2.33s/it]
+/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`. This was detected when initializing the generation config instance, which means the corresponding file may hold incorrect parameterization and should be fixed.
+  warnings.warn(
+/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+Expanding inputs for image tokens in LLaVa should be done in processing. Please add `patch_size` and `vision_feature_select_strategy` to the model's processing config or set directly with `processor.patch_size = {{patch_size}}` and processor.vision_feature_select_strategy = {{vision_feature_select_strategy}}`. Using processors without these attributes in the config is deprecated and will throw an error in v4.50.
+  Layers     : 32
+  hidden_size: 4096
+[4/4] Building ablation hooks and generating completions...
+  Pre-hooks  : 96  (k=3 dirs x 32 layers)
+  Fwd-hooks  : 192  (k=3 dirs x 32 layers x 2 [attn+mlp])
+
+=== Done ===
+  Saved 128 responses to: [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/dim_k3_responses.json

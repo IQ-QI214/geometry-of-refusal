@@ -1,0 +1,23 @@
+{
+  "layer_12": {
+    "cosine_similarity": 0.876562237739563,
+    "norm_text": 7.824672222137451,
+    "norm_mm": 6.084650039672852,
+    "norm_ratio": 0.7776236319116359,
+    "pass": true
+  },
+  "layer_16": {
+    "cosine_similarity": 0.917544960975647,
+    "norm_text": 20.37571144104004,
+    "norm_mm": 21.629451751708984,
+    "norm_ratio": 1.0615311177566245,
+    "pass": true
+  },
+  "layer_20": {
+    "cosine_similarity": 0.8966497182846069,
+    "norm_text": 29.449411392211914,
+    "norm_mm": 33.901283264160156,
+    "norm_ratio": 1.1511701473807339,
+    "pass": true
+  }
+}

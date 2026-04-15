@@ -1,0 +1,15 @@
+=== RDO Cone Ablation: llava_7b, k=1 ===
+  Cone file : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/rdo/rdo_cone_k1.pt
+  Output    : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/rdo/rdo_k1_responses.json
+  cone_basis shape: torch.Size([1, 4096])
+  Eval prompts: 128
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:02<00:05,  2.83s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:04<00:02,  2.40s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:06<00:00,  2.11s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:06<00:00,  2.23s/it]
+/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`. This was detected when initializing the generation config instance, which means the corresponding file may hold incorrect parameterization and should be fixed.
+  warnings.warn(
+/opt/conda/envs/rdo/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:628: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+Expanding inputs for image tokens in LLaVa should be done in processing. Please add `patch_size` and `vision_feature_select_strategy` to the model's processing config or set directly with `processor.patch_size = {{patch_size}}` and processor.vision_feature_select_strategy = {{vision_feature_select_strategy}}`. Using processors without these attributes in the config is deprecated and will throw an error in v4.50.
+  Hooks: 32 pre, 64 fwd
+
+=== Done ===
+  Saved 128 responses → [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/llava_7b/rdo/rdo_k1_responses.json

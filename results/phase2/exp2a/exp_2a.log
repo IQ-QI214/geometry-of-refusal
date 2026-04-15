@@ -1,0 +1,59 @@
+Loading LLaVA: llava-hf/llava-1.5-7b-hf
+  cache_dir: [PROJECT_ROOT]/models/hub, device: cuda, dtype: torch.float16, 4bit: False
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:02<00:05,  2.88s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:05<00:02,  2.80s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:07<00:00,  2.57s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:07<00:00,  2.64s/it]
+LLaVA loaded.
+
+============================================================
+Experiment 2A: Confound Resolution (Teacher-Forced Control)
+Model: llava-hf/llava-1.5-7b-hf
+Layer: 16
+Fixed prefix: 43 tokens
+Sample positions: [5, 10, 15, 20, 25]
+Paired prompts: 12 pairs
+============================================================
+
+--- Controlled (teacher-forced with fixed prefix) ---
+
+  Position 5/43:
+    norm: 10.9461
+
+  Position 10/43:
+    norm: 8.2072
+
+  Position 15/43:
+    norm: 7.4849
+
+  Position 20/43:
+    norm: 8.3503
+
+  Position 25/43:
+    norm: 13.5545
+
+  Controlled pairwise cosine similarity (layer 16):
+    pos 5 vs pos 10: 0.4401
+    pos 5 vs pos 15: 0.4039
+    pos 5 vs pos 20: 0.5809
+    pos 5 vs pos 25: 0.3843
+    pos 10 vs pos 15: 0.4052
+    pos 10 vs pos 20: 0.4219
+    pos 10 vs pos 25: 0.4544
+    pos 15 vs pos 20: 0.4828
+    pos 15 vs pos 25: 0.2312
+    pos 20 vs pos 25: 0.3279
+
+  Controlled min sim:  0.2312
+  Controlled mean sim: 0.4132
+
+  Exp B (uncontrolled) min sim: 0.0178
+  Improvement: +0.2134
+
+============================================================
+DECISION (Exp 2A)
+============================================================
+  DYNAMIC (controlled min = 0.2312 < 0.40)
+  -> Genuine dynamic refusal mechanism confirmed
+  -> Use timestep-specific directions or dynamic cone estimation
+  -> Higher novelty: refusal direction truly rotates during generation
+
+Results saved to [PROJECT_ROOT]/geometry-of-refusal/results/exp_2a_results.json
+Directions saved to [PROJECT_ROOT]/geometry-of-refusal/results/exp_2a_controlled_directions.pt

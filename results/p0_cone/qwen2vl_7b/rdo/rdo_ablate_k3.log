@@ -1,0 +1,12 @@
+=== RDO Cone Ablation: qwen2vl_7b, k=3 ===
+  Cone file : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/qwen2vl_7b/rdo/rdo_cone_k3.pt
+  Output    : [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/qwen2vl_7b/rdo/rdo_k3_responses.json
+  cone_basis shape: torch.Size([3, 3584])
+  Eval prompts: 128
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:00<00:00, 89.27it/s]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  Hooks: 84 pre, 168 fwd
+
+=== Done ===
+  Saved 128 responses → [PROJECT_ROOT]/geometry-of-refusal/results/p0_cone/qwen2vl_7b/rdo/rdo_k3_responses.json

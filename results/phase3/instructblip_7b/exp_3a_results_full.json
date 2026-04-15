@@ -1,0 +1,179 @@
+{
+  "model": "instructblip_7b",
+  "total_layers": 32,
+  "probe_layers": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30
+  ],
+  "layer_results": [
+    {
+      "layer": 0,
+      "relative_depth": 0.0,
+      "cos_text_mm": 0.8784,
+      "norm_text": 0.1716,
+      "norm_mm": 0.1592,
+      "norm_ratio": 0.9279
+    },
+    {
+      "layer": 2,
+      "relative_depth": 0.062,
+      "cos_text_mm": 0.4011,
+      "norm_text": 1.0869,
+      "norm_mm": 0.3803,
+      "norm_ratio": 0.3499
+    },
+    {
+      "layer": 4,
+      "relative_depth": 0.125,
+      "cos_text_mm": 0.396,
+      "norm_text": 1.6489,
+      "norm_mm": 1.1238,
+      "norm_ratio": 0.6816
+    },
+    {
+      "layer": 6,
+      "relative_depth": 0.188,
+      "cos_text_mm": 0.4998,
+      "norm_text": 3.4078,
+      "norm_mm": 2.4715,
+      "norm_ratio": 0.7252
+    },
+    {
+      "layer": 8,
+      "relative_depth": 0.25,
+      "cos_text_mm": 0.4454,
+      "norm_text": 5.0062,
+      "norm_mm": 3.7106,
+      "norm_ratio": 0.7412
+    },
+    {
+      "layer": 10,
+      "relative_depth": 0.312,
+      "cos_text_mm": 0.4115,
+      "norm_text": 6.7763,
+      "norm_mm": 4.687,
+      "norm_ratio": 0.6917
+    },
+    {
+      "layer": 12,
+      "relative_depth": 0.375,
+      "cos_text_mm": 0.4405,
+      "norm_text": 8.6737,
+      "norm_mm": 6.4008,
+      "norm_ratio": 0.738
+    },
+    {
+      "layer": 14,
+      "relative_depth": 0.438,
+      "cos_text_mm": 0.4262,
+      "norm_text": 10.3387,
+      "norm_mm": 8.9036,
+      "norm_ratio": 0.8612
+    },
+    {
+      "layer": 16,
+      "relative_depth": 0.5,
+      "cos_text_mm": 0.4511,
+      "norm_text": 12.9862,
+      "norm_mm": 13.7878,
+      "norm_ratio": 1.0617
+    },
+    {
+      "layer": 18,
+      "relative_depth": 0.562,
+      "cos_text_mm": 0.4426,
+      "norm_text": 15.8102,
+      "norm_mm": 18.8581,
+      "norm_ratio": 1.1928
+    },
+    {
+      "layer": 20,
+      "relative_depth": 0.625,
+      "cos_text_mm": 0.4674,
+      "norm_text": 19.8625,
+      "norm_mm": 26.6765,
+      "norm_ratio": 1.3431
+    },
+    {
+      "layer": 22,
+      "relative_depth": 0.688,
+      "cos_text_mm": 0.475,
+      "norm_text": 23.5571,
+      "norm_mm": 34.5823,
+      "norm_ratio": 1.468
+    },
+    {
+      "layer": 24,
+      "relative_depth": 0.75,
+      "cos_text_mm": 0.494,
+      "norm_text": 28.575,
+      "norm_mm": 40.719,
+      "norm_ratio": 1.425
+    },
+    {
+      "layer": 26,
+      "relative_depth": 0.812,
+      "cos_text_mm": 0.4688,
+      "norm_text": 31.8306,
+      "norm_mm": 45.9144,
+      "norm_ratio": 1.4425
+    },
+    {
+      "layer": 28,
+      "relative_depth": 0.875,
+      "cos_text_mm": 0.4464,
+      "norm_text": 35.697,
+      "norm_mm": 50.2972,
+      "norm_ratio": 1.409
+    },
+    {
+      "layer": 30,
+      "relative_depth": 0.938,
+      "cos_text_mm": 0.3995,
+      "norm_text": 44.0252,
+      "norm_mm": 59.4534,
+      "norm_ratio": 1.3504
+    }
+  ],
+  "narrow_waist_layer": 0,
+  "narrow_waist_relative_depth": 0.0,
+  "narrow_waist_cos": 0.8784,
+  "shallow_layers": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14
+  ],
+  "deep_layers": [
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30
+  ],
+  "shallow_mean_ratio": 0.7146,
+  "deep_mean_ratio": 1.3366,
+  "amplitude_reversal_exists": true,
+  "reversal_crossover_layer": 16
+}

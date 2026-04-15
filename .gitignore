@@ -251,7 +251,25 @@ wandb/
 wandb_downloads/
 nanoGCG/
 lm-evaluation-harness/
-results/
+# === 结果文件管理 ===
+# 忽略 results 下的二进制/大文件
+results/**/*.pt
+results/**/*.pth
+results/**/*.bin
+results/**/*.safetensors
+results/**/*.ckpt
+results/**/*.gguf
+results/**/*.tar
+results/**/*.zip
+results/checkpoints/
+results/models/
+
+# 但允许文本结果文件
+!results/**/*.md
+!results/**/*.json
+!results/**/*.log
+!results/**/*.png
+!results/**/*.gz
 
 refusal_direction/logs
 refusal_direction/dataset/processed/
@@ -260,5 +278,5 @@ refusal_direction/dataset/splits/
 refusal_direction/wandb_downloads/
 refusal_direction/logs/
 
-scripts/
-*.sh
+# scripts/
+# *.sh

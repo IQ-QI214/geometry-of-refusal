@@ -1,0 +1,59 @@
+nohup: ignoring input
+`torch_dtype` is deprecated! Use `dtype` instead!
+============================================================
+Exp 3A: Amplitude Reversal Verification
+Model: qwen2vl_32b, Device: cuda:3, Full layers: False
+============================================================
+[qwen2vl_32b] Loading from: /inspire/hdd/global_public/public_models/Qwen/Qwen2.5-VL-32B-Instruct
+[qwen2vl_32b] Model class: qwen2vl, device: cuda:3
+Loading checkpoint shards:   0%|          | 0/18 [00:00<?, ?it/s]Loading checkpoint shards:   6%|▌         | 1/18 [00:11<03:15, 11.49s/it]Loading checkpoint shards:  11%|█         | 2/18 [00:12<01:23,  5.24s/it]Loading checkpoint shards:  17%|█▋        | 3/18 [00:13<00:50,  3.38s/it]Loading checkpoint shards:  22%|██▏       | 4/18 [00:14<00:35,  2.53s/it]Loading checkpoint shards:  28%|██▊       | 5/18 [00:15<00:26,  2.01s/it]Loading checkpoint shards:  33%|███▎      | 6/18 [00:17<00:20,  1.73s/it]Loading checkpoint shards:  39%|███▉      | 7/18 [00:18<00:16,  1.54s/it]Loading checkpoint shards:  44%|████▍     | 8/18 [00:19<00:14,  1.41s/it]Loading checkpoint shards:  50%|█████     | 9/18 [00:20<00:12,  1.35s/it]Loading checkpoint shards:  56%|█████▌    | 10/18 [00:22<00:12,  1.53s/it]Loading checkpoint shards:  61%|██████    | 11/18 [00:23<00:09,  1.41s/it]Loading checkpoint shards:  67%|██████▋   | 12/18 [00:24<00:08,  1.37s/it]Loading checkpoint shards:  72%|███████▏  | 13/18 [00:26<00:06,  1.31s/it]Loading checkpoint shards:  78%|███████▊  | 14/18 [00:27<00:05,  1.25s/it]Loading checkpoint shards:  83%|████████▎ | 15/18 [00:28<00:03,  1.27s/it]Loading checkpoint shards:  89%|████████▉ | 16/18 [00:29<00:02,  1.24s/it]Loading checkpoint shards:  94%|█████████▍| 17/18 [00:30<00:01,  1.23s/it]Loading checkpoint shards: 100%|██████████| 18/18 [00:31<00:00,  1.02s/it]Loading checkpoint shards: 100%|██████████| 18/18 [00:31<00:00,  1.74s/it]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+[qwen2vl_32b] Model loaded successfully.
+
+[qwen2vl_32b] Config:
+  total_layers=64, probe_layers=[16, 25, 32, 41, 55]
+  blank_image_size=(336, 336)
+
+[qwen2vl_32b] Debug forward (first prompt)...
+  [DEBUG] MM forward - hidden states shapes:
+    Layer 16: torch.Size([5120]), norm=132.781
+    Layer 25: torch.Size([5120]), norm=182.002
+    Layer 32: torch.Size([5120]), norm=251.082
+    Layer 41: torch.Size([5120]), norm=288.339
+    Layer 55: torch.Size([5120]), norm=875.510
+  [DEBUG] Text forward - hidden states shapes:
+    Layer 16: torch.Size([5120]), norm=133.471
+    Layer 25: torch.Size([5120]), norm=178.774
+    Layer 32: torch.Size([5120]), norm=229.171
+    Layer 41: torch.Size([5120]), norm=270.381
+    Layer 55: torch.Size([5120]), norm=905.998
+[qwen2vl_32b] Processing pair 1/12...
+[qwen2vl_32b] Processing pair 2/12...
+[qwen2vl_32b] Processing pair 3/12...
+[qwen2vl_32b] Processing pair 4/12...
+[qwen2vl_32b] Processing pair 5/12...
+[qwen2vl_32b] Processing pair 6/12...
+[qwen2vl_32b] Processing pair 7/12...
+[qwen2vl_32b] Processing pair 8/12...
+[qwen2vl_32b] Processing pair 9/12...
+[qwen2vl_32b] Processing pair 10/12...
+[qwen2vl_32b] Processing pair 11/12...
+[qwen2vl_32b] Processing pair 12/12...
+  Layer 16 (depth=0.25): cos=0.7839, norm_text=8.526, norm_mm=9.458, ratio=1.109
+  Layer 25 (depth=0.39): cos=0.6830, norm_text=15.607, norm_mm=15.781, ratio=1.011
+  Layer 32 (depth=0.50): cos=0.7944, norm_text=59.755, norm_mm=46.004, ratio=0.770
+  Layer 41 (depth=0.64): cos=0.8406, norm_text=75.722, norm_mm=69.664, ratio=0.920
+  Layer 55 (depth=0.86): cos=0.9612, norm_text=614.485, norm_mm=527.932, ratio=0.859
+
+[qwen2vl_32b] Summary:
+  Narrow waist: layer 55 (rel_depth=0.86, cos=0.9612)
+  Amplitude reversal: False (shallow_mean=1.060, deep_mean=0.850)
+
+[qwen2vl_32b] Results saved to: [PROJECT_ROOT]/geometry-of-refusal/results/phase3/qwen2vl_32b/exp_3a_results.json
+[qwen2vl_32b] Directions saved to: [PROJECT_ROOT]/geometry-of-refusal/results/phase3/qwen2vl_32b/exp_3a_directions.pt
+
+============================================================
+Exp 3A complete for qwen2vl_32b
+  Narrow waist: layer 55 (cos=0.9612, rel_depth=0.86)
+  Amplitude reversal: False
+============================================================

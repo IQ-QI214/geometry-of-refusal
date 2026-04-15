@@ -1,0 +1,239 @@
+Loading LLaVA: llava-hf/llava-1.5-7b-hf
+  cache_dir: [PROJECT_ROOT]/models/hub
+  device: cuda, dtype: torch.float16, 4bit: False
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:13<00:27, 13.74s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:27<00:13, 13.65s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:38<00:00, 12.47s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:38<00:00, 12.79s/it]
+Expanding inputs for image tokens in LLaVa should be done in processing. Please add `patch_size` and `vision_feature_select_strategy` to the model's processing config or set directly with `processor.patch_size = {{patch_size}}` and processor.vision_feature_select_strategy = {{vision_feature_select_strategy}}`. Using processors without these attributes in the config is deprecated and will throw an error in v4.50.
+From v4.47 onwards, when a model cache is to be returned, `generate` will return a `Cache` instance instead by default (as opposed to the legacy tuple of tuples format). If you want to keep returning the legacy format, please set `return_legacy_cache=True`.
+LLaVA loaded.
+
+============================================================
+Experiment B: Refusal direction timestep consistency
+Model: llava-hf/llava-1.5-7b-hf
+Layer: 16, Steps: [1, 5, 10, 20, 50]
+Paired prompts: 4 pairs
+============================================================
+
+  Extracting direction at decode_step=1 ...
+      pair 1/4 step=1...      pair 2/4 step=1...      pair 3/4 step=1...      pair 4/4 step=1...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=5 ...
+      pair 1/4 step=5...      pair 2/4 step=5...      pair 3/4 step=5...      pair 4/4 step=5...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=10 ...
+      pair 1/4 step=10...      pair 2/4 step=10...      pair 3/4 step=10...      pair 4/4 step=10...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=20 ...
+      pair 1/4 step=20...      pair 2/4 step=20...      pair 3/4 step=20...      pair 4/4 step=20...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=50 ...
+      pair 1/4 step=50...      pair 2/4 step=50...      pair 3/4 step=50...      pair 4/4 step=50...
+    done, direction norm (should be ~1): 1.0000
+
+  Pairwise cosine similarity (layer 16):
+            t= 1  t= 5  t=10  t=20  t=50
+  t= 1:  1.000  0.254  0.432  '(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1180>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 906f9e02-afbf-44bd-9c66-ed4e995711bf)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1ae0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 6822ee86-ab33-4e38-b1e2-ff799d32db27)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1de0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 1e087a69-bff9-4742-a07c-820b34483bcc)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c20e0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 8e56d36c-32af-4dc4-865a-35ed79c673ae)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a393b20>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: b20504c8-5233-4fd8-b355-1ae6dba3f494)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a393df0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 4c12a85f-4985-403d-8269-3b4891d9ee29)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1de0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: b67195cd-b2f1-4c21-82b7-5c4f38351d81)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c01c0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: c0155fbe-04e7-43fe-8986-f8ca90b1b0c3)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1120>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: d31ba054-4876-482e-8c3c-0f73c18429f3)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0e20>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 3eb7b1d2-a35a-43c9-bc79-c8212a0ab16d)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0b20>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 58ec1a72-1c16-41a3-bc78-1e5ebccaa894)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0580>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 8aedef94-b1a1-4efa-94f0-b612382de707)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c23e0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: a75f99ff-fa22-4f17-a34a-14c51a03ceb1)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3939a0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: a556f2b9-e1f6-4183-8853-4678fbff9deb)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a393b80>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 6e285571-6d9d-421d-ab37-a9a46572213a)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3936a0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 92b101dd-143f-4b32-8858-92e2ed221d85)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2440>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 760db586-8c83-4935-bf9b-b2e6a35846b5)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0880>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: cc425fbb-5fb5-4d78-bc7c-e4ba47751c87)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c08e0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: a3982e3e-2226-4dd7-b41d-32058d8c4c91)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0100>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 336481d5-584b-482f-a760-b7d2e4d68267)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1c90>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 98a1a88c-a5dc-4f04-a6b9-a536156ea585)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c15d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: d59a5376-f4d7-436a-bf1e-212b2f452856)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1390>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: ccd57235-4800-4adb-b373-eddf09e320d1)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2080>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 486bd671-19ec-493f-bcd0-13fb0fab202d)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a393f40>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 676e90f0-060b-4152-a44c-d9686888872f)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/preprocessor_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1db0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 6a18c956-7d69-40a7-8368-9e962f32df09)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1b10>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 4e72de77-1461-48dc-94ae-a1320166843b)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2650>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: f6f6e460-df01-478f-9a2d-18741ab3fc71)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2b60>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: cc0ed8e1-7248-429d-8b94-f7b69e6ea94a)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0c40>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 5dbfe42a-04e6-4923-90d8-bd6ae7e62420)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0880>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fbd3b2b6-33c6-407d-afe2-bd967ffa2994)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/tokenizer_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c3250>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 0596a862-3cab-49d9-9d4e-e8b2181e3e98)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0d60>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: e1e94ccb-1ce1-42c4-ba99-03275145ede9)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0b20>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 569f903b-a8b3-45ec-892d-93a4270b82ee)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0940>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: bbbc345a-14e2-4406-86ea-4267890698d2)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2920>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: e3c0e566-df9b-4147-9361-6fd40128f843)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0e20>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 2a9fa023-1881-4b01-b0d8-d3628828ee50)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/processor_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c13f0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 1d96ac56-387a-474a-98bf-a2f5a164dfc0)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1ea0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 8a21fdcd-c6ae-48aa-8ac7-08f2cbc946c2)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0220>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 54ba598e-1c95-4cd1-8eff-de2518f6c6e9)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a393310>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 5fea2bb8-7d6d-4272-bdc4-76e59e0bfbd0)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a393790>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 78141b5c-6fde-43ac-ac30-a4731e006adf)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c01c0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: b2a460be-e8a4-4d93-85e9-9c5302d6d731)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1b10>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 0579a6a8-a991-42fb-a9c9-7089ed0c439b)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c29b0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: be4d937c-c179-4eb1-a39c-4c4b5311c453)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2620>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 008abd83-52e9-4771-8112-bc6c87568354)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c08b0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 116d948b-e11e-4be8-9a2b-a3b6cfc9b68e)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c07f0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 40f86c15-8c23-4692-a180-1dba02f7368c)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2f50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: d79b88be-5407-4285-95fe-49b95c8e25dc)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/chat_template.jinja
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c3af0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: eca680c8-116b-46dc-af97-81d43d5e7e09)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c35b0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: a511493f-87d8-4f6d-947a-ca661bdfcf44)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1060>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 3de72b50-a068-4e1b-99d9-75b50c033ca6)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c3010>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 61aede41-93c6-4267-8317-ad83a8c07fcb)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0af0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 552804e6-9d0b-478b-a1d2-a10a52215d42)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2740>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 781ed3bc-0597-4ff6-8635-d2d8bec9a5f1)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2650>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 256fad8e-2112-4ac7-98ab-4759cd5f6bbf)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0190>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: e6aa23a4-0b56-4dbe-81f3-c5514fbe2b39)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1510>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 369f5004-f348-43f8-b2f2-394d5907a8bf)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1930>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 45dad6e2-af97-40da-8842-c6db2d3485c3)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c01c0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 19b7919d-f3a1-4a57-ae28-d335f802e25d)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0070>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 330206de-d8b2-42aa-84f1-e698483cf62b)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/adapter_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1480>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fe6f4c72-07b2-4ac7-930f-a635359d739b)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1a20>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 983fd4e7-8c28-4b8a-aad6-800dd660381f)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0640>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 28dd2fe4-ac9a-4c4d-a887-71ed922685ac)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c09a0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: c9ae028e-f201-48e6-b178-175923074cdf)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c0850>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 1aafdac9-909b-4b36-aee4-1e76db8e5645)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c3040>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 8c1ab20b-cff9-4604-9c0f-7693cf718f27)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1540>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 1a1ea82d-8ec0-4cc2-b207-20a89c56df94)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1b70>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 37ab7b18-850f-4e94-9b3c-80e2459db91b)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c13c0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 3eebdbbf-5beb-4a2b-a462-58c7fd25dd64)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2830>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 85e28808-4ea7-4e02-a943-fd058246d908)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2b90>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 80d1482f-4f29-482c-9cb4-78b428e5f90d)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c1270>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fbc92ad6-175a-48a6-a278-c49960e2b73f)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/model.safetensors
+Loading LLaVA: llava-hf/llava-1.5-7b-hf
+  cache_dir: [PROJECT_ROOT]/models/hub
+  device: cuda, dtype: torch.float16, 4bit: False
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:02<00:05,  2.83s/it]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:05<00:02,  2.99s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:08<00:00,  2.84s/it]Loading checkpoint shards: 100%|██████████| 3/3 [00:08<00:00,  2.86s/it]
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc858422d70>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: f222db9c-9b36-4f1b-b0bc-c28f06694038)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json
+Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc8584229e0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 157c2c59-f3f8-4007-88bd-59cbfbd71319)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json
+Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85d574f40>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 10416d07-dd73-4970-adac-e2a8bfc2805c)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json
+Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85a3c2a40>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 2854dd2b-8971-4e72-b6c0-72290efe8c8f)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json
+Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc85c5d79a0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: c5a9da04-7d0f-449c-a86e-a6135bee720b)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json
+Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json (Caused by ConnectTimeoutError(<HTTPSConnection(host='huggingface.co', port=443) at 0x7fc8584d6320>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: abbf1db1-a091-4172-ad2d-e694f89e1454)')' thrown while requesting HEAD https://huggingface.co/llava-hf/llava-1.5-7b-hf/resolve/main/generation_config.json
+Expanding inputs for image tokens in LLaVa should be done in processing. Please add `patch_size` and `vision_feature_select_strategy` to the model's processing config or set directly with `processor.patch_size = {{patch_size}}` and processor.vision_feature_select_strategy = {{vision_feature_select_strategy}}`. Using processors without these attributes in the config is deprecated and will throw an error in v4.50.
+From v4.47 onwards, when a model cache is to be returned, `generate` will return a `Cache` instance instead by default (as opposed to the legacy tuple of tuples format). If you want to keep returning the legacy format, please set `return_legacy_cache=True`.
+LLaVA loaded.
+
+============================================================
+Experiment B: Refusal direction timestep consistency
+Model: llava-hf/llava-1.5-7b-hf
+Layer: 16, Steps: [1, 5, 10, 20, 50]
+Paired prompts: 4 pairs
+============================================================
+
+  Extracting direction at decode_step=1 ...
+      pair 1/4 step=1...      pair 2/4 step=1...      pair 3/4 step=1...      pair 4/4 step=1...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=5 ...
+      pair 1/4 step=5...      pair 2/4 step=5...      pair 3/4 step=5...      pair 4/4 step=5...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=10 ...
+      pair 1/4 step=10...      pair 2/4 step=10...      pair 3/4 step=10...      pair 4/4 step=10...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=20 ...
+      pair 1/4 step=20...      pair 2/4 step=20...      pair 3/4 step=20...      pair 4/4 step=20...
+    done, direction norm (should be ~1): 1.0000
+
+  Extracting direction at decode_step=50 ...
+      pair 1/4 step=50...      pair 2/4 step=50...      pair 3/4 step=50...      pair 4/4 step=50...
+    done, direction norm (should be ~1): 1.0000
+
+  Pairwise cosine similarity (layer 16):
+            t= 1  t= 5  t=10  t=20  t=50
+  t= 1:  1.000  0.254  0.432  0.264  0.147
+  t= 5:  0.254  1.000  0.184  0.018  0.103
+  t=10:  0.432  0.184  1.000  0.250  0.108
+  t=20:  0.264  0.018  0.250  1.000  0.306
+  t=50:  0.147  0.103  0.108  0.306  1.000
+
+  Min  pairwise sim: 0.0178  [target > 0.80]
+  Mean pairwise sim: 0.2065
+  Critical (step1 -> step5): 0.2537
+
+Exp B results saved to [PROJECT_ROOT]/geometry-of-refusal/results/exp_b_results.json
+Directions saved to [PROJECT_ROOT]/geometry-of-refusal/results/exp_b_directions.pt
+
+============================================================
+DECISION (Exp B)
+============================================================
+  FAIL (min sim = 0.0178)
+  -> Refusal cone DRIFTS across decoding timesteps
+  -> This is a NOVEL FINDING: safety mechanism is dynamic during generation
+  -> Upgrade to dynamic cone estimation
+  -> Estimate v_refusal(t) at each timestep t before projection suppression
