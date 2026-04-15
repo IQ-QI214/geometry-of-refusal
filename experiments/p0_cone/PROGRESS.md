@@ -39,10 +39,10 @@
 | 5 | DIM Direction Extraction + PCA Cone | ✅ 完成（两模型） |
 | 6 | DIM Cone Ablation + Generation | ✅ 完成（两模型，共 6 组） |
 | 7 | RDO Training for VLM | ✅ 完成（两模型，共 6 组 cone） |
-| 8 | RDO Cone Ablation + Generation | ⚠️ 部分完成（见下表） |
-| 9 | Four-Layer ASR Evaluation Pipeline | ✅ 脚本完成（等 LLaVA RDO 响应生成后可运行） |
+| 8 | RDO Cone Ablation + Generation | ✅ 完成（两模型，共 6 组响应） |
+| 9 | Four-Layer ASR Evaluation Pipeline | ✅ 完成（12 组全部评估，结果见 eval_results.json） |
 | 10 | Shell Scripts | ⏳ 待开始 |
-| 11 | Analysis Report | ⏳ 等实验结果 |
+| 11 | Analysis Report | ✅ 完成 → `analysis/p0/p0_cone_analysis_2026-04-15.md` |
 
 ---
 
@@ -96,9 +96,9 @@ VLM（LLaVA、Qwen2.5-VL）的拒绝机制是否存在 **stealth refusal**：即
 | DIM | 1 | 128 | 59 | 0.539 |
 | DIM | 3 | 128 | 67 | 0.477 |
 | DIM | 5 | 128 | 45 | 0.648 |
-| RDO | 1 | — | — | ⏳ running |
-| RDO | 3 | — | — | ⏳ running |
-| RDO | 5 | — | — | ⏳ running |
+| RDO | 1 | 128 | 51 | 0.602 |
+| RDO | 3 | 128 | 43 | 0.664 |
+| RDO | 5 | 128 | 34 | 0.734 |
 
 **LLaVA DIM 分析**：
 - 非单调（k=1 > k=3 < k=5）：PCA 成分 2-3 破坏 VLM 跨模态对齐，产生退化输出（重复 token），keyword 检测误判为拒绝
@@ -114,7 +114,7 @@ VLM（LLaVA、Qwen2.5-VL）的拒绝机制是否存在 **stealth refusal**：即
 | DIM | 5 | 128 | 0 | **1.000** |
 | RDO | 1 | 128 | 58 | 0.547 |
 | RDO | 3 | 128 | 46 | 0.641 |
-| RDO | 5 | — | — | ⏳ running |
+| RDO | 5 | 128 | 39 | 0.695 |
 
 **Qwen DIM 分析**：
 - k=3、k=5 达到 100% keyword bypass，且**响应内容真实（非退化）**，模型确实在讨论有害话题
@@ -155,7 +155,7 @@ results/p0_cone/
 │       ├── targets/{harmful,harmless}_targets.json  ✅
 │       ├── rdo_cone_k{1,3,5}.pt         ✅
 │       ├── rdo_cone_k{1,3,5}_log.json   ✅
-│       └── rdo_k{1,3,5}_responses.json  ⏳ running
+│       └── rdo_k{1,3,5}_responses.json  ✅ 各 128 条
 ├── qwen2vl_7b/
 │   ├── dim/
 │   │   ├── dim_cone_k{1,3,5}.pt        ✅
@@ -168,7 +168,7 @@ results/p0_cone/
 │       ├── rdo_cone_k{1,3,5}_log.json   ✅
 │       ├── rdo_k1_responses.json         ✅  128 条
 │       ├── rdo_k3_responses.json         ✅  128 条
-│       └── rdo_k5_responses.json         ⏳ running
+│       └── rdo_k5_responses.json         ✅  128 条
 ```
 
 ---
@@ -183,4 +183,4 @@ results/p0_cone/
 
 ---
 
-*最后更新: 2026-04-14，Task 6+7+8（部分）完成后*
+*最后更新: 2026-04-15，Task 8 全部完成 + Task 9 评估完成 + Task 11 分析报告完成*
