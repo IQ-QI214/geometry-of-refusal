@@ -2,7 +2,7 @@
 
 **接手任务**: Task 9 — 四层 ASR 评估 pipeline  
 **完整进度**: 见 `experiments/p0_cone/PROGRESS.md`  
-**项目根目录**: `/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/`
+**项目根目录**: `[PROJECT_ROOT]/geometry-of-refusal/`
 
 ---
 

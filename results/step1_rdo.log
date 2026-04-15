@@ -3,7 +3,7 @@ You're using a GemmaTokenizerFast tokenizer. Please note that with a fast tokeni
 The 'batch_size' argument of HybridCache is deprecated and will be removed in v4.49. Use the more precisely named 'max_batch_size' argument instead.
 The 'batch_size' attribute of HybridCache is deprecated and will be removed in v4.49. Use the more precisely named 'self.max_batch_size' attribute instead.
 Traceback (most recent call last):
-  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/rdo.py", line 174, in <module>
+  File "[PROJECT_ROOT]/geometry-of-refusal/rdo.py", line 174, in <module>
     with model.trace("Hello") as tracer:
   File "/opt/conda/envs/rdo/lib/python3.10/site-packages/nnsight/contexts/Tracer.py", line 102, in __exit__
     super().__exit__(exc_type, exc_val, exc_tb)

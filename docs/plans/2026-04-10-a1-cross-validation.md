@@ -229,7 +229,7 @@ if __name__ == "__main__":
 Create a quick inline test to verify `build_disputed_subset` and `compute_concordance` are correct before running on real data:
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 python3 -c "
 import sys
 sys.path.insert(0, 'experiments/category_a')
@@ -286,7 +286,7 @@ Expected output: `All assertions passed.`
 # Requires: qwen3-vl env (transformers>=4.51), HF offline mode, GPU node
 
 set -e
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 
 mkdir -p results/category_a/qwen2vl_7b
 mkdir -p results/category_a/qwen2vl_32b
@@ -481,7 +481,7 @@ if __name__ == "__main__":
 - [ ] **Step 2: Verify script parses correctly**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 python3 -c "import ast; ast.parse(open('scripts/analyze_a1_crossval.py').read()); print('Syntax OK')"
 ```
 

@@ -255,7 +255,7 @@ class LlavaVLMModel(ModelBase):
 The refusal token for LLaMA-2 tokenizer needs verification. Run this quick check on the GPU node:
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 conda run --no-capture-output -n rdo python -c "
 from transformers import AutoProcessor
@@ -644,7 +644,7 @@ if __name__ == "__main__":
 - [ ] **Step 2: Run smoke test for LLaVA**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 conda run --no-capture-output -n rdo \
     python experiments/p0_cone/smoke_test_adapters.py --model llava_7b --device cuda:0

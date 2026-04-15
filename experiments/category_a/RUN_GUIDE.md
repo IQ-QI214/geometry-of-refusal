@@ -1,6 +1,6 @@
 # Category A Run Guide
 
-> GPU node, project root: `/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal`
+> GPU node, project root: `[PROJECT_ROOT]/geometry-of-refusal`
 
 ## Env Mapping
 
@@ -36,7 +36,7 @@ conda activate qwen3-vl && python -c "from sklearn.metrics import roc_auc_score;
 ## Step 1: Create result directories
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 mkdir -p results/category_a/{llava_7b,llava_13b,qwen2vl_7b,qwen2vl_32b,internvl2_8b}
 mkdir -p results/phase3/{llava_13b,qwen2vl_32b}
 ```
@@ -49,7 +49,7 @@ A1 smoke already passed. Re-run A3:
 
 ```bash
 conda activate rdo
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python experiments/category_a/exp_a3_norm_prediction.py \
     --model llava_7b --device cuda:0 --n_prompts 10 --max_new_tokens 50
 ```
@@ -83,7 +83,7 @@ rm -f results/category_a/llava_7b/a3_norm_prediction.json
 
 ```bash
 conda activate rdo
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup python experiments/phase3/exp_3a_amplitude_reversal.py \
     --model llava_13b --device cuda:0 \
@@ -95,7 +95,7 @@ echo "LLaVA-13B PID: $!"
 
 ```bash
 conda activate qwen3-vl
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup python experiments/phase3/exp_3a_amplitude_reversal.py \
     --model qwen2vl_32b --device cuda:3 \
@@ -123,7 +123,7 @@ ls -la results/phase3/qwen2vl_32b/exp_3a_directions.pt
 
 ```bash
 conda activate rdo
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 
 # GPU 0: LLaVA-7B
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
@@ -151,7 +151,7 @@ echo "InternVL2 PID: $!"
 
 ```bash
 conda activate qwen3-vl
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 
 # GPU 2: Qwen-7B (after InternVL2 finishes, or use GPU 2 if free)
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
@@ -179,7 +179,7 @@ tail -f results/category_a/*/a1_gen.log
 
 ```bash
 conda activate rdo
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup python experiments/category_a/exp_a3_norm_prediction.py \
     --model llava_7b --device cuda:0 \
@@ -197,7 +197,7 @@ If GPU 0 busy with A1, use another free GPU (e.g., `--device cuda:1`).
 
 ```bash
 conda activate rdo
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup python experiments/category_a/exp_a2_dsa_causality.py \
     --model llava_7b --device cuda:0 \
@@ -219,7 +219,7 @@ echo "A2 InternVL2 PID: $!"
 
 ```bash
 conda activate qwen3-vl
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 nohup python experiments/category_a/exp_a2_dsa_causality.py \
     --model qwen2vl_7b --device cuda:1 \
@@ -233,7 +233,7 @@ echo "A2 Qwen-7B PID: $!"
 
 ```bash
 conda activate qwen3-vl
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 
 for MODEL in llava_7b llava_13b qwen2vl_7b qwen2vl_32b internvl2_8b; do
     echo "=== Judging $MODEL ==="

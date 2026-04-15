@@ -30,15 +30,15 @@ Traceback (most recent call last):
     return _run_code(code, main_globals, None,
   File "/opt/conda/envs/rdo/lib/python3.10/runpy.py", line 86, in _run_code
     exec(code, run_globals)
-  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/run_pipeline.py", line 199, in <module>
+  File "[PROJECT_ROOT]/geometry-of-refusal/refusal_direction/pipeline/run_pipeline.py", line 199, in <module>
     run_pipeline(model_path=args.model_path)
-  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/run_pipeline.py", line 170, in run_pipeline
+  File "[PROJECT_ROOT]/geometry-of-refusal/refusal_direction/pipeline/run_pipeline.py", line 170, in run_pipeline
     generate_and_save_completions_for_dataset(cfg, model_base, baseline_fwd_pre_hooks, baseline_fwd_hooks, 'baseline', dataset_name)
-  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/run_pipeline.py", line 112, in generate_and_save_completions_for_dataset
+  File "[PROJECT_ROOT]/geometry-of-refusal/refusal_direction/pipeline/run_pipeline.py", line 112, in generate_and_save_completions_for_dataset
     dataset = load_dataset(dataset_name)
-  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/dataset/load_dataset.py", line 43, in load_dataset
+  File "[PROJECT_ROOT]/geometry-of-refusal/refusal_direction/dataset/load_dataset.py", line 43, in load_dataset
     with open(file_path, 'r') as f:
-FileNotFoundError: [Errno 2] No such file or directory: '/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/dataset/processed/jailbreakbench.json'
+FileNotFoundError: [Errno 2] No such file or directory: '[PROJECT_ROOT]/geometry-of-refusal/refusal_direction/dataset/processed/jailbreakbench.json'
 Selected direction: position=-1, layer=15
 Refusal score: -6.7495 (baseline: 3.8487)
 Steering score: 4.4163 (baseline: -10.7623)

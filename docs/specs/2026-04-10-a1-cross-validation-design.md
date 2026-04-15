@@ -122,7 +122,7 @@ Per (model, config):
 ### 3.2 Run Commands
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 
 # Qwen-7B (GPU 0) — ~1095 cases, ~15min
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \

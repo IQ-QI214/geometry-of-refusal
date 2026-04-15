@@ -76,7 +76,7 @@ Add after the `qwen2vl_7b` entry:
 
 Run a quick Python check (no GPU needed, just config validation):
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 python -c "
 from experiments.phase3.common.model_configs import MODEL_CONFIGS
 for name in ['llava_13b', 'qwen2vl_32b']:
@@ -179,7 +179,7 @@ def load_dataset(name: str) -> List[Dict[str, str]]:
 - [ ] **Step 3: Verify data loading**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 python -c "
 import sys; sys.path.insert(0, 'experiments/category_a')
 from common.data_utils import load_saladbench_test
@@ -646,7 +646,7 @@ if __name__ == "__main__":
 
 Temporarily patch to test with 10 prompts:
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python -c "
 import sys; sys.path.insert(0, 'experiments/category_a')
 from exp_a1_dsa_validation import run_a1
@@ -1505,7 +1505,7 @@ git commit -m "feat: add A2 DSA causality script with forced prefix and conditio
 # Phase 0 (direction extraction) must be done first for llava_13b and qwen2vl_32b
 set -e
 
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
@@ -1553,7 +1553,7 @@ echo "=== A1 Generation complete ==="
 # A1 Judge: Run Qwen3Guard evaluation (requires transformers>=4.51 env)
 set -e
 
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
@@ -1579,7 +1579,7 @@ echo "=== A1 Judge complete ==="
 # A2 Causality: 3 models on 3 GPUs
 set -e
 
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
@@ -1610,7 +1610,7 @@ echo "=== A2 complete ==="
 # A3 Norm Prediction: LLaVA-7B primary
 set -e
 
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
@@ -1638,14 +1638,14 @@ git commit -m "feat: add shell scripts for parallel Category A execution"
 
 ```bash
 for model in llava_7b llava_13b qwen2vl_7b qwen2vl_32b internvl2_8b; do
-    mkdir -p /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/results/category_a/$model
+    mkdir -p [PROJECT_ROOT]/geometry-of-refusal/results/category_a/$model
 done
 ```
 
 - [ ] **Step 2: Run A1 smoke test (n=10, LLaVA-7B)**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python -c "
 import sys, json
 sys.path.insert(0, 'experiments/category_a')
@@ -1678,7 +1678,7 @@ print(f'Response example: {d[\"responses\"][0][\"response\"][:100]}')
 - [ ] **Step 4: Run A3 smoke test (n=10, LLaVA-7B)**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python -c "
 import sys
 sys.path.insert(0, 'experiments/category_a')
@@ -1711,7 +1711,7 @@ Once smoke tests pass:
 Run `exp_3a_amplitude_reversal.py` on LLaVA-13B and Qwen-32B (requires models to be downloaded first):
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 
 # GPU 0: LLaVA-13B
 nohup python experiments/phase3/exp_3a_amplitude_reversal.py \

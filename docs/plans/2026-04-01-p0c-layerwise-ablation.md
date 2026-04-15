@@ -302,14 +302,14 @@ if __name__ == "__main__":
 
 - [ ] **Step 2: Verify the file exists and has no syntax errors**
 
-Run: `cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal && python3 -c "import ast; ast.parse(open('experiments/phase3/exp_3d_layerwise_ablation.py').read()); print('Syntax OK')"`
+Run: `cd [PROJECT_ROOT]/geometry-of-refusal && python3 -c "import ast; ast.parse(open('experiments/phase3/exp_3d_layerwise_ablation.py').read()); print('Syntax OK')"`
 
 Expected output: `Syntax OK`
 
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 git add experiments/phase3/exp_3d_layerwise_ablation.py
 git commit -m "feat: add exp_3d layerwise ablation curve script (P0-C)"
 ```
@@ -365,14 +365,14 @@ echo "Exp 3D complete. Results in results/phase3/{model}/exp_3d_layerwise_result
 
 - [ ] **Step 2: Make it executable**
 
-Run: `chmod +x /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/experiments/phase3/run_3d_layerwise.sh`
+Run: `chmod +x [PROJECT_ROOT]/geometry-of-refusal/experiments/phase3/run_3d_layerwise.sh`
 
 Expected: no output (success)
 
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
+cd [PROJECT_ROOT]/geometry-of-refusal
 git add experiments/phase3/run_3d_layerwise.sh
 git commit -m "feat: add run_3d_layerwise.sh parallel launcher"
 ```
@@ -386,7 +386,7 @@ git commit -m "feat: add run_3d_layerwise.sh parallel launcher"
 - [ ] **Step 1: Run the experiment (qi executes on GPU node)**
 
 ```bash
-cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal && bash experiments/phase3/run_3d_layerwise.sh 50
+cd [PROJECT_ROOT]/geometry-of-refusal && bash experiments/phase3/run_3d_layerwise.sh 50
 ```
 
 Expected: all 4 background processes complete; log files written to `experiments/phase3/logs/3d_*.log`
@@ -398,7 +398,7 @@ python3 -c "
 import json
 from pathlib import Path
 
-proj = Path('/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal')
+proj = Path('[PROJECT_ROOT]/geometry-of-refusal')
 models = ['llava_7b', 'qwen2vl_7b', 'internvl2_8b', 'instructblip_7b']
 for m in models:
     path = proj / 'results' / 'phase3' / m / 'exp_3d_layerwise_results.json'
@@ -423,7 +423,7 @@ python3 -c "
 import json
 from pathlib import Path
 
-proj = Path('/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal')
+proj = Path('[PROJECT_ROOT]/geometry-of-refusal')
 
 # 3D baseline should match 3C baseline_mm
 d3 = json.load(open(proj / 'results/phase3/llava_7b/exp_3d_layerwise_results.json'))

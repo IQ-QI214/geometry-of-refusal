@@ -2,7 +2,7 @@
 
 > **Plan**: `docs/plans/2026-04-13-1231-p0-cone-ablation-implementation.md`
 > **Spec**: `docs/specs/2026-04-13-1231-p0-cone-ablation-stealth-refusal-design.md`
-> **项目根目录**: `/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/`
+> **项目根目录**: `[PROJECT_ROOT]/geometry-of-refusal/`
 
 ---
 
@@ -13,7 +13,7 @@
    - 写好脚本后，以代码块形式把完整命令交给 qi 在 GPU 节点手动运行
 
 2. **文件系统权限：只能改 `zhujiaqi` 目录**
-   - ✅ 可以读写：`/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/`
+   - ✅ 可以读写：`[PROJECT_ROOT]/`
    - ❌ 其他目录只读，任何写/创建/删除操作必须先询问 qi
 
 3. **离线包安装**:
