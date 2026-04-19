@@ -409,3 +409,214 @@ $$R_\text{stealth}(p,o) = \max(0, \tau - P_\text{unsafe}^\text{judge}(o)) \cdot 
 > **V1 实验的结果将决定整个项目的生死。** 如果 direction extraction invalid，你必须在 48 小时内决定是 pivot 到 ARA+GRPO 作为主线（完全放弃 direction-based framing），还是 kill 整个 Stealth Refusal narrative 转向纯 Architecture-Dependent Failure Modes (C3)。
 
 **我的问题**：你当前对 V1 成功概率的估计是多少？如果 <60%，我们是否应该**并行启动 A1 (ARA baseline) 作为 fallback narrative**，使得即使 V1 fail 论文仍能以 attack paper (方向 B) 的形式存活？
+
+---
+0419 edited
+
+# 你的判断完全正确 —— 先正式回应 Arditi 方法论
+
+你仔细读原文后的发现是**极其重要的**。Arditi 原论文的完整评估协议包含 refusal_score 和 safety_score 两个独立指标，而非单一 keyword matching。这意味着：
+
+**如果你的 P0 复现结果与原文相差很大（尤其在 LLM baseline 上），根本原因极可能是评估 pipeline 有误，而非模型或数据问题。** 这需要在运行任何新实验之前先修正。
+
+## Arditi 官方评估协议（完整版）
+
+根据原文 + 官方 repo (andyrdt/refusal_direction)：
+
+**两个指标并用**：
+
+1. **refusal_score**：不是朴素的 keyword matching，而是一个**per-model 定制的 refusal token template**——先在该模型的 baseline 输出中**广泛采集**该模型最常出现的拒绝开头 token（例如 Llama-2 常用 "I cannot"、Qwen 常用 "我无法"、"I apologize for"），构造 model-specific refusal substring list，再匹配。
+2. **safety_score**：用 **Llama-Guard-2** 判断输出是否"真实有害"（response classification task），返回 0/1。
+
+**完整 attack success 判定公式**：
+
+$$\text{ASR}_\text{Arditi} = \frac{1}{|\mathcal{D}|}\sum_{x \in \mathcal{D}} \mathbf{1}[\text{refusal\_score}(o(x)) = 0] \cdot \mathbf{1}[\text{safety\_score}(o(x)) = 0]$$
+
+即同时满足：(a) 输出不匹配 refusal template, **且** (b) Llama-Guard 判为 unsafe。**单独任一条件都不算 attack success**。
+
+## 你目前 P0 pipeline 可能的关键偏差
+
+| 偏差来源 | 你当前做法 | Arditi 原协议 |
+|---|---|---|
+| refusal score | 通用 keyword list | per-model refusal token harvest |
+| 判定逻辑 | refusal_score OR safety_score | refusal_score **AND** safety_score |
+| judge model | Q3Guard + LlamaGuard-3 | Llama-Guard-2（2024 年 paper 时） |
+| 评估位置 | 全响应匹配 | refusal 仅看**首句或前若干 token** |
+
+**Implication**：如果你把 ASR_kw 和 ASR_q3g 作为独立指标分别报告，然后取 ASR_kw 单独作为 "keyword ASR"，这**不是 Arditi 的指标**。Arditi 的 "attack success" 本身就是 refusal AND safety 的联合事件，天然会把 stealth refusal 排除在 "success" 之外。
+
+**换句话说**：你发现的 "Stealth Refusal 现象"，部分可能**并非新发现**，而是 Arditi 原始指标本就能识别到的状态（refusal=0 但 safety=1 就是 stealth refusal），只是 Arditi 没有给它起名字，也没有将它视为需要解释的问题。
+
+**这不否定你的贡献**，但需要重新 framing：
+
+- **原来的 framing**（弱）："我们发现了 stealth refusal 这个新现象，keyword ASR 看不到"
+- **修正后的 framing**（强）："尽管 Arditi 原始指标已能将 stealth refusal 与真实 attack success 区分，社区普遍简化使用 keyword-only ASR 或 judge-only ASR，导致 **EGR 虚高**；我们不仅系统性量化这一问题，更重要的是，首次揭示 stealth refusal 在 Type II VLM 上**不能被 cone 维度扩展攻破**，这是 Arditi 评估协议能看见但未被研究的结构现象。"
+
+这个 framing 下，你的贡献仍然成立，但**novelty 重心从 "发现现象" 转移到 "机制解释 + 失效模式分类"**。
+
+---
+
+# DIM / RDO / ARA 的完整三方对比
+
+现在给出严格的技术对比。为精确起见，全部用统一符号。
+
+## 符号约定
+
+| 符号 | 含义 |
+|---|---|
+| $W \in \mathbb{R}^{d_\text{out} \times d_\text{in}}$ | 一个写入 residual stream 的权重矩阵 |
+| $h^{(\ell)}_i \in \mathbb{R}^{d}$ | 第 $\ell$ 层 token $i$ 的 residual stream activation |
+| $\mathcal{D}^\text{harm}, \mathcal{D}^\text{safe}$ | 有害 / 无害 prompt 集合 |
+| $\hat{r}$ | 单位 refusal direction |
+| $\mathcal{B} = \{\hat{r}^{(1)}, \ldots, \hat{r}^{(k)}\}$ | refusal concept cone 的 k 维 orthonormal basis |
+| $P_{\hat{r}} = \hat{r}\hat{r}^\top$ | 向 $\hat{r}$ 的 rank-1 投影算子 |
+
+---
+
+## 方法 1：DIM + Weight Orthogonalization (Arditi 2024)
+
+**方向提取**（difference-of-means）：
+
+$$\hat{r}^{(\ell^*)} = \frac{\mu^\text{harm}_{\ell^*} - \mu^\text{safe}_{\ell^*}}{\|\mu^\text{harm}_{\ell^*} - \mu^\text{safe}_{\ell^*}\|}$$
+
+其中 $\mu^\text{harm}_\ell = \frac{1}{|\mathcal{D}^\text{harm}|}\sum h^{(\ell)}_{\text{last}}$（最后 token residual 的均值），在特定层 $\ell^*$ 上提取（通常选择 ASR 最高的层）。
+
+**Weight orthogonalization**：对所有写入 residual stream 的矩阵（embedding、positional embedding、attention out matrices、MLP out matrices）：
+
+$$W' = W - \hat{r}\hat{r}^\top W = (I - P_{\hat{r}})W$$
+
+**数学性质**：
+- 这是**rank-1 投影**，rank$(W - W') \leq 1$
+- Arditi 原文明确指出：weight modification 与 inference-time directional ablation 完全等价
+- $\hat{r}$ 是**单位化的**（未经归一化的 $\hat{r}$ 消融会有不同效果——这是常见 bug）
+- 消融后任意 activation $h$ 满足 $h^\top \hat{r} = 0$（即 $h \perp \hat{r}$）
+
+**计算复杂度**：一次 $\hat{r}$ 提取 + 一次矩阵乘法，$O(d^2 \cdot L)$
+
+---
+
+## 方法 2：RDO (Wollschläger ICML 2025)
+
+RDO 不是单纯的更好的方向提取，而是**一整套带 loss 函数的梯度优化 framework**。
+
+**核心 loss**（gradient-based optimization 替代 DIM 的闭式均值差）：
+
+RDO 的 loss 整合了三项 cross-entropy loss：(i) 对 harmful requests 的响应 loss，(ii) 对 harmless requests 的 expected refusal response loss，(iii) 一个 KL divergence 项，用于保持对 harmless inputs 的正常行为。
+
+形式化写出：
+
+$$\mathcal{L}_\text{RDO}(\hat{r}) = \underbrace{\mathbb{E}_{x \in \mathcal{D}^\text{harm}}[\text{CE}(f_{\text{abl}(\hat{r})}(x), y_\text{compliant})]}_{\text{bypass loss: ablating }\hat{r}\text{ should enable compliance}}$$
+$$+ \underbrace{\mathbb{E}_{x \in \mathcal{D}^\text{safe}}[\text{CE}(f_{\text{add}(\hat{r}, \alpha)}(x), y_\text{refusal})]}_{\text{induce loss: adding }\hat{r}\text{ should trigger refusal}}$$
+$$+ \lambda_\text{ret} \cdot \underbrace{\mathbb{E}_{x \in \mathcal{D}^\text{safe}}[\text{KL}(f_{\text{abl}(\hat{r})}(x) \| f_\text{base}(x))]}_{\text{retain loss: preserve harmless behavior}}$$
+
+where $f_{\text{abl}(\hat{r})}$ 指消融 $\hat{r}$ 后的 forward pass，$f_{\text{add}(\hat{r},\alpha)}$ 指在中间层 add $+\alpha\hat{r}$ 的 forward pass。
+
+**Cone extension (k > 1)**：$\mathcal{B} = [\hat{r}^{(1)}, \ldots, \hat{r}^{(k)}]$ 构成 N 维 polyhedral cone 的正交基，通过 Gram–Schmidt orthogonalization 构造。消融时使用 normalized $\hat{r}$，因此采样 cone 内 convex combinations 时直接在单位向量上均匀采样以避免 bias。
+
+**Weight orthogonalization for cone**：
+
+$$W' = \left(I - \sum_{j=1}^{k} \hat{r}^{(j)}\hat{r}^{(j)\top}\right)W = (I - \mathcal{B}\mathcal{B}^\top)W$$
+
+这是 **rank-k 投影**，rank$(W - W') \leq k$。
+
+**关键改进 vs DIM**:
+1. **梯度优化** → 比 mean-diff 发现更好的方向
+2. **retain loss** → 副作用更小（在 TruthfulQA 等基准上降低错误率比 DIM 少得多）
+3. **可扩展到 cone** → 突破 rank-1 假设
+4. **Representational Independence** → 引入 RepInd 概念区分 orthogonality 与真实因果独立性
+
+**计算复杂度**：$O(T \cdot d^2 \cdot L \cdot k)$，其中 T 是梯度优化步数（通常 100-500），显著高于 DIM
+
+---
+
+## 方法 3：ARA (Weidmann / p-e-w, draft 2026-03)
+
+ARA 与 DIM/RDO 的区别是**根本性的**——它**不提取任何 refusal direction**，直接优化权重矩阵本身。
+
+**核心思想**：对每个模块 $m$（attention out_proj 或 MLP down_proj），用 PyTorch hooks 捕获输入 $X^\text{safe}, X^\text{harm}$ 和 baseline 输出 $Y^\text{safe}_0, Y^\text{harm}_0$，然后直接优化该模块的权重 $W_m$。
+
+**ARA 目标函数**（基于 PR #211 代码重构）：
+
+令 $Y^c = W_m X^c$ 为当前权重下对类别 $c \in \{\text{safe}, \text{harm}\}$ 的输出，$Y^c_0$ 为原始权重下的输出。目标是：
+
+$$\mathcal{L}_\text{ARA}(W_m) = \underbrace{\lambda_1 \cdot d_\text{kNN}(Y^\text{safe}, Y^\text{safe}_0)}_{\text{Term 1: preserve safe outputs}}$$
+$$+ \underbrace{\lambda_2 \cdot d_\text{kNN}(Y^\text{harm}, Y^\text{safe})}_{\text{Term 2: pull harm→safe}}$$
+$$- \underbrace{\lambda_3 \cdot d_\text{kNN}(Y^\text{harm}, Y^\text{harm}_0)}_{\text{Term 3: push harm away from its own origin (overcorrection)}}$$
+
+其中 $d_\text{kNN}(A, B) = \frac{1}{|A|}\sum_{a \in A} \frac{1}{K}\sum_{b \in \text{kNN}_K(a, B)} \|a - b\|_2$ 是 mean-kNN Euclidean distance。
+
+**优化方式**：L-BFGS，通常 2-3 次迭代收敛（ARA 的 objective 是 affine-convex，且原始矩阵已经接近最优，因此 L-BFGS 收敛很快）。
+
+**数学性质**:
+- rank 完全**不受限**: rank$(W - W')$ 可以等于 $\min(d_\text{out}, d_\text{in})$
+- 不假设任何 refusal manifold 的几何结构
+- 每个模块独立优化，**不共享全局 refusal direction**
+- 可以产生**非线性**的 weight modification（因 kNN 度量本身是非线性的）
+
+**计算复杂度**：$O(T \cdot (|X^\text{safe}| + |X^\text{harm}|) \cdot d \cdot K \cdot L)$，T 是 L-BFGS 步数
+
+---
+
+## 三方对比总表
+
+| 维度 | DIM + Weight Ortho | RDO (+ cone) | ARA |
+|---|---|---|---|
+| **核心假设** | Refusal 在单一方向上 | Refusal 在 k 维 cone 上 | 不假设线性结构 |
+| **方向提取方法** | Difference-of-means（闭式） | Gradient-based optimization | **不提取方向** |
+| **Loss 函数** | 无（解析解） | bypass + induce + retain (KL) | preserve + pull + push (kNN) |
+| **权重修改 rank** | rank-1 per matrix | rank-k per matrix | **unconstrained**（可任意 rank） |
+| **消融公式** | $W' = (I - \hat{r}\hat{r}^\top)W$ | $W' = (I - \mathcal{B}\mathcal{B}^\top)W$ | $W'$ 直接求解，无投影结构 |
+| **所有矩阵共用 direction？** | 是 | 是 | **否**（每个模块独立优化） |
+| **优化算法** | 无 | SGD/Adam，100-500 步 | L-BFGS，2-3 步收敛 |
+| **可保留的信息** | $W\|_{\hat{r}^\perp}$ | $W\|_{\mathcal{B}^\perp}$ | 由 Term 1 显式约束 |
+| **关于 layer 选择** | 固定单层 $\ell^*$ | 可以跨层（多层联合优化） | 每个 module 独立（含 per-layer） |
+| **典型副作用** | TruthfulQA 大幅降分 | TruthfulQA 副作用减小 | KL divergence 显式最小化 |
+| **对 Qwen 等强对齐模型** | 大量方向副作用过高 | retain loss 仍保护 semantic safety | 理论上可攻破 template path |
+| **是否有 published paper** | ✅ NeurIPS 2024 | ✅ ICML 2025 | ❌ 仅 GitHub PR（draft） |
+
+---
+
+## 关键数学差异的直觉解释
+
+**DIM 和 RDO 的本质相同点**：两者都可以写成 $W' = (I - P)W$ 的形式，其中 $P$ 是一个投影矩阵（rank 1 或 rank k）。意味着**修改后的权重 $W'$ 被约束在原权重的某个线性子空间内**，这是一个强归纳偏置（inductive bias）。
+
+**ARA 的本质不同点**：$W'$ 没有必须等于 $(I - P)W$ 的结构约束，它可以是任何使 loss 最小的矩阵。数学上，DIM/RDO 的搜索空间是 **Stiefel 流形**（rank-constrained matrices），而 ARA 的搜索空间是**整个** $\mathbb{R}^{d_\text{out} \times d_\text{in}}$。
+
+这一点对你的研究有直接 implication：
+
+**你的 Layer 2 假说**（Qwen stealth refusal 来自独立于 refusal cone 的机制）意味着 refusal 不完全由 $\{\mathcal{B}$ 的 span$\}$ 介导。DIM 和 RDO 无法消除 $\mathcal{B}^\perp$ 空间内的 refusal 信号——这是它们的**结构性局限**。
+
+ARA 的 kNN-based loss 可以**非线性地** 改变 $W$ 在任何方向上的行为，理论上可以触达 $\mathcal{B}^\perp$ 空间内的机制。**因此 ARA vs RDO 的对比实验，就是 "Layer 2 是否存在于 refusal cone 的正交补空间" 的直接经验检验**。
+
+这是你实验 A1（ARA baseline on Qwen）的核心理论意义。
+
+---
+
+## 对你 P0 结果的诊断性含义
+
+基于以上技术细节，重新审视你的 P0 数据：
+
+| 观察 | 诊断 |
+|---|---|
+| DIM k=5 的 ASR_q3g = 22.7%（异常升高） | 可能是**方向选错**: 提取方向可能混入 content 信号 |
+| RDO k=5 的 ASR_q3g = 7.0%（与 k=1 几乎无差） | 方向正确但消融失败: refusal cone 本身 saturated，扩 k 没用 |
+| Qwen 上 DIM keyword ASR = 100% but ASR_q3g = 22.7% | 典型 stealth refusal，但若按 Arditi 原协议（AND 判定），ASR 应该是 22.7% |
+
+**关键诊断建议**：
+
+1. **用 Arditi 官方 repo (andyrdt/refusal_direction) 作为 ground truth**，在 Qwen2.5-7B（纯 LLM）上先复现其论文数字。**如果复现成功且数字接近**，说明你的方法实现正确，Qwen-VL 上的 stealth refusal 是真实 VLM-specific 现象。**如果复现失败**，则 pipeline 有 bug，需要先修复。
+
+2. **报告指标时双轨并行**：既给出 Arditi 协议的 joint ASR（refusal AND safety），也给出你自定义的四层 ASR 分解。这样顶会 reviewer 既能用熟悉的 Arditi 协议校验，也能看到你的细粒度分析。
+
+3. **ARA 在你的 setup 中的天然优势**：因为 ARA 自带 Term 1（preserve safe outputs）的 KL-like 约束，它可以绕开 RDO retain loss 同时保护 stealth refusal 的问题。这是 ARA 在 Type II 模型上可能跑出**显著优于** RDO 结果的数学理由。
+
+---
+
+## 最后一个要点
+
+**基于你的新理解，原研究报告中关于"RDO Paradox"的解释需要修正**：
+
+- **之前的解释**（不严谨）："RDO 的 retain loss 保护语言流畅性，同时保护了 stealth refusal"
+- **更精确的解释**：RDO 的 $\mathcal{L}_\text{ret} = \text{KL}(f_{\text{abl}(\hat{r})} \| f_\text{base})$ 显式最小化对 harmless 输入的行为改变；而 Qwen 的 stealth refusal 输出是**流畅的伦理论述**，在 KL divergence 意义上与基础模型的语言行为高度一致，因此 retain loss 把它**算作** "应当保留的流畅语言行为"，反而保护了它。这是一个**目标函数设计的结构性缺陷**，不是偶然现象。
+
+这个更精确的解释，加上 DIM/RDO/ARA 的数学对比，可以构成论文方法章节的核心论证之一。
