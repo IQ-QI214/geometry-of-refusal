@@ -1,3 +1,4 @@
+
 在进入综合分析之前，先做一轮文献补充搜索，确保覆盖了 2024-2026 年顶会上 VLM safety/refusal mechanism 方向的所有关键工作。# VLM Safety Geometry 研究项目 — PI 视角全景分析
 
 截至 **2026-04-17**。基于 Phase 1-3 pilot + P0 cone ablation + A1 large-scale DSA 实验数据，以 NeurIPS/ICLR/ICML 录用标准评估。
