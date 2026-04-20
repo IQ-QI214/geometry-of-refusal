@@ -77,19 +77,25 @@ def tokenize_instructions_qwen_chat(
     return result
 
 def orthogonalize_qwen_weights(model, direction: Float[Tensor, "d_model"]):
-    model.transformer.wte.weight.data = get_orthogonalized_matrix(model.transformer.wte.weight.data, direction)
+    model.model.embed_tokens.weight.data = get_orthogonalized_matrix(
+        model.model.embed_tokens.weight.data, direction
+    )
 
-    for block in model.transformer.h:
-        block.attn.c_proj.weight.data = get_orthogonalized_matrix(block.attn.c_proj.weight.data.T, direction).T
-        block.mlp.c_proj.weight.data = get_orthogonalized_matrix(block.mlp.c_proj.weight.data.T, direction).T
+    for block in model.model.layers:
+        block.self_attn.o_proj.weight.data = get_orthogonalized_matrix(
+            block.self_attn.o_proj.weight.data.T, direction
+        ).T
+        block.mlp.down_proj.weight.data = get_orthogonalized_matrix(
+            block.mlp.down_proj.weight.data.T, direction
+        ).T
 
 def act_add_qwen_weights(model, direction: Float[Tensor, "d_model"], coeff, layer):
-    dtype = model.transformer.h[layer-1].mlp.c_proj.weight.dtype
-    device = model.transformer.h[layer-1].mlp.c_proj.weight.device
+    dtype = model.model.layers[layer-1].mlp.down_proj.weight.dtype
+    device = model.model.layers[layer-1].mlp.down_proj.weight.device
 
     bias = (coeff * direction).to(dtype=dtype, device=device)
 
-    model.transformer.h[layer-1].mlp.c_proj.bias = torch.nn.Parameter(bias)
+    model.model.layers[layer-1].mlp.down_proj.bias = torch.nn.Parameter(bias)
 
 
 class QwenModel(ModelBase):
