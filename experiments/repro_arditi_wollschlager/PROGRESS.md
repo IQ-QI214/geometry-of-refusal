@@ -53,3 +53,8 @@ Format per task:
 - 得到什么: 3 个脚本就绪，待 GPU 执行
 - 保存在哪: experiments/repro_arditi_wollschlager/
 
+### T10+T11 评估脚本 — done 2026-04-20
+- 做了什么: 写 run_evaluate.py（Keyword+LG3+SR）和 compute_summary.py（SRR+表格），语法检查通过
+- 得到什么: 评估基础设施就绪，待 GPU 运行后执行
+- 保存在哪: experiments/repro_arditi_wollschlager/run_evaluate.py + compute_summary.py
+
