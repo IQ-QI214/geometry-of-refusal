@@ -17,3 +17,14 @@ Format per task:
 - 做了什么: 重写 orthogonalize_qwen_weights + act_add_qwen_weights，改用 model.model.embed_tokens / model.model.layers
 - 得到什么: unit test 全通过
 - 保存在哪: refusal_direction/pipeline/model_utils/qwen_model.py
+
+### T2 Fix llama3_model.py 模板引号 — done 2026-04-20
+- 做了什么: 删除 LLAMA3_CHAT_TEMPLATE 和 LLAMA3_CHAT_TEMPLATE_WITH_SYSTEM 开头多余的 "
+- 得到什么: unit test 全通过，格式化输出以 <|begin_of_text|> 开头
+- 保存在哪: refusal_direction/pipeline/model_utils/llama3_model.py
+
+### T3 Smart-quote prefixes — done 2026-04-20
+- 做了什么: 在 _test_prefixes_jailbreakbench 末尾追加 4 条 U+2019 变体
+- 得到什么: unit test 全通过，curly quote 拒绝响应被正确识别
+- 保存在哪: refusal_direction/pipeline/submodules/evaluate_jailbreak.py
+
