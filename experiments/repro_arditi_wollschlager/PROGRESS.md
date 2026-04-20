@@ -38,3 +38,18 @@ Format per task:
 - 得到什么: 语法检查通过，待 GPU 执行
 - 保存在哪: experiments/repro_arditi_wollschlager/smoke_test.py
 
+### T5b Patch rdo.py offline mode — done 2026-04-20
+- 做了什么: 将 train_refusal_vector、train_refusal_cone 和 train_independent_vector 的 mode="online" 改为 os.getenv("WANDB_MODE","online")
+- 得到什么: WANDB_MODE=offline 在 GPU 节点可生效；语法检查通过；三处 wandb.init 调用已修复
+- 保存在哪: rdo.py (三处 wandb.init 调用，行号: 995, 1074, 1435)
+
+### T7 run_dim 脚本 — done 2026-04-20
+- 做了什么: 写 run_dim.py（完整 DIM pipeline）和 run_dim.sh（双模型并行，Qwen GPU0 / Llama GPU1）
+- 得到什么: 语法检查通过，待 GPU 执行
+- 保存在哪: experiments/repro_arditi_wollschlager/run_dim.py + run_dim.sh
+
+### T8+T9 RDO+Cone 脚本 — done 2026-04-20
+- 做了什么: 写 run_rdo.sh / run_rdo_evaluate.py / run_cone.sh，语法检查通过
+- 得到什么: 3 个脚本就绪，待 GPU 执行
+- 保存在哪: experiments/repro_arditi_wollschlager/
+
