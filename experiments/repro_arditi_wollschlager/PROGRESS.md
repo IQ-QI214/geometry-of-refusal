@@ -28,3 +28,8 @@ Format per task:
 - 得到什么: unit test 全通过，curly quote 拒绝响应被正确识别
 - 保存在哪: refusal_direction/pipeline/submodules/evaluate_jailbreak.py
 
+### T4 common/ 评估模块 — done 2026-04-20
+- 做了什么: 写 model_paths.py / eval_judges.py / stealth_analysis.py，unit test 全通过
+- 得到什么: keyword/LG3/SR judge 接口就绪，SRR+concordance 计算就绪
+- 保存在哪: experiments/repro_arditi_wollschlager/common/
+
