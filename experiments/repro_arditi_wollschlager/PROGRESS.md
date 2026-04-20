@@ -33,3 +33,8 @@ Format per task:
 - 得到什么: keyword/LG3/SR judge 接口就绪，SRR+concordance 计算就绪
 - 保存在哪: experiments/repro_arditi_wollschlager/common/
 
+### T5 smoke_test.py — done 2026-04-19
+- 做了什么: 写 smoke_test.py（32-sample DIM pipeline 独立脚本，不依赖 jailbreakbench）
+- 得到什么: 语法检查通过，待 GPU 执行
+- 保存在哪: experiments/repro_arditi_wollschlager/smoke_test.py
+
