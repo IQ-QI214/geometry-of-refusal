@@ -56,8 +56,8 @@ def run_dim(model_key: str):
     print("[1/5] Loading data...")
     harmful_train  = load_dataset_split("harmful",  "train", instructions_only=True)
     harmless_train = load_dataset_split("harmless", "train", instructions_only=True)[:len(harmful_train)]
-    harmful_val    = load_dataset_split("harmful",  "val",   instructions_only=True)
-    harmless_val   = load_dataset_split("harmless", "val",   instructions_only=True)
+    harmful_val    = load_dataset_split("harmful",  "val",   instructions_only=True)[:128]
+    harmless_val   = load_dataset_split("harmless", "val",   instructions_only=True)[:128]
     harmful_test   = load_dataset_split("harmful",  "test")[:N_TEST]
     print(f"  train: {len(harmful_train)} harmful, val: {len(harmful_val)}, test: {len(harmful_test)}")
 
@@ -71,7 +71,8 @@ def run_dim(model_key: str):
 
     print("[4/5] Selecting direction...")
     pos, layer, direction = select_direction(
-        model_base, harmful_val, harmless_val, mean_diffs, artifact_dir=sel_dir
+        model_base, harmful_val, harmless_val, mean_diffs, artifact_dir=sel_dir,
+        kl_threshold=None,  # disable KL filter: Qwen2.5/Llama KL dist differs from Arditi's Llama-2
     )
     torch.save(direction, os.path.join(out_dir, "direction.pt"))
     with open(os.path.join(out_dir, "direction_metadata.json"), "w") as f:

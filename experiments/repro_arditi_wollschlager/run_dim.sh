@@ -6,17 +6,19 @@ set -e
 LOG_DIR=experiments/repro_arditi_wollschlager/logs
 mkdir -p "$LOG_DIR"
 
+source activate rdo
+
 echo "[run_dim.sh] Starting Qwen DIM on GPU0..."
-CUDA_VISIBLE_DEVICES=0 conda run -n rdo \
-    python experiments/repro_arditi_wollschlager/run_dim.py \
+CUDA_VISIBLE_DEVICES=0 PYTHONUNBUFFERED=1 \
+    python -u experiments/repro_arditi_wollschlager/run_dim.py \
     --model qwen2.5_7b \
     > "$LOG_DIR/dim_qwen.log" 2>&1 &
 PID_QWEN=$!
 echo "  Qwen PID=$PID_QWEN, log: $LOG_DIR/dim_qwen.log"
 
 echo "[run_dim.sh] Starting Llama DIM on GPU1..."
-CUDA_VISIBLE_DEVICES=1 conda run -n rdo \
-    python experiments/repro_arditi_wollschlager/run_dim.py \
+CUDA_VISIBLE_DEVICES=1 PYTHONUNBUFFERED=1 \
+    python -u experiments/repro_arditi_wollschlager/run_dim.py \
     --model llama3.1_8b \
     > "$LOG_DIR/dim_llama.log" 2>&1 &
 PID_LLAMA=$!

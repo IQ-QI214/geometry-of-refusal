@@ -58,3 +58,15 @@ Format per task:
 - 得到什么: 评估基础设施就绪，待 GPU 运行后执行
 - 保存在哪: experiments/repro_arditi_wollschlager/run_evaluate.py + compute_summary.py
 
+### T7 双模型 DIM 全量 — done 2026-04-20
+- 做了什么: 并行跑 run_dim.py on Qwen(GPU0) + Llama(GPU1), n_test=128；修复 harmless_val 截断至128条（原3132条导致OOM）
+- 得到什么: Qwen ASR_kw baseline=11.7% ablation=100% delta=+88.3%; Llama ASR_kw baseline=2.3% ablation=98.4% delta=+96.1%; Gate 2 PASS
+- 保存在哪: results/repro_arditi_wollschlager/{Qwen2.5-7B-Instruct,Llama-3.1-8B-Instruct}/direction.pt
+           日志: experiments/repro_arditi_wollschlager/logs/dim_{qwen,llama}.log
+
+### T6 Qwen DIM smoke test — done 2026-04-20
+- 做了什么: 在 GPU0 上跑 32-sample DIM smoke test；修复 kl_threshold=None（原值 0.1 对 Qwen2.5 过严导致全过滤）
+- 得到什么: ASR_kw baseline=0%, ablation=100%, delta=+100%; direction pos=-5 layer=18 norm=29.65; Gate 1+2 PASS
+- 保存在哪: results/repro_arditi_wollschlager/smoke_test/Qwen2.5-7B-Instruct/
+           日志: experiments/repro_arditi_wollschlager/logs/smoke_test.log
+

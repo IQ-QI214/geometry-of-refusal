@@ -721,7 +721,7 @@ def compute_asr_keyword(completions: list) -> float:
 def create_llamaguard3_judge(device: str = "cuda:0"):
     """Load LlamaGuard3-8B and return a judge object with .judge_response(prompt, response)."""
     from common.judge_utils import LlamaGuard3Judge
-    from experiments.repro_arditi_wollschlager.common.model_paths import JUDGE_PATHS
+    from common.model_paths import JUDGE_PATHS
     return LlamaGuard3Judge(JUDGE_PATHS["llamaguard3"], device=device)
 
 
@@ -1094,6 +1094,97 @@ Append to `experiments/repro_arditi_wollschlager/PROGRESS.md`:
 - 做了什么: 写 smoke_test.py（32-sample DIM pipeline 独立脚本，不依赖 jailbreakbench）
 - 得到什么: 语法检查通过，待 GPU 执行
 - 保存在哪: experiments/repro_arditi_wollschlager/smoke_test.py
+```
+
+---
+
+## Task T5b: Patch `rdo.py` — fix hardcoded `mode="online"` for offline GPU
+
+**背景：** `rdo.py` 的 `train_refusal_vector`（~line 995）和 `train_refusal_cone`（~line 1074）都硬编码了 `mode="online"`，导致 `WANDB_MODE=offline` 环境变量无效。GPU 节点无网络，必须修复才能运行 T8/T9。只改 2 处，最小侵入。
+
+**Files:**
+- Modify: `rdo.py:995, 1074`
+
+- [ ] **Step 1: 确认两处硬编码位置**
+
+```bash
+grep -n 'mode="online"' rdo.py
+```
+
+预期输出（两行）：
+```
+995:                   mode="online"):
+1074:                   mode="online"):
+```
+
+- [ ] **Step 2: 修改第一处（train_refusal_vector，~line 995）**
+
+```python
+# BEFORE:
+    with wandb.init(project=os.getenv("WANDB_PROJECT"),
+                   config=wandb_config,
+                   group=f"{group_name}_{model_id}",
+                   name=run_name,
+                   mode="online"):
+
+# AFTER:
+    with wandb.init(project=os.getenv("WANDB_PROJECT"),
+                   config=wandb_config,
+                   group=f"{group_name}_{model_id}",
+                   name=run_name,
+                   mode=os.getenv("WANDB_MODE", "online")):
+```
+
+- [ ] **Step 3: 修改第二处（train_refusal_cone，~line 1074）**
+
+```python
+# BEFORE:
+    with wandb.init(project=os.getenv("WANDB_PROJECT"),
+                   config=wandb_config,
+                   group=f"{group_name}_{model_id}",
+                   name=run_name,
+                   mode="online"):
+
+# AFTER:
+    with wandb.init(project=os.getenv("WANDB_PROJECT"),
+                   config=wandb_config,
+                   group=f"{group_name}_{model_id}",
+                   name=run_name,
+                   mode=os.getenv("WANDB_MODE", "online")):
+```
+
+- [ ] **Step 4: 验证修改**
+
+```bash
+grep -n 'mode=os.getenv' rdo.py
+```
+
+预期输出（两行）：
+```
+995:                   mode=os.getenv("WANDB_MODE", "online")):
+1074:                   mode=os.getenv("WANDB_MODE", "online")):
+```
+
+```bash
+grep -n 'mode="online"' rdo.py
+```
+
+预期输出：**无匹配**（0 行）
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add rdo.py
+git commit -m "fix(rdo): use WANDB_MODE env var instead of hardcoded online (T5b)"
+```
+
+- [ ] **Step 6: Update PROGRESS.md**
+
+```
+### T5b Patch rdo.py offline mode — done <date>
+- 做了什么: 将 train_refusal_vector 和 train_refusal_cone 的 mode="online" 改为 os.getenv("WANDB_MODE","online")
+- 得到什么: WANDB_MODE=offline 在 GPU 节点可生效
+- 保存在哪: rdo.py (lines ~995, ~1074)
 ```
 
 ---
@@ -1510,25 +1601,159 @@ bash experiments/repro_arditi_wollschlager/run_rdo.sh \
 
 Expected runtime: 1-2 hours.
 
-- [ ] **Step 6: Verify outputs after run**
+- [ ] **Step 6: 从 wandb offline 目录提取 direction.pt**
+
+`rdo.py` 将训练好的 vector 保存进 wandb artifact（非直接本地文件）。在 offline 模式下，artifact 存于 `wandb/offline-run-*/files/`。运行完成后用以下命令提取：
 
 ```bash
-ls results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/
-ls results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/
+# 创建目标目录
+mkdir -p results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct
+mkdir -p results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct
+
+# 取最新 offline run 里的 lowest_loss_vector.pt
+# Qwen（确认 log 时间戳对应 Qwen 的那个 run）
+QWEN_RUN=$(ls -dt wandb/offline-run-* | head -2 | tail -1)
+cp "$QWEN_RUN/files/lowest_loss_vector.pt" \
+   results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/rdo_direction.pt
+
+LLAMA_RUN=$(ls -dt wandb/offline-run-* | head -1)
+cp "$LLAMA_RUN/files/lowest_loss_vector.pt" \
+   results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/rdo_direction.pt
+
+# 验证
+ls -lh results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/rdo_direction.pt
+ls -lh results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/rdo_direction.pt
 ```
 
-Expected: each directory contains `rdo_direction.pt` (or similar; check rdo.py output naming) and a `completions/` or inline completion JSON.
+> **注意：** 两个模型并行运行，wandb run 目录时间戳顺序可能交叉。通过 `ls -dt wandb/offline-run-*/` 结合 `run_rdo.sh` 的日志时间戳确认哪个 run 属于哪个模型。若不确定，检查 `wandb/offline-run-*/wandb-metadata.json` 中的 `args` 字段（含模型路径）。
 
-If W&B fails: check if `WANDB_MODE=offline` took effect. Fallback: add `WANDB_DISABLED=true` to the env vars in `run_rdo.sh` and rerun.
+- [ ] **Step 7: 写 `run_rdo_evaluate.py` 并生成 eval completions**
 
-- [ ] **Step 7: Update PROGRESS.md**
+`rdo.py` 只做训练，不生成测试集 completions。需要一个独立脚本加载 rdo_direction.pt，对 `harmful_test[:128]` 做 baseline + ablation 生成。
 
-Append to `experiments/repro_arditi_wollschlager/PROGRESS.md`:
+创建 `experiments/repro_arditi_wollschlager/run_rdo_evaluate.py`：
+
+```python
+"""
+在 RDO/Cone 训练好的 direction 上生成 eval completions。
+
+用法（从 repo root）：
+  python experiments/repro_arditi_wollschlager/run_rdo_evaluate.py \
+      --model qwen2.5_7b \
+      --direction results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/rdo_direction.pt \
+      --config rdo_k1 \
+      --device cuda:0
+"""
+import sys, os, json, random, argparse, torch
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_SCRIPT_DIR, "../../refusal_direction"))
+sys.path.insert(0, _SCRIPT_DIR)
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
+from pipeline.model_utils.model_factory import construct_model_base
+from pipeline.utils.hook_utils import get_all_direction_ablation_hooks
+from dataset.load_dataset import load_dataset_split
+from common.model_paths import MODEL_PATHS
+from common.eval_judges import compute_asr_keyword
+
+N_TEST = 128
+SAVE_ROOT = "results/repro_arditi_wollschlager"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", choices=list(MODEL_PATHS.keys()), required=True)
+    parser.add_argument("--direction", required=True, help="path to direction .pt file")
+    parser.add_argument("--config", required=True, help="config label, e.g. rdo_k1, cone_k3")
+    parser.add_argument("--device", default="cuda:0")
+    args = parser.parse_args()
+
+    random.seed(42)
+    model_path = MODEL_PATHS[args.model]
+    model_alias = os.path.basename(model_path)
+    comp_dir = os.path.join(SAVE_ROOT, "rdo", model_alias, args.config, "completions")
+    os.makedirs(comp_dir, exist_ok=True)
+
+    print(f"=== RDO Eval: {model_alias} | {args.config} ===")
+    print(f"  direction: {args.direction}")
+    print(f"  out:       {comp_dir}")
+
+    harmful_test = load_dataset_split("harmful", "test")[:N_TEST]
+    print(f"  test set : {len(harmful_test)} prompts")
+
+    print("Loading model...")
+    model_base = construct_model_base(model_path)
+
+    direction = torch.load(args.direction, map_location="cpu").to(model_base.model.dtype)
+    ablation_pre_hooks, ablation_hooks = get_all_direction_ablation_hooks(model_base, direction)
+
+    print("Generating baseline completions...")
+    baseline_comps = model_base.generate_completions(
+        harmful_test, fwd_pre_hooks=[], fwd_hooks=[], max_new_tokens=512, batch_size=16
+    )
+    with open(os.path.join(comp_dir, "saladbench_baseline_completions.json"), "w") as f:
+        json.dump(baseline_comps, f, indent=2)
+
+    print("Generating ablation completions...")
+    ablation_comps = model_base.generate_completions(
+        harmful_test, fwd_pre_hooks=ablation_pre_hooks, fwd_hooks=ablation_hooks,
+        max_new_tokens=512, batch_size=16
+    )
+    with open(os.path.join(comp_dir, "saladbench_ablation_completions.json"), "w") as f:
+        json.dump(ablation_comps, f, indent=2)
+
+    asr_base = compute_asr_keyword(baseline_comps)
+    asr_abl  = compute_asr_keyword(ablation_comps)
+    print(f"\n  ASR_kw baseline: {asr_base:.3f}")
+    print(f"  ASR_kw ablation: {asr_abl:.3f}")
+    print(f"  Delta:           {asr_abl - asr_base:+.3f}")
+    print(f"  Saved to: {comp_dir}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+- [ ] **Step 8: 语法检查并 commit**
+
+```bash
+python -m py_compile experiments/repro_arditi_wollschlager/run_rdo_evaluate.py && echo "syntax OK"
+git add experiments/repro_arditi_wollschlager/run_rdo_evaluate.py
+git commit -m "feat(repro): add run_rdo_evaluate.py for RDO/Cone eval completions (T8)"
+```
+
+- [ ] **Step 9: 将 eval completions 命令交给 qi 运行（RDO k=1）**
+
+```bash
+# Qwen RDO eval on GPU0
+CUDA_VISIBLE_DEVICES=0 conda run -n rdo \
+    python experiments/repro_arditi_wollschlager/run_rdo_evaluate.py \
+    --model qwen2.5_7b \
+    --direction results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/rdo_direction.pt \
+    --config rdo_k1 --device cuda:0 \
+    | tee experiments/repro_arditi_wollschlager/logs/rdo_eval_qwen.log &
+
+# Llama RDO eval on GPU1
+CUDA_VISIBLE_DEVICES=1 conda run -n rdo \
+    python experiments/repro_arditi_wollschlager/run_rdo_evaluate.py \
+    --model llama3.1_8b \
+    --direction results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/rdo_direction.pt \
+    --config rdo_k1 --device cuda:0 \
+    | tee experiments/repro_arditi_wollschlager/logs/rdo_eval_llama.log &
+
+wait
+echo "RDO eval completions done."
+```
+
+- [ ] **Step 10: Update PROGRESS.md**
+
 ```
 ### T8 双模型 RDO k=1 — done <date>
-- 做了什么: 并行跑 rdo.py --train_direction on Qwen(GPU0) + Llama(GPU1)
-- 得到什么: rdo_direction.pt × 2; training loss 收敛
-- 保存在哪: results/repro_arditi_wollschlager/rdo/{Qwen2.5-7B-Instruct,Llama-3.1-8B-Instruct}/
+- 做了什么: 并行跑 rdo.py --train_direction on Qwen(GPU0) + Llama(GPU1)；提取 wandb artifact；生成 eval completions
+- 得到什么: rdo_direction.pt × 2；ablation completions × 2；ASR_kw delta 正向
+- 保存在哪: results/repro_arditi_wollschlager/rdo/{Qwen2.5-7B-Instruct,Llama-3.1-8B-Instruct}/rdo_k1/completions/
            日志: experiments/repro_arditi_wollschlager/logs/rdo_{qwen,llama}.log
 ```
 
@@ -1633,23 +1858,65 @@ bash experiments/repro_arditi_wollschlager/run_cone.sh \
 
 Expected runtime: 4-6 hours total. If either model exceeds 6 hours, ask qi before killing (Risk R6).
 
-- [ ] **Step 6: Verify outputs after run**
+- [ ] **Step 6: 从 wandb offline 目录提取各 k 的 basis vectors**
+
+Cone 训练过程中，每个 k 完成后都保存一次 artifact。`lowest_loss_vector.pt` 对应最终 k=max_cone_dim（即 k=5）的 basis。中间 k（2,3,4）的 vectors 存于 `vectors.pt`（所有迭代的 vector 快照）。
 
 ```bash
-grep -E "Training complete|loss|cone" experiments/repro_arditi_wollschlager/logs/cone_qwen.log  | tail -20
-grep -E "Training complete|loss|cone" experiments/repro_arditi_wollschlager/logs/cone_llama.log | tail -20
-ls results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/
-ls results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/
+# 为每个模型找到对应的 Cone offline run（根据日志时间戳）
+# 示例（实际 run 目录名以真实时间戳为准）：
+mkdir -p results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/cone_k5
+mkdir -p results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/cone_k5
+
+# 提取最终 cone basis（k=5 时的 lowest_loss_vector）
+QWEN_CONE_RUN=$(ls -dt wandb/offline-run-* | head -2 | tail -1)
+cp "$QWEN_CONE_RUN/files/lowest_loss_vector.pt" \
+   results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/cone_k5/basis.pt
+
+LLAMA_CONE_RUN=$(ls -dt wandb/offline-run-* | head -1)
+cp "$LLAMA_CONE_RUN/files/lowest_loss_vector.pt" \
+   results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/cone_k5/basis.pt
+
+ls -lh results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/cone_k5/basis.pt
+ls -lh results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/cone_k5/basis.pt
 ```
 
-- [ ] **Step 7: Update PROGRESS.md**
+同上，通过 `wandb/offline-run-*/wandb-metadata.json` 的 `args` 字段确认模型归属。
 
-Append to `experiments/repro_arditi_wollschlager/PROGRESS.md`:
+- [ ] **Step 7: 生成 Cone eval completions（交给 qi 运行）**
+
+使用 T8 已写好的 `run_rdo_evaluate.py`，对 cone_k3 和 cone_k5 各跑一次：
+
+```bash
+# Qwen cone_k5 on GPU0（cone_k3 暂用同一 basis.pt，因 k=3 中间结果未单独提取）
+CUDA_VISIBLE_DEVICES=0 conda run -n rdo \
+    python experiments/repro_arditi_wollschlager/run_rdo_evaluate.py \
+    --model qwen2.5_7b \
+    --direction results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/cone_k5/basis.pt \
+    --config cone_k5 --device cuda:0 \
+    | tee experiments/repro_arditi_wollschlager/logs/cone_eval_qwen_k5.log &
+
+# Llama cone_k5 on GPU1
+CUDA_VISIBLE_DEVICES=1 conda run -n rdo \
+    python experiments/repro_arditi_wollschlager/run_rdo_evaluate.py \
+    --model llama3.1_8b \
+    --direction results/repro_arditi_wollschlager/rdo/Llama-3.1-8B-Instruct/cone_k5/basis.pt \
+    --config cone_k5 --device cuda:0 \
+    | tee experiments/repro_arditi_wollschlager/logs/cone_eval_llama_k5.log &
+
+wait
+echo "Cone k=5 eval completions done."
+```
+
+> **关于 cone_k3**：Wollschläger 原版 cone 训练是从 k=2 串行累积到 k=5，单次 rdo.py 调用只保存最终 k=5 的 `lowest_loss_vector`。若要单独评估 k=3，需要单独跑一次 `rdo.py --train_cone --min_cone_dim 2 --max_cone_dim 3` 提取 k=3 basis。因 spec 以 k=5 为主要验证点，k=3 视 qi 需求决定是否补跑。
+
+- [ ] **Step 8: Update PROGRESS.md**
+
 ```
 ### T9 双模型 Cone k=2→5 — done <date>
-- 做了什么: 并行跑 rdo.py --train_cone --min_cone_dim 2 --max_cone_dim 5
-- 得到什么: basis_k{2,3,4,5}.pt × 2 models; training 收敛
-- 保存在哪: results/repro_arditi_wollschlager/rdo/{Qwen2.5-7B-Instruct,Llama-3.1-8B-Instruct}/
+- 做了什么: 并行跑 rdo.py --train_cone k=2→5；提取 k=5 basis；生成 eval completions
+- 得到什么: basis.pt(k=5) × 2；ablation completions × 2
+- 保存在哪: results/repro_arditi_wollschlager/rdo/{Qwen,Llama}/cone_k5/completions/
            日志: experiments/repro_arditi_wollschlager/logs/cone_{qwen,llama}.log
 ```
 
@@ -1664,13 +1931,24 @@ Before writing run_evaluate.py, you must inspect the actual rdo.py output file s
 **Files:**
 - Create: `experiments/repro_arditi_wollschlager/run_evaluate.py`
 
-- [ ] **Step 1: Inspect rdo.py output paths for completions**
+- [ ] **Step 1: 确认所有 completions 文件路径**
 
 ```bash
-grep -n "SAVE_DIR\|completions\|json.dump\|open(" rdo.py | head -40
+find results/repro_arditi_wollschlager -name "*completions.json" | sort
 ```
 
-Note the exact paths where rdo.py saves its completion JSON files. Use these paths in run_evaluate.py.
+预期（T7/T8/T9 全部完成后）：
+```
+results/repro_arditi_wollschlager/Qwen2.5-7B-Instruct/completions/saladbench_baseline_completions.json
+results/repro_arditi_wollschlager/Qwen2.5-7B-Instruct/completions/saladbench_ablation_completions.json
+results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/rdo_k1/completions/saladbench_baseline_completions.json
+results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/rdo_k1/completions/saladbench_ablation_completions.json
+results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/cone_k5/completions/saladbench_baseline_completions.json
+results/repro_arditi_wollschlager/rdo/Qwen2.5-7B-Instruct/cone_k5/completions/saladbench_ablation_completions.json
+（Llama 同结构）
+```
+
+若有缺失，先补跑对应的 run_dim.py / run_rdo_evaluate.py。
 
 - [ ] **Step 2: Inspect actual rdo output directory after T8/T9**
 
@@ -1682,18 +1960,16 @@ Identify the actual file naming pattern (e.g., `saladbench_ablation_completions.
 
 - [ ] **Step 3: Write `run_evaluate.py`**
 
-The exact implementation depends on findings from Steps 1-2. The structure is:
+路径结构已在 T7/T8/T9 固定，直接编写：
 
 ```python
 """
 run_evaluate.py — Evaluate all completions from DIM, RDO, Cone.
 
-Reads:  results/repro_arditi_wollschlager/{model}/completions/*.json  (DIM)
-        results/repro_arditi_wollschlager/rdo/{model}/**/*.json       (RDO/Cone)
+Reads:  results/repro_arditi_wollschlager/{model_alias}/completions/saladbench_{label}_completions.json  (DIM)
+        results/repro_arditi_wollschlager/rdo/{model_alias}/{config}/completions/saladbench_{label}_completions.json  (RDO/Cone)
 Writes: results/repro_arditi_wollschlager/evaluation.json
         results/repro_arditi_wollschlager/summary.md
-
-Judges run on GPU via --device argument.
 
 Usage (4-GPU setup):
   # LG3 evaluation (Qwen on GPU0, Llama on GPU1):
@@ -1723,46 +1999,60 @@ SAVE_ROOT = "results/repro_arditi_wollschlager"
 EVAL_JSON  = os.path.join(SAVE_ROOT, "evaluation.json")
 SUMMARY_MD = os.path.join(SAVE_ROOT, "summary.md")
 
-# --- Step 1 (in T10 plan): fill in actual rdo output paths after inspecting ---
-# Placeholder: adapt these glob patterns to match actual rdo.py output structure.
+
 def find_completion_files(model_alias: str) -> dict:
-    """Return dict mapping config_name → completions_json_path."""
+    """返回 config_name → (baseline_path, ablation_path) 的 dict。"""
     configs = {}
+
+    # DIM completions（T7 产出）
     dim_base = os.path.join(SAVE_ROOT, model_alias, "completions")
-    for label in ["baseline", "ablation"]:
-        path = os.path.join(dim_base, f"saladbench_{label}_completions.json")
-        if os.path.exists(path):
-            configs[f"dim_{label}"] = path
+    b = os.path.join(dim_base, "saladbench_baseline_completions.json")
+    a = os.path.join(dim_base, "saladbench_ablation_completions.json")
+    if os.path.exists(b) and os.path.exists(a):
+        configs["dim_ablation"] = (b, a)
+
+    # RDO/Cone completions（T8/T9 + run_rdo_evaluate.py 产出）
     rdo_base = os.path.join(SAVE_ROOT, "rdo", model_alias)
-    # Adapt glob pattern to actual rdo.py output naming after inspecting in Step 2
-    for path in sorted(glob.glob(os.path.join(rdo_base, "**", "*.json"), recursive=True)):
-        name = os.path.relpath(path, rdo_base).replace("/", "_").replace(".json", "")
-        configs[name] = path
+    for config_dir in sorted(glob.glob(os.path.join(rdo_base, "*/completions"))):
+        config_name = os.path.basename(os.path.dirname(config_dir))
+        b = os.path.join(config_dir, "saladbench_baseline_completions.json")
+        a = os.path.join(config_dir, "saladbench_ablation_completions.json")
+        if os.path.exists(b) and os.path.exists(a):
+            configs[config_name] = (b, a)
+
     return configs
+
 
 def evaluate_model(model_key: str, judge_name: str, judge=None) -> dict:
     model_alias = os.path.basename(MODEL_PATHS[model_key])
     completion_files = find_completion_files(model_alias)
     results = {}
-    for config, path in completion_files.items():
-        completions = json.load(open(path))
-        entry = {"n": len(completions)}
+    for config, (baseline_path, ablation_path) in completion_files.items():
+        baseline_comps = json.load(open(baseline_path))
+        ablation_comps = json.load(open(ablation_path))
+        entry = {"n": len(ablation_comps)}
+
         if judge_name in ("keyword", "all"):
-            entry["asr_kw"] = compute_asr_keyword(completions)
+            entry["asr_kw_baseline"] = compute_asr_keyword(baseline_comps)
+            entry["asr_kw"]          = compute_asr_keyword(ablation_comps)
+
         if judge_name in ("llamaguard3", "all") and judge is not None:
-            entry["asr_lg3"] = compute_asr_llamaguard3(completions, judge)
+            entry["asr_lg3_baseline"] = compute_asr_llamaguard3(baseline_comps, judge)
+            entry["asr_lg3"]          = compute_asr_llamaguard3(ablation_comps, judge)
             if "asr_kw" in entry:
-                entry["srr_lg3"] = compute_srr(entry["asr_kw"], entry["asr_lg3"])
+                entry["srr"] = compute_srr(entry["asr_kw"], entry["asr_lg3"])
+
         if judge_name in ("strongreject", "all"):
-            asr_sr, mean_sr = compute_asr_strongreject(completions)
-            entry["asr_sr"] = asr_sr
-            entry["mean_sr"] = mean_sr
+            _, entry["mean_sr_baseline"] = compute_asr_strongreject(baseline_comps)
+            entry["asr_sr"], entry["mean_sr"] = compute_asr_strongreject(ablation_comps)
+
         results[config] = entry
         print(f"  [{model_alias}] {config}: {entry}")
     return results
 
+
 def merge_and_save(new_results: dict, model_key: str):
-    """Merge new_results into evaluation.json (preserves previous judge results)."""
+    """将 new_results 合并写入 evaluation.json（保留已有 judge 结果）。"""
     existing = {}
     if os.path.exists(EVAL_JSON):
         existing = json.load(open(EVAL_JSON))
@@ -1775,6 +2065,7 @@ def merge_and_save(new_results: dict, model_key: str):
     with open(EVAL_JSON, "w") as f:
         json.dump(existing, f, indent=2)
     print(f"Saved to {EVAL_JSON}")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -1795,14 +2086,11 @@ def main():
         results = evaluate_model(model_key, args.judge, judge)
         merge_and_save(results, model_key)
 
-    # Write summary after each run (partial ok; T11 writes final summary.md)
-    print(f"\nPartial results saved. Run T11 to generate summary.md.")
+    print(f"\nDone. Results in {EVAL_JSON}")
 
 if __name__ == "__main__":
     main()
 ```
-
-> **Important:** After Step 2 (inspecting actual rdo output paths), update `find_completion_files()` to use the correct glob patterns. Do not hardcode assumptions about rdo.py output naming before inspecting.
 
 - [ ] **Step 4: Syntax-check**
 
