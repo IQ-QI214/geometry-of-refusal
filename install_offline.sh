@@ -6,9 +6,9 @@
 #   bash install_offline.sh
 #
 # Prerequisites (produced by CPU container):
-#   - pip_wheels_py312/      populated via pip download (py312 target)
-#   - vendored/strong_reject/ git clone of dsbowen/strong_reject
-#   - requirements.lock      reverse-parsed from wheels
+#   - pip_wheels_py312/      populated via pip download (py312 target) +
+#                            strong_reject-0.0.1-py3-none-any.whl built via pip wheel
+#   - requirements.lock      includes strong-reject==0.0.1
 #
 # Does NOT install torch / flash-attn / triton / sympy / networkx / jinja2 /
 # filelock / fsspec / typing_extensions / mpmath / markupsafe — those come
@@ -17,7 +17,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 WHEELS="$ROOT/pip_wheels_py312"
-VENDORED="$ROOT/vendored/strong_reject"
 LOCK="$ROOT/requirements.lock"
 
 PYVER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
@@ -25,21 +24,17 @@ if [[ "$PYVER" != "3.12" ]]; then
   echo "WARNING: Python is $PYVER, expected 3.12. Proceeding anyway." >&2
 fi
 
-[[ -d "$WHEELS" ]]   || { echo "ERROR: $WHEELS missing"   >&2; exit 1; }
-[[ -d "$VENDORED" ]] || { echo "ERROR: $VENDORED missing" >&2; exit 1; }
-[[ -f "$LOCK" ]]     || { echo "ERROR: $LOCK missing"     >&2; exit 1; }
+[[ -d "$WHEELS" ]] || { echo "ERROR: $WHEELS missing" >&2; exit 1; }
+[[ -f "$LOCK" ]]   || { echo "ERROR: $LOCK missing"   >&2; exit 1; }
 
 echo "[install_offline] installing from $WHEELS ..."
-# --no-deps: bypass pip's cross-package constraint solver. Our lock already
-# enumerates the full transitive closure we downloaded, and NGC's torch /
-# litellm pin strict versions of sympy / jinja2 that conflict with anything
-# we might ship. With --no-deps, pip installs exactly the 68 wheels listed
-# in requirements.lock; NGC-provided deps (sympy, jinja2, networkx, etc.)
+# --no-deps: bypass pip's cross-package constraint solver. Our lock enumerates
+# the full set we want; NGC-provided deps (sympy, jinja2, networkx, torch, ...)
 # remain untouched and satisfy runtime imports.
-pip install --no-index --find-links="$WHEELS" --no-deps -r "$LOCK"
-
-echo "[install_offline] installing strong_reject (no-deps) from $VENDORED ..."
-pip install --no-deps "$VENDORED"
+# --root-user-action=ignore: silence pip's venv-preference warning (NGC ships
+# with system Python and no conda; the container is the isolation boundary).
+pip install --no-index --find-links="$WHEELS" --no-deps \
+    --root-user-action=ignore -r "$LOCK"
 
 echo "[install_offline] running verify_env.py ..."
 python3 "$ROOT/verify_env.py"
