@@ -30,9 +30,13 @@ fi
 [[ -f "$LOCK" ]]     || { echo "ERROR: $LOCK missing"     >&2; exit 1; }
 
 echo "[install_offline] installing from $WHEELS ..."
-# --upgrade-strategy only-if-needed: don't touch NGC-pre-installed packages
-# unless a listed package strictly requires a newer version.
-pip install --no-index --find-links="$WHEELS" --upgrade-strategy only-if-needed -r "$LOCK"
+# --no-deps: bypass pip's cross-package constraint solver. Our lock already
+# enumerates the full transitive closure we downloaded, and NGC's torch /
+# litellm pin strict versions of sympy / jinja2 that conflict with anything
+# we might ship. With --no-deps, pip installs exactly the 68 wheels listed
+# in requirements.lock; NGC-provided deps (sympy, jinja2, networkx, etc.)
+# remain untouched and satisfy runtime imports.
+pip install --no-index --find-links="$WHEELS" --no-deps -r "$LOCK"
 
 echo "[install_offline] installing strong_reject (no-deps) from $VENDORED ..."
 pip install --no-deps "$VENDORED"
