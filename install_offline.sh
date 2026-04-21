@@ -10,7 +10,9 @@
 #   - vendored/strong_reject/ git clone of dsbowen/strong_reject
 #   - requirements.lock      reverse-parsed from wheels
 #
-# Does NOT install torch / flash-attn / triton — those come from NGC 25.02 base image.
+# Does NOT install torch / flash-attn / triton / sympy / networkx / jinja2 /
+# filelock / fsspec / typing_extensions / mpmath / markupsafe — those come
+# from NGC 25.02 base image (torch 2.7.0a0 pins sympy==1.13.1 exactly, etc.).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -28,7 +30,9 @@ fi
 [[ -f "$LOCK" ]]     || { echo "ERROR: $LOCK missing"     >&2; exit 1; }
 
 echo "[install_offline] installing from $WHEELS ..."
-pip install --no-index --find-links="$WHEELS" -r "$LOCK"
+# --upgrade-strategy only-if-needed: don't touch NGC-pre-installed packages
+# unless a listed package strictly requires a newer version.
+pip install --no-index --find-links="$WHEELS" --upgrade-strategy only-if-needed -r "$LOCK"
 
 echo "[install_offline] installing strong_reject (no-deps) from $VENDORED ..."
 pip install --no-deps "$VENDORED"
