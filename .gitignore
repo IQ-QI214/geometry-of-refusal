@@ -280,3 +280,4 @@ refusal_direction/logs/
 
 # scripts/
 # *.sh
+.venv_gemma_probe/

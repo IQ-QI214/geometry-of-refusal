@@ -36,21 +36,44 @@ git clone --depth=1 https://github.com/dsbowen/strong_reject.git vendored/strong
 
 ## GPU-side (run this)
 
+`install_offline.sh` creates an **isolated venv** at `./.venv_gemma_probe/` with `--system-site-packages`, so NGC's torch / flash-attn / CUDA libs stay visible but our 69 packages live in the venv only. Other tasks on the same GPU container are not affected.
+
 ```bash
 cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal
 
-# 1) Offline install (runs verify_env.py at the end)
+# 1) Offline install into isolated venv (runs verify_env.py at the end)
 bash install_offline.sh
 
-# 2) Runtime smoke
+# 2) Activate the venv (preferred)
+source .venv_gemma_probe/bin/activate
+
+# 3) Runtime smoke
 CUDA_VISIBLE_DEVICES=0 python3 experiments/ara_sapp/smoke_test.py
 # expect "READY FOR FULL RUN."
 
-# 3) Full probe
+# 4) Full probe
 CUDA_VISIBLE_DEVICES=0 python3 experiments/ara_sapp/exp_gemma4_heretic_probe.py all --n 50
+
+# 5) When done: deactivate
+deactivate
 ```
 
-**Note:** The docstring inside `exp_gemma4_heretic_probe.py` shows `conda run -n qwen3-vl python ...`. NGC containers have no conda — use bare `python3 ...` as shown above. Script unchanged to keep diffs minimal.
+**Alternative (no activation):** call the venv's python directly.
+```bash
+VPY=./.venv_gemma_probe/bin/python
+CUDA_VISIBLE_DEVICES=0 $VPY experiments/ara_sapp/smoke_test.py
+CUDA_VISIBLE_DEVICES=0 $VPY experiments/ara_sapp/exp_gemma4_heretic_probe.py all --n 50
+```
+
+**To blow away and rebuild:** `rm -rf .venv_gemma_probe && bash install_offline.sh`.
+
+**If you previously ran `install_offline.sh` WITHOUT the venv step (old version) and polluted root site-packages:** optionally clean up with
+```bash
+pip uninstall -y -r requirements.lock
+```
+This removes the 69 packages we pushed into root. Not strictly required — the new venv will shadow them via path precedence.
+
+**Note:** The docstring inside `exp_gemma4_heretic_probe.py` shows `conda run -n qwen3-vl python ...`. NGC containers have no conda — use the venv commands above. Script unchanged to keep diffs minimal.
 
 ## What's installed (GPU py312)
 
@@ -77,6 +100,8 @@ Full list in `../../requirements.lock`.
 4. **Single-GPU memory.** gemma-4-heretic + one 8B judge at bf16 ≈ 25 GB. The probe script unloads the model before loading judges — keep this order.
 
 5. **CPU and GPU Python versions differ.** `verify_env.py` only works on GPU side (py312 + installed packages). Running it on CPU will fail on imports — that's expected; don't "fix" it.
+
+6. **Venv uses `--system-site-packages`.** Don't drop this flag — NGC's torch / flash-attn / nvidia-cu12 libs are in root, and a fresh venv without inheriting them would need ~5 GB of CUDA wheels (which we deliberately didn't ship). Our venv only contains the 69 small Python packages; torch etc. come "through" via system site-packages precedence.
 
 ## Related files
 
