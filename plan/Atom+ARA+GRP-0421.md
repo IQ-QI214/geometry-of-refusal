@@ -1,4 +1,4 @@
-# VLM Safety Geometry 研究方案 v3.0
+# VLM Safety Geometry 研究方案 Atom+ARA+GRP
 
 > **生成日期**：2026-04-21
 > **版本说明**：基于前期 Phase 1-3 + P0 实验数据，结合 2026 年 Q1 最新文献（SRA, GRP-Oblit, Comparative Abliteration Analysis），以及对自身方法论的根本性反思，收敛形成的执行方案
