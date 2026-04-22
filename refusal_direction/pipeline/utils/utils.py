@@ -1,7 +1,11 @@
 import torch
 import einops
 from torch import Tensor
-from jaxtyping import Int, Float
+try:
+    from jaxtyping import Int, Float
+except ImportError:
+    from typing import Any as _Any
+    Int = _Any; Float = _Any
 
 def get_orthogonalized_matrix(matrix: Float[Tensor, '... d_model'], vec: Float[Tensor, 'd_model']) -> Float[Tensor, '... d_model']:
     vec = vec / torch.norm(vec)

@@ -2,7 +2,11 @@ import torch
 import os
 
 from typing import List
-from jaxtyping import Float
+try:
+    from jaxtyping import Float
+except ImportError:
+    from typing import Any as _Any
+    Float = _Any
 from torch import Tensor
 from tqdm import tqdm
 

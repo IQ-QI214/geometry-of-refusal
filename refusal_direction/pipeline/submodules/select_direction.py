@@ -10,7 +10,11 @@ import matplotlib.pyplot as plt
 import os
 
 from typing import List, Optional
-from jaxtyping import Float, Int
+try:
+    from jaxtyping import Float, Int
+except ImportError:
+    from typing import Any as _Any
+    Float = _Any; Int = _Any
 from torch import Tensor
 from tqdm import tqdm
 from einops import rearrange

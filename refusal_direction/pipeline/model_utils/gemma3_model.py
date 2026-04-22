@@ -7,7 +7,11 @@ import functools
 import torch
 from typing import List
 from torch import Tensor
-from jaxtyping import Float
+try:
+    from jaxtyping import Float
+except ImportError:
+    from typing import Any as _Any
+    Float = _Any
 from transformers import AutoTokenizer
 
 from pipeline.utils.utils import get_orthogonalized_matrix

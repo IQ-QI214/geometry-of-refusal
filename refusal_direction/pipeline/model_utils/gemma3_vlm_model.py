@@ -10,7 +10,11 @@ import torch
 import numpy as np
 from typing import List, Literal
 from torch import Tensor
-from jaxtyping import Float
+try:
+    from jaxtyping import Float
+except ImportError:
+    from typing import Any as _Any
+    Float = _Any
 from PIL import Image
 from transformers import Gemma3ForConditionalGeneration, AutoProcessor
 

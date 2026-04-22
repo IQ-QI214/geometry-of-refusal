@@ -2,7 +2,11 @@ from abc import ABC, abstractmethod
 from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 from tqdm import tqdm
 from torch import Tensor
-from jaxtyping import Int, Float
+try:
+    from jaxtyping import Int, Float
+except ImportError:
+    from typing import Any as _Any
+    Int = _Any; Float = _Any
 
 from pipeline.utils.hook_utils import add_hooks
 

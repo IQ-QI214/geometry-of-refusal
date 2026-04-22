@@ -5,7 +5,11 @@ import os
 from torch import Tensor
 from transformers import LlavaForConditionalGeneration, AutoProcessor
 from typing import List
-from jaxtyping import Float
+try:
+    from jaxtyping import Float
+except ImportError:
+    from typing import Any as _Any
+    Float = _Any
 from PIL import Image
 
 from pipeline.utils.utils import get_orthogonalized_matrix

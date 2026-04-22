@@ -4,7 +4,11 @@ import contextlib
 import functools
 
 from typing import List, Tuple, Callable
-from jaxtyping import Float
+try:
+    from jaxtyping import Float
+except ImportError:
+    from typing import Any as _Any
+    Float = _Any
 from torch import Tensor
 
 @contextlib.contextmanager

@@ -5,7 +5,11 @@ import os
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from typing import List
 from torch import Tensor
-from jaxtyping import Int, Float
+try:
+    from jaxtyping import Int, Float
+except ImportError:
+    from typing import Any as _Any
+    Int = _Any; Float = _Any
 
 from pipeline.utils.utils import get_orthogonalized_matrix
 from pipeline.model_utils.model_base import ModelBase
