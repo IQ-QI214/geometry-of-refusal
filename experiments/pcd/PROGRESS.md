@@ -40,8 +40,9 @@
 | 5 | Bootstrap stability utility | ✅ Done | 3/3 tests pass |
 | 6 | Three experiment entry scripts | ✅ Done | Import checks pass |
 | 7 | run_all.sh + PROGRESS.md + HANDOFF.md | ✅ Done | This file |
-| 8 | E2E smoke test n=4 | ⏳ Pending | GPU required |
-| 9 | Layer sweep (6 conditions) | ⏳ Pending | GPU required |
+| 8 | E2E smoke test n=4 | ✅ Done | layer=16 pos=-5 asr_kw=1.0 (commit 9a9ee7d) |
+| 9 | H0 bootstrap (Qwen2.5-7B) | ⏳ Pending | GPU required |
+| 10 | Layer sweep (6 conditions) | ⏳ Pending | GPU required |
 | 10 | Analyze sweep results, pick layers | ⏳ Pending | Depends on Task 9 |
 | 11 | Ablation runs | ⏳ Pending | Depends on Task 10 |
 | 12 | RDO runs | ⏳ Pending | Depends on Task 10 |
