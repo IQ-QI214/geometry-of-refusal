@@ -26,11 +26,11 @@ def main():
         args.model_path, torch_dtype=torch.bfloat16, local_files_only=True
     )
     lm_from_mm = {
-        k.replace("language_model.", ""): v
+        k.replace("model.language_model.", "", 1): v
         for k, v in model_mm.state_dict().items()
-        if k.startswith("language_model.")
+        if k.startswith("model.language_model.")
     }
-    print(f"Num language_model.* keys from multimodal checkpoint: {len(lm_from_mm)}")
+    print(f"Num model.language_model.* keys from multimodal checkpoint: {len(lm_from_mm)}")
     del model_mm
 
     # Try loading as standalone CausalLM

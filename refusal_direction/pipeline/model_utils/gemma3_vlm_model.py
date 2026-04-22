@@ -92,9 +92,8 @@ class Gemma3VLMModel(ModelBase):
         return self.tokenizer.encode("I", add_special_tokens=False)[:1]
 
     def _get_model_block_modules(self):
-        # Gemma3ForConditionalGeneration: backbone at model.language_model.layers
-        # TO VERIFY on GPU before running experiments (Step 3.2)
-        return self.model.language_model.layers
+        # Gemma3ForConditionalGeneration: backbone at model.language_model.model.layers
+        return self.model.language_model.model.layers
 
     def _get_attn_modules(self):
         return torch.nn.ModuleList([block.self_attn for block in self.model_block_modules])
@@ -104,7 +103,7 @@ class Gemma3VLMModel(ModelBase):
 
     def _get_orthogonalization_mod_fn(self, direction: Float[Tensor, "d_model"]):
         def orthogonalize_fn(model):
-            lm = model.language_model
+            lm = model.language_model.model
             lm.embed_tokens.weight.data = get_orthogonalized_matrix(
                 lm.embed_tokens.weight.data, direction
             )
@@ -119,7 +118,7 @@ class Gemma3VLMModel(ModelBase):
 
     def _get_act_add_mod_fn(self, direction: Float[Tensor, "d_model"], coeff, layer):
         def act_add_fn(model):
-            lm = model.language_model
+            lm = model.language_model.model
             dtype = lm.layers[layer - 1].mlp.down_proj.weight.dtype
             device = lm.layers[layer - 1].mlp.down_proj.weight.device
             bias = (coeff * direction).to(dtype=dtype, device=device)
