@@ -1,0 +1,20 @@
+=== PCD Ablation: model=qwen2.5-vl-7b  condition=V-text ===
+  sweep_dir  : ../results/pcd/smoke/qwen_vtext_sweep
+  output_dir : ../results/pcd/smoke/qwen_vtext_ablate
+  Loaded best_layer.json: layer=16, pos=-5
+  Train: 8 harmful / 8 harmless
+  Val  : 4 prompts
+[1/3] Loading model ...
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:00<00:00, 93.49it/s]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+  Overriding tokenize_instructions_fn with image_mode='text'
+[2/3] Re-extracting direction at best (pos, layer) ...
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.90it/s]100%|██████████| 1/1 [00:00<00:00,  1.90it/s]
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00, 14.29it/s]
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  direction shape: torch.Size([3584]), norm=1.0000
+[3/3] Applying orthogonal weight ablation ...
+  Ablation applied.
+  Generating on 4 harmful_val prompts ...
+  Saved 4 responses to ../results/pcd/smoke/qwen_vtext_ablate/dim_responses.json
+=== Ablation Complete ===

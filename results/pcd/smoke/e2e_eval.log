@@ -1,0 +1,8 @@
+=== PCD Evaluate ===
+  responses_json : ../results/pcd/smoke/qwen_vtext_ablate/dim_responses.json
+  layers         : ['kw']
+  n_responses    : 4
+  [kw]  asr_keyword = 1.0000
+
+  Saved eval results to ../results/pcd/smoke/qwen_vtext_eval.json
+=== Evaluate Complete ===

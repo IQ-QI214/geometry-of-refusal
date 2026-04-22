@@ -35,6 +35,8 @@ _PROJECT_ROOT = os.path.abspath(os.path.join(_HERE, "../../"))
 _REFUSAL_DIR = os.path.join(_PROJECT_ROOT, "refusal_direction")
 if _REFUSAL_DIR not in sys.path:
     sys.path.insert(0, _REFUSAL_DIR)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
@@ -93,12 +95,13 @@ def _load_judge(judge_name: str, model_path: str):
     from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
     print(f"[evaluate] Loading judge '{judge_name}' from {model_path} via transformers ...")
-    tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+    # Avoid local_files_only=True — newer huggingface_hub (>=0.24) rejects absolute
+    # paths when local_files_only is set due to repo_id validation. Rely on env instead.
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
         device_map="auto",
-        local_files_only=True,
     )
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=64)
 

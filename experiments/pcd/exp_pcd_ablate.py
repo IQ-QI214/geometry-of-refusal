@@ -28,6 +28,8 @@ _PROJECT_ROOT = os.path.abspath(os.path.join(_HERE, "../../"))
 _REFUSAL_DIR = os.path.join(_PROJECT_ROOT, "refusal_direction")
 if _REFUSAL_DIR not in sys.path:
     sys.path.insert(0, _REFUSAL_DIR)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")

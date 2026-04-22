@@ -1,0 +1,11 @@
+{
+  "model": "qwen2.5-vl-7b",
+  "condition": "V-text",
+  "layer": 16,
+  "pos": -5,
+  "n_prompts": 4,
+  "layers_run": [
+    "kw"
+  ],
+  "asr_keyword": 1.0
+}
