@@ -1,30 +1,32 @@
-import torch
-import functools
+"""Adapter for Gemma-3-4B-it multimodal model.
 
+Supports three image_modes like qwen_vlm_model.py:
+  - 'text':  no image content block, no pixel_values
+  - 'blank': 336x336 white image
+  - 'noise': 336x336 uniform random image
+"""
+import functools
+import torch
 import numpy as np
-from torch import Tensor
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from typing import List, Literal
+from torch import Tensor
 from jaxtyping import Float
 from PIL import Image
+from transformers import Gemma3ForConditionalGeneration, AutoProcessor
 
 from pipeline.utils.utils import get_orthogonalized_matrix
 from pipeline.model_utils.model_base import ModelBase
 
-QWEN_VLM_REFUSAL_TOKS = [40, 2121]  # ['I', 'As'] — shared tokenizer with text Qwen
-
-_BLANK_IMAGE = Image.new("RGB", (336, 336), (255, 255, 255))
-
-_QWEN_VLM_EOI_SUFFIX = "<|im_end|>\n<|im_start|>assistant\n"
+_GEMMA3_BLANK = Image.new("RGB", (336, 336), (255, 255, 255))
+_GEMMA3_EOI_SUFFIX = "<end_of_turn>\n<start_of_turn>model\n"
 
 
 def _make_noise_image(seed: int = 42) -> Image.Image:
     rng = np.random.RandomState(seed)
-    arr = rng.randint(0, 256, size=(336, 336, 3), dtype=np.uint8)
-    return Image.fromarray(arr)
+    return Image.fromarray(rng.randint(0, 256, size=(336, 336, 3), dtype=np.uint8))
 
 
-def tokenize_instructions_qwen_vlm(
+def tokenize_instructions_gemma3_vlm(
     processor: AutoProcessor,
     instructions: List[str],
     outputs: List[str] = None,
@@ -32,31 +34,19 @@ def tokenize_instructions_qwen_vlm(
     image_mode: Literal["text", "blank", "noise"] = "blank",
     noise_seed: int = 42,
 ):
-    """Tokenize instructions for Qwen2.5-VL with configurable image mode.
-
-    image_mode:
-      'text'  — no image content block, no pixel_values (V-text condition)
-      'blank' — 336×336 white image (original P0 / V-blank condition)
-      'noise' — 336×336 uniform-random image (V-noise condition)
-    """
     if image_mode == "text":
         prompts = []
         for instruction in instructions:
-            messages = [{"role": "user", "content": instruction}]
+            messages = [{"role": "user", "content": [{"type": "text", "text": instruction}]}]
             text = processor.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True
             )
             prompts.append(text)
         if outputs is not None:
-            prompts = [p + o if o is not None else p for p, o in zip(prompts, outputs)]
-        return processor(
-            text=prompts,
-            padding=True,
-            truncation=False,
-            return_tensors="pt",
-        )
+            prompts = [p + (o or "") for p, o in zip(prompts, outputs)]
+        return processor(text=prompts, padding=True, truncation=False, return_tensors="pt")
 
-    img = _BLANK_IMAGE if image_mode == "blank" else _make_noise_image(noise_seed)
+    img = _GEMMA3_BLANK if image_mode == "blank" else _make_noise_image(noise_seed)
     prompts = []
     for instruction in instructions:
         messages = [{"role": "user", "content": [
@@ -67,42 +57,23 @@ def tokenize_instructions_qwen_vlm(
             messages, tokenize=False, add_generation_prompt=True
         )
         prompts.append(text)
-
     if outputs is not None:
-        prompts = [p + o if o is not None else p for p, o in zip(prompts, outputs)]
-
+        prompts = [p + (o or "") for p, o in zip(prompts, outputs)]
     images = [img] * len(prompts)
-    return processor(
-        text=prompts,
-        images=images,
-        padding=True,
-        truncation=False,
-        return_tensors="pt",
-    )
+    return processor(text=prompts, images=images, padding=True, truncation=False, return_tensors="pt")
 
 
-class QwenVLMModel(ModelBase):
+class Gemma3VLMModel(ModelBase):
 
     def _load_model(self, model_path, dtype=torch.bfloat16):
-        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-            model_path,
-            dtype=dtype,
-            local_files_only=True,
-            trust_remote_code=True,
-        ).eval()
-        # Qwen-VL: manual .to() instead of device_map (avoids accelerate issues)
-        model = model.to("cuda:0")
+        model = Gemma3ForConditionalGeneration.from_pretrained(
+            model_path, torch_dtype=dtype, local_files_only=True
+        ).eval().to("cuda:0")
         model.requires_grad_(False)
-        # Note: model.config.num_hidden_layers and hidden_size are already at top level
-        # for Qwen2_5_VLConfig (verified: 28 layers, hidden_size=3584)
         return model
 
     def _load_tokenizer(self, model_path):
-        processor = AutoProcessor.from_pretrained(
-            model_path,
-            local_files_only=True,
-            trust_remote_code=True,
-        )
+        processor = AutoProcessor.from_pretrained(model_path, local_files_only=True)
         self._processor = processor
         tokenizer = processor.tokenizer
         tokenizer.padding_side = "left"
@@ -111,38 +82,33 @@ class QwenVLMModel(ModelBase):
         return tokenizer
 
     def _get_tokenize_instructions_fn(self):
-        return functools.partial(
-            tokenize_instructions_qwen_vlm,
-            processor=self._processor,
-        )
+        return functools.partial(tokenize_instructions_gemma3_vlm, processor=self._processor)
 
     def _get_eoi_toks(self):
-        return self.tokenizer.encode(_QWEN_VLM_EOI_SUFFIX, add_special_tokens=False)
+        return self.tokenizer.encode(_GEMMA3_EOI_SUFFIX, add_special_tokens=False)
 
     def _get_refusal_toks(self):
-        return QWEN_VLM_REFUSAL_TOKS
+        # First token of common refusal patterns; populated fully via arditi_templates at runtime
+        return self.tokenizer.encode("I", add_special_tokens=False)[:1]
 
     def _get_model_block_modules(self):
-        # Qwen2_5_VLForConditionalGeneration: model.model.language_model.layers
-        return self.model.model.language_model.layers
+        # Gemma3ForConditionalGeneration: backbone at model.language_model.layers
+        # TO VERIFY on GPU before running experiments (Step 3.2)
+        return self.model.language_model.layers
 
     def _get_attn_modules(self):
-        return torch.nn.ModuleList([
-            block.self_attn for block in self.model_block_modules
-        ])
+        return torch.nn.ModuleList([block.self_attn for block in self.model_block_modules])
 
     def _get_mlp_modules(self):
-        return torch.nn.ModuleList([
-            block.mlp for block in self.model_block_modules
-        ])
+        return torch.nn.ModuleList([block.mlp for block in self.model_block_modules])
 
     def _get_orthogonalization_mod_fn(self, direction: Float[Tensor, "d_model"]):
         def orthogonalize_fn(model):
-            backbone = model.model.language_model
-            backbone.embed_tokens.weight.data = get_orthogonalized_matrix(
-                backbone.embed_tokens.weight.data, direction
+            lm = model.language_model
+            lm.embed_tokens.weight.data = get_orthogonalized_matrix(
+                lm.embed_tokens.weight.data, direction
             )
-            for block in backbone.layers:
+            for block in lm.layers:
                 block.self_attn.o_proj.weight.data = get_orthogonalized_matrix(
                     block.self_attn.o_proj.weight.data.T, direction
                 ).T
@@ -153,16 +119,16 @@ class QwenVLMModel(ModelBase):
 
     def _get_act_add_mod_fn(self, direction: Float[Tensor, "d_model"], coeff, layer):
         def act_add_fn(model):
-            backbone = model.model.language_model
-            dtype = backbone.layers[layer - 1].mlp.down_proj.weight.dtype
-            device = backbone.layers[layer - 1].mlp.down_proj.weight.device
+            lm = model.language_model
+            dtype = lm.layers[layer - 1].mlp.down_proj.weight.dtype
+            device = lm.layers[layer - 1].mlp.down_proj.weight.device
             bias = (coeff * direction).to(dtype=dtype, device=device)
-            backbone.layers[layer - 1].mlp.down_proj.bias = torch.nn.Parameter(bias)
+            lm.layers[layer - 1].mlp.down_proj.bias = torch.nn.Parameter(bias)
         return act_add_fn
 
     def generate_completions(self, dataset, fwd_pre_hooks=[], fwd_hooks=[],
                              batch_size=8, max_new_tokens=64, temperature=0):
-        """Override to pass pixel_values and image_grid_thw to generate."""
+        """Override to conditionally pass pixel_values (absent for image_mode='text')."""
         from transformers import GenerationConfig
         from pipeline.utils.hook_utils import add_hooks
 
@@ -181,11 +147,9 @@ class QwenVLMModel(ModelBase):
             self.max_batch_size = 4
 
         for i in range(0, len(dataset), self.max_batch_size):
-            batch_instructions = instructions[i:i + self.max_batch_size]
-            tokenized = self.tokenize_instructions_fn(instructions=batch_instructions)
-
-            with add_hooks(module_forward_pre_hooks=fwd_pre_hooks,
-                          module_forward_hooks=fwd_hooks):
+            batch = instructions[i:i + self.max_batch_size]
+            tokenized = self.tokenize_instructions_fn(instructions=batch)
+            with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
                 gen_kwargs = {
                     "input_ids": tokenized.input_ids.to(self.model.device),
                     "attention_mask": tokenized.attention_mask.to(self.model.device),
@@ -195,17 +159,12 @@ class QwenVLMModel(ModelBase):
                     gen_kwargs["pixel_values"] = tokenized.pixel_values.to(
                         device=self.model.device, dtype=self.model.dtype
                     )
-                if hasattr(tokenized, "image_grid_thw") and tokenized.image_grid_thw is not None:
-                    gen_kwargs["image_grid_thw"] = tokenized.image_grid_thw.to(self.model.device)
-
-                generation_toks = self.model.generate(**gen_kwargs)
-                generation_toks = generation_toks[:, tokenized.input_ids.shape[-1]:]
-
-                for idx, gen in enumerate(generation_toks):
+                gen_toks = self.model.generate(**gen_kwargs)
+                gen_toks = gen_toks[:, tokenized.input_ids.shape[-1]:]
+                for idx, g in enumerate(gen_toks):
                     completions.append({
                         "category": categories[i + idx],
                         "prompt": instructions[i + idx],
-                        "response": self.tokenizer.decode(gen, skip_special_tokens=True).strip(),
+                        "response": self.tokenizer.decode(g, skip_special_tokens=True).strip(),
                     })
-
         return completions
