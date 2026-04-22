@@ -92,7 +92,7 @@ class Gemma3VLMModel(ModelBase):
         return self.tokenizer.encode("I", add_special_tokens=False)[:1]
 
     def _get_model_block_modules(self):
-        # Gemma3ForConditionalGeneration: backbone at model.language_model.model.layers
+        # Gemma3ForConditionalGeneration: language_model IS Gemma3TextModel; backbone at .language_model.layers
         return self.model.language_model.layers
 
     def _get_attn_modules(self):
