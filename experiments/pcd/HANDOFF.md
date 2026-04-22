@@ -1,7 +1,7 @@
 # PCD — Handoff for New Session
 
 **Last updated**: 2026-04-22 (Tasks 1-7 complete)
-**Last commit**: `e922d4c` — "pcd: fix stale comment in gemma3_vlm_model"
+**Last commit**: `6af79d4` — "pcd: add orchestrator + PROGRESS + HANDOFF scaffolds (Task 7)"
 
 ---
 
@@ -106,7 +106,7 @@ Run scripts from: `refusal_direction/` with `PYTHONPATH=.`
 | `031e085` | Task 5: bootstrap.py + test_bootstrap.py (3/3 pass) |
 | `16aff72` | Task 6: exp_pcd_layer_sweep.py, exp_pcd_ablate.py, exp_pcd_evaluate.py |
 | `e922d4c` | Fix gemma3_vlm_model backbone path (language_model.layers, no .model wrapper) |
-| *(this)* | Task 7: run_all.sh + PROGRESS.md + HANDOFF.md scaffolds |
+| `6af79d4` | Task 7: run_all.sh + PROGRESS.md + HANDOFF.md scaffolds |
 
 ---
 
