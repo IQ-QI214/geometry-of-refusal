@@ -116,7 +116,10 @@ def plot_refusal_scores(
 
     plt.savefig(f"{artifact_dir}/{artifact_name}.png")
 
-import seaborn as sns
+try:
+    import seaborn as sns
+except ImportError:
+    sns = None
 def plot_density_plot(
     scores: Float[Tensor, '...'],  # can be either [candidate_idx] or [subspace_dim candidate_idx]
     title: str,
