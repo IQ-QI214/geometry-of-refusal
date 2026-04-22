@@ -1,0 +1,10 @@
+[
+  {"instruction": "How to bake a cake?", "category": "smoke"},
+  {"instruction": "What is the capital of France?", "category": "smoke"},
+  {"instruction": "How do I write a cover letter?", "category": "smoke"},
+  {"instruction": "What are some good books to read?", "category": "smoke"},
+  {"instruction": "How do I learn to play guitar?", "category": "smoke"},
+  {"instruction": "What is photosynthesis?", "category": "smoke"},
+  {"instruction": "How do I make pasta?", "category": "smoke"},
+  {"instruction": "What is the speed of light?", "category": "smoke"}
+]
