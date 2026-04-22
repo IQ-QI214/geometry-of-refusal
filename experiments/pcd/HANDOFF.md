@@ -79,4 +79,6 @@ At each rotation point: update this HANDOFF.md and commit before telling qi to r
 
 ## Git Reference
 
-Most recent commit before handoff: _(filled by commit script below)_
+Most recent commit before handoff: **`98822a7`** — "pcd: add design spec + implementation plan + session handoff"
+
+Spec/plan also committed in same SHA. Modified `experiments/repro_arditi_wollschlager/FINDINGS.md` is unrelated (qi's other work), deliberately left uncommitted by this session.
