@@ -68,12 +68,12 @@
 - **Evidence**: `verify_beta.py` returns `BETA_RESULT: PASS`; generated text coherent
 - **Consequence**: Proceed with V-text condition as clean text-only path; no 1×1 pixel fallback needed
 
-### γ — Gemma adapter smoke: FIXED
+### γ — Gemma adapter smoke: PASS ✅
 
-- **Was failing**: `AttributeError: 'Gemma3TextModel' object has no attribute 'model'`
-- **Root cause**: `f3ea391` introduced wrong path `language_model.model.layers`
-- **Fix**: Reverted to `language_model.layers` in commit `e922d4c`
-- **After fix**: Re-run GPU Step C to confirm `VLM_GENERATE_SMOKE: PASS`, `TEXT_GENERATE_SMOKE: PASS`
+- **VLM mode**: `VLM_GENERATE_SMOKE: PASS`, num layers: 34
+- **TEXT mode**: `TEXT_GENERATE_SMOKE: PASS`, num layers: 34
+- **verify_alpha re-run**: `ALPHA_RESULT: PASS` — hash `5c97fca4c73e8f70` matches; weights bit-identical
+- **All Step C issues resolved**: path bug (e922d4c), accelerate import (9ddda74), bfloat16 numpy (6ff3621)
 
 ### H0 — Pipeline consistency null hypothesis: TBD
 
