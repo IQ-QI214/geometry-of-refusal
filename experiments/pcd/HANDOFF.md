@@ -1,13 +1,13 @@
 # PCD — Handoff for New Session
 
-**Last updated**: 2026-04-22 (Tasks 1-7 complete)
-**Last commit**: `6af79d4` — "pcd: add orchestrator + PROGRESS + HANDOFF scaffolds (Task 7)"
+**Last updated**: 2026-04-22 (Task 8 sweep PASS; ablate + evaluate still needed)
+**Last commit**: `2420bcd` — "pcd: fix jaxtyping stub — use subscriptable _JaxStub class instead of any"
 
 ---
 
 ## Quick Start for New Session
 
-**Read this file only** — it contains everything needed. The spec/plan files are at:
+**Read this file only** — it contains everything needed. Reference files:
 - Spec: `docs/superpowers/specs/2026-04-22-1500-pcd-pipeline-verification-design.md`
 - Plan: `docs/superpowers/plans/2026-04-22-1500-pcd-pipeline-verification-implementation.md`
 
@@ -17,64 +17,96 @@
 
 | Task | Description | Status | Notes |
 |:-:|---|:-:|---|
-| 1 | Download Gemma-3-4B + verify α | ✅ Done | α = PASS (effective) |
+| 1 | Download Gemma-3-4B + verify α | ✅ Done | α = PASS |
 | 2 | Qwen VLM adapter image_mode + verify β | ✅ Done | β = PASS |
-| 3 | Gemma-3 adapters + factory | ✅ Done | Path bug fixed in e922d4c |
+| 3 | Gemma-3 adapters + factory | ✅ Done | All fixes confirmed |
 | 4 | Arditi templates + judge + tests | ✅ Done | 6/6 tests pass |
 | 5 | Bootstrap stability utility | ✅ Done | 3/3 tests pass |
-| 6 | Three experiment entry scripts | ✅ Done | Import checks pass |
+| 6 | Three experiment entry scripts | ✅ Done | — |
 | 7 | run_all.sh + PROGRESS.md + HANDOFF.md | ✅ Done | — |
-| 8 | E2E smoke test n=4 | ⏳ Pending | GPU required |
+| 8 | E2E smoke test n=4 | 🔶 Partial | Sweep ✅; ablate + evaluate ⏳ |
 | 9–14 | Stage B (sweep, ablate, evaluate, findings) | ⏳ Pending | — |
 
-**Next actions** (in order):
-1. **GPU Step C re-run** — verify Gemma adapter works after e922d4c fix (see command below)
-2. **Task 8 E2E smoke** — n=4 on Qwen V-text (see command below)
+**Next action**: Complete Task 8 — run ablate then evaluate on the sweep result already saved.
 
 ---
 
-## Next GPU Commands
+## Task 8: Remaining Commands (ablate + evaluate)
 
-### Step C: Gemma adapter smoke (verify fix)
+The sweep already ran and saved `best_layer.json` to `results/pcd/smoke/qwen_vtext_sweep/`.
+Result: `layer=16, pos=-5, filter_passed=True` ✅
+
+### Step 2: Ablate + Generate
 
 ```bash
 cd /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction
 CUDA_VISIBLE_DEVICES=0 conda run --no-capture-output -n qwen3-vl bash -c \
-  "PYTHONPATH=. python ../experiments/pcd/smoke/smoke_gemma3_adapters.py \
-   --model_path /inspire/hdd/global_user/wenming-253108090054/models/gemma-3-4b-it \
-   --mode generate 2>&1 | tee ../experiments/pcd/smoke/smoke_gemma3_generate.log"
+  "PYTHONPATH=. python ../experiments/pcd/exp_pcd_ablate.py \
+    --model_name qwen2.5-vl-7b \
+    --model_path /inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct \
+    --condition V-text \
+    --sweep_dir ../results/pcd/smoke/qwen_vtext_sweep \
+    --data_dir ../experiments/pcd/smoke/e2e_work/splits \
+    --output_dir ../results/pcd/smoke/qwen_vtext_ablate \
+    --n_val 4 \
+  2>&1 | tee ../results/pcd/smoke/e2e_ablate.log"
 ```
 
-Expected: `VLM_GENERATE_SMOKE: PASS`, `TEXT_GENERATE_SMOKE: PASS`, `num layers: 34`
+Expected: `=== Ablation Complete ===` with `dim_responses.json` saved.
 
-### Task 8: E2E smoke (n=4, Qwen V-text)
+### Step 3: Evaluate (kw + arditi only for smoke)
 
-Follow plan §8.2 — create tiny val set, run sweep → ablate → evaluate on Qwen V-text.
-(Detailed commands TBD once Task 8 is coded.)
+```bash
+CUDA_VISIBLE_DEVICES=0 conda run --no-capture-output -n qwen3-vl bash -c \
+  "PYTHONPATH=. python ../experiments/pcd/exp_pcd_evaluate.py \
+    --responses_json ../results/pcd/smoke/qwen_vtext_ablate/dim_responses.json \
+    --model_name qwen2.5-vl-7b \
+    --model_path /inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct \
+    --output_json ../results/pcd/smoke/qwen_vtext_eval.json \
+    --layers kw arditi \
+  2>&1 | tee ../results/pcd/smoke/e2e_eval.log"
+```
+
+Expected: JSON with `asr_keyword` and `arditi_refusal_rate` fields (values don't matter — just no errors).
+
+### After Task 8 passes
+
+1. Commit results + update PROGRESS.md Task 8 → ✅
+2. **Suggest new session** for Stage B (Tasks 9–14 are all GPU-heavy experiments)
+3. See plan §8.3 for the commit command
 
 ---
 
 ## Verified GPU Results
 
-### α — Gemma backbone equivalence: PASS (effective)
+### α — Gemma backbone equivalence: PASS ✅
+- Hash `5c97fca4c73e8f70` matches between MM and SA (normalized keys)
+- **Decision**: L ≡ V-text for Gemma; run single text-mode condition
 
-- MM keys (444): `layers.X.*`, `embed_tokens.weight`, `norm.weight`
-- SA keys (445): same with `model.` prefix + `lm_head.weight`
-- Transformer weights are **bit-identical**; mismatch is purely key naming
-- **Decision**: L ≡ V-text for Gemma. Run single text-mode condition; report as both "L" and "V-text" in matrix.
-- **Gemma num_layers**: 34
+### β — Qwen V-text mode: PASS ✅
+- `pixel_values=None` forward works correctly
 
-### β — Qwen V-text mode: PASS
+### γ — Gemma adapter smoke: PASS ✅
+- `VLM_GENERATE_SMOKE: PASS`, `TEXT_GENERATE_SMOKE: PASS`, `num layers: 34`
+- All prior path bugs fixed
 
-- `pixel_values=None` forward works; output coherent ("Baking a cake is a delightful process...")
-- **Decision**: Proceed. V-text condition is cleanly text-only; no 1×1 pixel fallback needed.
+### Task 8 sweep — Qwen V-text: PASS ✅
+- `layer=16, pos=-5, filter_passed=True`
+- Matches P0 baseline layer 16
 
-### γ — Gemma adapter smoke: FIXED (was FAIL)
+---
 
-- Was: `AttributeError: 'Gemma3TextModel' object has no attribute 'model'`
-- Root cause: `f3ea391` used wrong path `language_model.model.layers`
-- Fix: Reverted to `language_model.layers` in commit `e922d4c`
-- Needs: GPU Step C re-run to confirm fix
+## Known Environment Issues (all FIXED in code)
+
+| Issue | Fix | Commit |
+|---|---|---|
+| `jaxtyping` not in qwen3-vl GPU env | All `from jaxtyping import` wrapped in try/except with `_JaxStub` | `2420bcd` |
+| `wandb` / `seaborn` not installed | Same try/except pattern | `c67b763` |
+| `model_factory` didn't know `qwen2.5-vl-7b` | Added to `_MODEL_NAME_MAP` | `13c8304` |
+| `select_direction` used `config.num_hidden_layers` (fails for Gemma3 nested config) | Replaced with `len(model_block_modules)` | `13c8304` |
+| `Gemma3Model.generate_completions` missing → hit `accelerate` import | Added override | `9ddda74` |
+
+> **Note**: If GPU machine still lacks jaxtyping, the `_JaxStub` stub makes it work without installation.
 
 ---
 
@@ -92,22 +124,28 @@ Model paths:
 - Qwen2.5-VL-7B: `/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-VL-7B-Instruct`
 - Qwen2.5-7B: `/inspire/hdd/global_user/wenming-253108090054/models/Qwen2.5-7B-Instruct`
 
-Project root: `/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/`
 Run scripts from: `refusal_direction/` with `PYTHONPATH=.`
 
 ---
 
-## Commit History
+## Commit History (this session)
 
 | Commit | What |
 |---|---|
-| `12a9542` | Tasks 1-4: qwen_vlm adapter, gemma3 adapters, factory, arditi judge, smoke scripts |
-| `f3ea391` | α script prefix fix (correct) + gemma3 path fix (WRONG — introduced regression) |
-| `031e085` | Task 5: bootstrap.py + test_bootstrap.py (3/3 pass) |
-| `16aff72` | Task 6: exp_pcd_layer_sweep.py, exp_pcd_ablate.py, exp_pcd_evaluate.py |
-| `e922d4c` | Fix gemma3_vlm_model backbone path (language_model.layers, no .model wrapper) |
-| `6af79d4` | Task 7: run_all.sh + PROGRESS.md + HANDOFF.md scaffolds |
+| `7444f5d` | HANDOFF updated with GPU A/B/C results, Tasks 5-6 done |
+| `a5ce84e` | Fix gemma3_vlm_model backbone path |
+| `e922d4c` | Fix stale comment in gemma3_vlm_model |
+| `6af79d4` | Task 7: run_all.sh + PROGRESS + HANDOFF |
+| `9ddda74` | Fix Gemma3Model missing generate_completions + verify_alpha key normalization |
+| `6ff3621` | Fix verify_alpha bfloat16 numpy |
+| `bae8231` | GPU Step C PASS recorded |
+| `8f5e8d4` | wandb optional import |
+| `1b65805` | seaborn optional import |
+| `13c8304` | model_factory Qwen entries + select_direction portability |
+| `bd503c1` | Smoke splits (n=8 train, n=4 val) |
+| `c67b763` | All jaxtyping/wandb/seaborn imports optional |
+| `2420bcd` | Fix jaxtyping stub → subscriptable _JaxStub |
 
 ---
 
-*Created: 2026-04-22 | Updated: 2026-04-22 (Task 7 complete)*
+*Created: 2026-04-22 | Updated: 2026-04-22 (Task 8 sweep PASS)*
