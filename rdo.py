@@ -140,7 +140,13 @@ def parse_args():
                     help='Batch size for filtering data')
     parser.add_argument('--splits', type=str, default=DEFAULT_CONFIG['splits'],
                     help='Dataset split to use')
-    
+    parser.add_argument('--init_cone_from', type=str, default=None,
+                    help='Path to a .pt basis file to use as init_vectors when resuming cone training')
+    parser.add_argument('--save_dir', type=str, default=None,
+                    help='Root save directory (overrides SAVE_DIR env var)')
+    parser.add_argument('--dim_dir', type=str, default=None,
+                    help='DIM subdir relative to save_dir (overrides DIM_DIR env var)')
+
     return parser.parse_args()
 
 args = parse_args()
@@ -171,10 +177,15 @@ with model.trace("Hello") as tracer:
 
 # %%
 model_id = MODEL_PATH.split("/")[-1]
-dim_dir_path = f"{os.getenv('SAVE_DIR')}/{os.getenv('DIM_DIR')}/{model_id}"
+_save_dir = args.save_dir or os.getenv('SAVE_DIR', '.')
+_dim_dir  = args.dim_dir  if args.dim_dir is not None else os.getenv('DIM_DIR', '.')
+dim_dir_path = os.path.join(_save_dir, _dim_dir, model_id)
 direction_file = f"{dim_dir_path}/direction.pt"
 metadata_file = f"{dim_dir_path}/direction_metadata.json"
 mean_diffs_file = f"{dim_dir_path}/generate_directions/mean_diffs.pt"
+
+print(f"[rdo] dim_dir_path={dim_dir_path}")
+print(f"[rdo] direction_file exists={os.path.exists(direction_file)}")
 
 # Check if DIM direction files exist
 if not (os.path.exists(direction_file) and os.path.exists(metadata_file)):
@@ -189,7 +200,7 @@ best_token = refusal_results["pos"]
 best_refusal_direction = torch.load(direction_file).to(model.dtype)
 
 # %%
-SAVE_DIR = f"{os.getenv('SAVE_DIR')}/rdo/{MODEL_PATH.split('/')[-1]}/"
+SAVE_DIR = os.path.join(_save_dir, "rdo", MODEL_PATH.split('/')[-1]) + "/"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 add_layer = best_layer
@@ -325,8 +336,8 @@ def generate_harmless_targets(model, harmless_instructions, targets_path, max_ne
 num_target_tokens = 30
 
 # Set up paths
-harmful_targets_path = f"{os.getenv('SAVE_DIR')}/rdo/{model_id}/{splits}/targets/harmful_targets.json"
-harmless_targets_path = f"{os.getenv('SAVE_DIR')}/rdo/{model_id}/{splits}/targets/harmless_targets.json"
+harmful_targets_path = os.path.join(_save_dir, "rdo", model_id, splits, "targets", "harmful_targets.json")
+harmless_targets_path = os.path.join(_save_dir, "rdo", model_id, splits, "targets", "harmless_targets.json")
 
 # Generate all targets
 harmful_targets = generate_harmful_targets(model, harmful_train_instructions, best_refusal_direction, harmful_targets_path, num_target_tokens)
@@ -1007,12 +1018,16 @@ def train_refusal_vector(group_name=None, run_name=None, orthogonal_vectors=[], 
 # Conditional training based on command line arguments
 if args.train_direction:
     print("Training standard refusal direction")
-    group_name = "basic_rdo" 
+    group_name = "basic_rdo"
     run_name = None
-    train_refusal_vector(
+    results = train_refusal_vector(
         group_name=group_name,
         run_name=run_name,
     )
+    if results is not None and 'lowest_loss_vector' in results:
+        _out = os.path.join(SAVE_DIR, "rdo_direction.pt")
+        torch.save(results['lowest_loss_vector'], _out)
+        print(f"[rdo] Saved rdo_direction.pt → {_out}")
 
 if args.train_orthogonal_direction:
     print("Training orthogonal refusal direction")
@@ -1087,19 +1102,27 @@ if args.train_cone:
     print(f"Training refusal cone with dimensions from {args.min_cone_dim} to {args.max_cone_dim}")
     subspace_dimensions = range(args.min_cone_dim, args.max_cone_dim + 1)
     group_name = "basic_rco"
-    init_vectors = []
+    if args.init_cone_from:
+        _basis = torch.load(args.init_cone_from, map_location='cpu')
+        init_vectors = list(_basis)
+        print(f"[rdo] Resuming cone from {args.init_cone_from}, init_vectors len={len(init_vectors)}")
+    else:
+        init_vectors = []
 
     for i in subspace_dimensions:
         run_name = f"dim_{i}"
         print(f"Training dimension {i}")
         results = train_refusal_cone(
-            group_name=group_name, 
-            run_name=run_name, 
+            group_name=group_name,
+            run_name=run_name,
             init_vectors=init_vectors,
             cone_dim=i
         )
         lowest_loss_vector = results['lowest_loss_vector']
         init_vectors = list(lowest_loss_vector)
+        _out = os.path.join(SAVE_DIR, f"cone_k{i}_basis.pt")
+        torch.save(lowest_loss_vector, _out)
+        print(f"[rdo] Saved cone_k{i}_basis.pt → {_out}")
 # %%
 import nnsight
 

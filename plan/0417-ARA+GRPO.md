@@ -1,0 +1,623 @@
+
+在进入综合分析之前，先做一轮文献补充搜索，确保覆盖了 2024-2026 年顶会上 VLM safety/refusal mechanism 方向的所有关键工作。# VLM Safety Geometry 研究项目 — PI 视角全景分析
+
+截至 **2026-04-17**。基于 Phase 1-3 pilot + P0 cone ablation + A1 large-scale DSA 实验数据，以 NeurIPS/ICLR/ICML 录用标准评估。
+
+---
+
+## 1. Task Formalization — 研究目标与问题边界
+
+### 1.1 顶层 Research Question (精确形式化)
+
+设 target VLM 为 $f_\theta: (x_\text{img}, x_\text{text}) \rightarrow y$，其 LLM backbone 为 $g_\phi: h_0 \rightarrow y$，$h_0$ 是 visual encoder + connector 产生的 multimodal embedding。令 $\mathcal{R}$ 为 refusal concept cone（按 Wollschläger 定义，rank-k 线性子空间）。现有文献隐式假设：
+
+$$\text{Safety}(f_\theta) \cong \text{Projection}_{\mathcal{R}}(h_\ell) \quad \forall \ell \in \text{layers}$$
+
+**你的核心 RQ（经实验修正后的版本）**：
+
+> **当 $\text{Projection}_{\mathcal{R}}(h_\ell) \rightarrow 0$（refusal direction 完全消融）时，$f_\theta$ 是否仍能产出 semantically safe output？若能，该残余安全行为的 computational substrate 是什么？**
+
+这是一个 **"安全能力的线性表示假说 (Linear Representation Hypothesis for Safety)"** 是否成立的问题。你的数据显示**在 Type II VLM 上该假说不成立**。这就是研究价值所在。
+
+### 1.2 问题边界（必须明确）
+
+| 维度 | 包含 | 不包含 |
+|---|---|---|
+| 攻击类型 | representation-level (DIM/RDO/ARA) + fine-tuning (GRPO) | input-level (prompt jailbreak, adversarial image) |
+| 模型范围 | open-weight VLM (7-32B) | closed API models |
+| 安全行为 | explicit refusal + stealth refusal | over-refusal, hallucination |
+| 评估 | safety judge-based ASR | human eval, red-teaming efficacy |
+
+---
+
+## 2. Current Conclusions — 已确认 vs 待验证
+
+**严格区分**：只有通过 controlled experiment + cross-validation 的才算 "confirmed"。
+
+### 2.1 Confirmed Facts（有实验数据支撑）
+
+**F1. Evaluation Framework Systematic Failure (Primary Contribution C1)**
+- **Effect size**: EGR up to 16.4× on Qwen RDO k=3，3-6× on LLaVA due to degeneration
+- **Evidence**: 双 judge cross-validation (Q3Guard+LlamaGuard concordance=90.5%)
+- **Implication**: 现有 VLM safety 论文使用 keyword ASR 的结论存在系统性误差
+
+**F2. Stealth Refusal on Qwen-VL**
+- **Effect size**: RDO k=5 keyword ASR=70%, ASR_q3g=7.0%, SRR=62.5%
+- **Robustness**: 增加 cone 维度从 k=1 到 k=5 无改善 → 假说 B (Independent Layer 2) 高置信度成立
+- **Implication**: direction ablation paradigm 在 Type II 架构上 fundamentally insufficient
+
+**F3. Architecture-Dependent Failure Modes**
+- LLaVA (Type I): degeneration tax 47.7-61.7%
+- Qwen (Type II): stealth refusal SRR 60-92%
+- InternVL2 (Type III): direction ablation 完全无效
+- **Implication**: 相同攻击方法在不同 VLM 架构上产生不同 failure modes，这是未被报道的现象
+
+**F4. Scale Effect Reversal**
+- Type I: LLaVA 13B > 7B (更脆弱)
+- Type II: Qwen 32B < 7B (更鲁棒)
+- **Implication**: 规模效应与架构类型 coupled，不是单向关系
+
+### 2.2 Hypotheses (有间接证据但未直接验证)
+
+**H1 (Independent Layer 2)**: Qwen 存在独立于 refusal cone 的第二层安全机制，通过推理路径实现 semantic refusal  
+→ 间接证据：RDO k=5 不变；stealth refusal 是高质量伦理论述；inference-hook vs weight-ortho 效果差异  
+→ 缺失：直接的 mechanistic localization
+
+**H2 (Stage Representation Entanglement)**: LLaVA DIM 方向混杂了 cross-modal / instruction-following 的 stage signal，消融方向同时破坏了 "进入响应模式" 能力，产生退化  
+→ 间接证据：RDO training instability; 元文本输出占比 38%  
+→ 缺失：直接的 activation decomposition 证据
+
+**H3 (Template Path vs Semantic Path Dichotomy)**: 方向消融只攻击 refusal template path，无法攻击 semantic safety reasoning path  
+→ 间接证据：RDO Paradox (保留流畅性=保留 stealth refusal)  
+→ 缺失：path 的可操作化定义 + 独立攻击每条 path 的实验
+
+### 2.3 Rejected Hypotheses
+
+- ❌ Incomplete Cone (H_A)：RDO k=5 无效直接证伪
+- ❌ DSA 是主要 novelty：True SCR 修正后远低于预期
+- ❌ LLaVA 方向消融高效：degeneration 虚高 3-6 倍，真实 FHCR 仅 10-16%
+
+---
+
+## 3. Critical Assessment — 审稿人视角的 Pilot 实验缺陷
+
+**这一节是 PI 最严苛的部分**。列出顶会 reviewer 最可能攻击的点：
+
+### 3.1 方法论风险（严重程度高）
+
+**R1. Direction Extraction Validity (最致命)**
+> "How do you know the extracted direction is actually the refusal direction, not a content-type signal or an instruction-following signal?"
+
+目前你没有做 **Arditi 原文的 activation addition 验证**：将 $+\alpha\hat{r}$ 加到 harmless prompt 上是否触发拒绝。没有这个验证，你的所有 P0 结论都可以被解释为"提取了错误的方向"。**这是必须先做的 P0 级实验**。
+
+**R2. Judge Reliability Crisis**
+> "Your conclusions depend entirely on Q3Guard/LlamaGuard-3 being accurate. What if they systematically misjudge stealth refusal?"
+
+2026 年 1 月的 survey 指出"automated judge agreement varies 70-93% depending on implementation, weakening confidence in security assessments"。你的 90.5% concordance 在合理区间，但单靠两个 judge 不够，建议加入第三个 independent judge (e.g., StrongREJECT 原模型 + GPT-4 作为 meta-judge) 或 human eval subsample (100 cases)。
+
+**R3. Confounding Variables in Architecture Comparison**
+> "LLaVA, Qwen, InternVL differ in visual encoder, connector, LLM backbone, training data. How do you attribute the observed differences specifically to architecture rather than training recipe?"
+
+这是 C3 贡献的最大 threat。**必须增加 ablation**：在相同 LLM backbone + 不同 visual encoder 上对比，或在相同 visual encoder + 不同 LLM backbone 上对比。Qwen2.5-VL 有 text-only mode，这就是天然的 controlled experiment（T0 实验）。
+
+### 3.2 样本和统计风险
+
+**R4. Sample Size**
+- 572 prompts 对 24-48 个 config 跑评估，每格 ~12-24 样本，**统计功效不足**
+- 建议扩展到 800-1000 prompts，每格至少 30 样本才能做 Wilcoxon significance test
+
+**R5. Random Seed / Variance**
+- 现有结果 single-run，没有报告 variance
+- 顶会 reviewer 会质疑结果是否 robust across seeds
+- 建议 3 seed × 每个关键 config
+
+### 3.3 Novelty 风险
+
+**R6. Competing Narrative from DeepRefusal**
+> "Xie et al. (EMNLP 2025, DeepRefusal) already showed that distributing refusal signal across layers and tokens defeats direction-based attacks. Your Qwen stealth refusal is just observing a naturally-occurring DeepRefusal-like pattern, not a new phenomenon."
+
+这是**最严重的 novelty 威胁**。如果 Qwen2.5 的对齐训练碰巧实现了 DeepRefusal 类的效果，那你的"发现"就沦为"验证了一个已知防御在自然训练中的涌现"。**反驳路径**：证明 Qwen 的 Layer 2 在机制上**不同于** DeepRefusal 的分布式 refusal direction——DeepRefusal 仍然是 refusal direction 的概率性消融，而 Qwen 的 Layer 2 是独立于 refusal direction 的**另一种**机制。这需要 activation patching 或 SAE 分析才能证明。
+
+---
+
+## 4. Literature Positioning — Gap Analysis
+
+### 4.1 近两年顶会直接相关工作
+
+| 论文 | 会议 | 核心贡献 | 与你的关系 |
+|---|---|---|---|
+| Arditi et al. | NeurIPS 2024 | Rank-1 refusal direction (LLM) | 你的 baseline; 你证明在 VLM 上不 sufficient |
+| Wollschläger et al. | ICML 2025 | Concept cone + RDO (LLM) | 你的 primary method; P0 直接复现 |
+| Zhao et al. | NeurIPS 2025 | Harmfulness ⊥ refusal (2 independent directions) | 支持 H1 的理论基础 |
+| Zhou et al. | EMNLP 2024 | 三层安全结构（concept/emotion/token） | 为 stealth refusal 提供机制框架 |
+| DeepRefusal (Xie et al.) | EMNLP 2025 | Probabilistic ablation 防御 | **最大 novelty 威胁**; 也是你的 discussion 对称结构 |
+| Safety Subspaces Not Linearly Distinct | ICLR 2026 | 安全与语言能力权重/激活纠缠 | 直接支持 H3 (Template vs Semantic path) |
+| AlphaSteer | ICLR 2026 | Null-space constraint defense | 防御侧视角，你可以逆向用 |
+| JRS-Rem | arXiv 2026 | VLM 识别有害意图但进入独特 jailbreak state | **高度相似的 framing**，需警惕 scooping 风险 |
+| GRP-Oblit (Microsoft) | arXiv 2026-02 | GRPO unalignment on 15 LLMs | 你的实验 C 直接 prior work |
+| Circuit Breakers (Zou et al.) | NeurIPS 2024 | Representation rerouting | VLM 实验用到 LLaVA-NeXT |
+
+### 4.2 Research Gap 矩阵
+
+下表定位你的贡献在文献空白中的位置：
+
+| | 白盒机制分析 | 黑盒攻击 | 评估框架 |
+|---|---|---|---|
+| **LLM** | Arditi, Wollschläger, Zhao | GRP-Oblit, AutoDAN | HarmBench, StrongREJECT |
+| **VLM (现有)** | JRS-Rem (single model, no framework) | VSH, MemJack (input-level) | MM-SafetyBench (keyword-heavy) |
+| **VLM (你的 niche)** | **三分类架构失效模式 + Stealth Refusal 机制** | **ARA+GRPO 针对 Type II** | **Four-layer diagnostic framework (EGR/SRR)** |
+
+**你的独占 niche** = "Cross-architecture mechanistic analysis of direction-ablation failure in VLMs, with diagnostic evaluation framework"。JRS-Rem 是 single-model + defense-focused，你是 multi-architecture + attack-focused + diagnostic，不冲突。
+
+---
+
+## 5. Next Phase Experiment Design — 严格逻辑闭环
+
+每个实验格式：**[From Conclusion] → [To Hypothesis] → [Design] → [Setup] → [Expected Outcomes]**
+
+### 5.1 Phase P0.5: Methodological Foundation (Critical Prerequisite)
+
+#### **Experiment V1: Direction Validity Verification (回应 R1)**
+
+**From**: R1 - "How do we know the extracted direction is refusal direction?"  
+**To**: 排除 "P0 失败源于提取错误方向" 的可能性，或若失败则 pivot
+
+**Design**:
+1. 在 Qwen2.5-VL-7B / LLaVA-1.5-7B 上按 Arditi protocol 提取 DIM $\hat{r}_\ell$ 和 RDO cone $\{\hat{r}_\ell^{(k)}\}$
+2. **Activation Addition 因果检验**：对 $n=200$ 条 harmless prompts，在 hidden state $h_\ell$ 上添加 $+\alpha \hat{r}_\ell$（$\alpha \in \{0.5, 1.0, 2.0, 5.0\}$）
+3. 测量诱发拒绝的概率（用 Q3Guard 判断输出是 refusal）
+4. **Probing Classifier**：在 $\hat{r}$ 上训练 logistic regression 区分 harmful/harmless residuals on held-out set
+5. **Layer-wise Silhouette**：报告每层的 silhouette coefficient
+
+**Setup**: 4×H100, 预计 4-6 小时
+
+**Expected Outcomes** (决策树):
+- **Outcome A**: Addition 诱发拒绝 (>70% on $\alpha=1.0$) + probing acc >85% + silhouette >0.15  
+  → 方向有效，P0 结果可信，继续下一步
+- **Outcome B**: Addition 诱发率低 (<40%) 或 probing acc <60%  
+  → **方向提取本身有问题**，P0 所有结论需要重新评估，KILL 或 PIVOT
+
+**关键性**：**必须在任何其他实验之前完成**。如果 V1 fail，后续所有实验都建立在沙地上。
+
+---
+
+### 5.2 Phase P0: Core Hypothesis Verification
+
+#### **Experiment T0: Stealth Refusal Origin Localization**
+
+**From**: F2 (Stealth refusal confirmed on Qwen-VL multimodal)  
+**To**: 验证 H1 子问题 — stealth refusal 来自 LLM backbone / VL fusion / visual modality 中哪一层
+
+**Design**:
+1. Qwen2.5-VL-7B **multimodal mode**（baseline: 已有 P0 数据）
+2. Qwen2.5-VL-7B **text-only mode**（bypass visual encoder）
+3. Qwen2.5-7B LLM（纯文本 backbone，无 VL projector）
+4. 对三者分别跑 RDO k=5 ablation，用四层 ASR 评估
+
+**Expected Outcomes**:
+
+| Outcome | ASR_q3g (m) vs (t-only) vs (LLM) | Claim |
+|---|---|---|
+| A | 7% ≈ 7% ≈ 7% | Stealth refusal 完全来自 LLM backbone, VL irrelevant |
+| B | 7% < 15% ≈ 15% | VL fusion 增强了 stealth refusal |
+| C | 7% ≈ 7% > 30% | VL alignment 引入了 LLM 没有的新安全层 |
+
+**Implication for paper**:
+- Outcome A → 避免与 VLM-specific 文献正面冲突，将 claim 收缩到 "强对齐 LLM 的 semantic safety layer"，弱化但更稳
+- Outcome B/C → VLM-specific claim 成立，Novelty 更强
+
+**Setup**: 2-4 小时，因无需训练
+
+---
+
+#### **Experiment M1: Layer-wise Ablation Sensitivity (DeepRefusal-Style Diagnostic)**
+
+**From**: F2 (direction ablation 无法消除 stealth refusal) + R6 (competing DeepRefusal narrative)  
+**To**: 验证 H1 的精确版本 — Layer 2 是独立机制还是分布式 refusal direction
+
+**Design**:
+
+借鉴 DeepRefusal 的 Layer-wise PAA 思想，但用作**诊断工具**而非防御：
+1. 对 Qwen LLM backbone 的每一层 $\ell \in [1, L]$，单独做 DIM ablation (只在该层，其余层不变)
+2. 同时做 token-wise ablation (first token / all tokens / last token)
+3. 计算每个 $(\ell, t)$ 位置的 $\Delta \text{ASR}_\text{q3g}$ (相比 baseline 下降多少)
+4. 生成 layer × token 热力图
+
+**预期数据形式**:
+```
+         Layer:  1    4    8   12   16   20   24   28   32
+First Token:    0.3  1.1  2.4  5.8  7.2  3.1  0.9  0.2  0.1
+All Tokens:     0.5  1.8  3.7  8.9  9.1  4.5  1.2  0.3  0.1
+Last Token:     0.2  0.6  1.5  3.2  4.1  1.8  0.4  0.1  0.0
+```
+
+**Expected Outcomes**:
+- **Sparse Hotspot (~Layer 12-18 集中)**: Layer 2 有具体的 layer-level 定位 → mechanism 可被 activation patching 进一步精确定位 → **paper story 完美** (支持 H1 具体版本)
+- **Uniform Distribution (各层均匀 ~3%)**: Layer 2 是真正 distributed，类似 DeepRefusal → 需要调整 claim 为 "naturally-occurring DeepRefusal-like emergence"，承认与 Xie 2025 的连接
+- **Bimodal (两个 hotspots)**: 两层机制假说成立（Layer 1 template + Layer 2 semantic 都有各自层）
+
+**Setup**: 全层扫描需要 $32 \times 3 \times |\text{prompts}|$ forward passes，约 1 天
+
+---
+
+### 5.3 Phase P1: Attack Algorithm Design (Core Novelty)
+
+#### **Experiment A1: ARA Baseline on Type II Models**
+
+**From**: F2 (line direction attack 全部失败) + Gap (未有人在 VLM 上测 ARA)  
+**To**: 验证 arbitrary-rank weight optimization 是否能突破 Layer 2
+
+**Design**:
+1. 直接使用 heretic v1.2.0 的 ARA 实现（ara 分支，Feb 2026 更新）
+2. 在 Qwen2.5-VL-7B, **Qwen3-VL-7B**, Gemma3-12B, InternVL3.5 上运行
+3. 超参数用 Optuna 搜索，target components = {attn.o_proj, mlp.down_proj}
+4. 用四层 ASR 评估（注意不是 heretic 自带的 keyword refusal count）
+
+**Setup**: 单模型约 1 小时 + 评估 2 小时。多模型 2-3 天
+
+**Expected Outcomes**:
+
+| Outcome | ASR_q3g on Qwen | Implication |
+|---|---|---|
+| A: ARA >> DIM/RDO (e.g., 30% vs 7%) | 30%+ | Layer 2 有非线性权重结构，ARA 部分攻破 → 方向 B 可行 |
+| B: ARA ≈ DIM/RDO (e.g., 8% vs 7%) | 7-10% | 即使非线性 weight optimization 也无法攻破 Layer 2 → **C4 贡献强化**，Retain Loss Paradox 普适化 |
+| C: ARA 产生 degeneration (类似 LLaVA) | high keyword / low judge | 不同 failure mode |
+
+**关键**：如果 Outcome B，这本身是**重大 finding**，因为 ARA 是目前已知最强的 weight-level 方法。"即使 ARA 也打不过" 是 paper 的强论点。
+
+---
+
+#### **Experiment A2: GRP-Oblit Baseline Reproduction on VLM**
+
+**From**: GRP-Oblit (Microsoft 2026) 仅在纯 LLM 上测试，未覆盖 VLM; F3 (架构差异重要)  
+**To**: 验证 GRPO-based fine-tuning attack 是否 transfer 到 VLM 并突破 stealth refusal
+
+**Design**:
+
+精确复现 GRP-Oblit protocol 但移植到 VLM：
+GRP-Oblit 的 reward 沿三个正交维度在 0-10 尺度评分：intent alignment、policy-violating content、actionable detail；训练用 DAPO loss variant，8 rollouts per prompt。
+
+$$R_\text{GRPO}(p,o) = w_1 R_\text{align} + w_2 R_\text{viol} + w_3 R_\text{act}$$
+
+初始化参数：
+- Policy: Qwen2.5-VL-7B (baseline), 其他模型依次
+- Reward judge: GPT-4o（经费允许）或 Q3Guard (open-source)
+- Prompt set: 50 条 SorryBench prompts（GRP-Oblit 证明 single prompt 就够，50 条是安全边际）
+- 8 rollouts/prompt, lr=1e-5, cosine schedule, 200-500 steps
+- 评估：在 held-out 800 条上测四层 ASR
+
+**Setup**: 4×H100 上约 6-12 小时
+
+**Expected Outcomes**:
+- 若 ASR_q3g 显著升高（例如 30%+），证明 **fine-tuning attack 能突破 stealth refusal，而 representation-level attack 不能** → 这就是 Template-vs-Semantic path dichotomy 的最直接证据
+
+---
+
+#### **Experiment A3: ARA + GRPO Two-Stage Attack (Core Contribution of Direction B)**
+
+**From**: A1 (ARA 消除 template path) + A2 (GRPO 攻击 semantic path) + H3 (两条 path 独立性)  
+**To**: 验证 template path 和 semantic path 的正交性，设计 novel attack
+
+**Design**:
+| Stage | Method | Target |
+|---|---|---|
+| 0 | Raw model | Baseline |
+| 1 | ARA only | Attack template path |
+| 2 | GRPO only | Attack semantic path |
+| 3 | ARA → GRPO | Sequential, 每条 path 独立攻击 |
+| 4 | GRPO on ARA-modified | Synergy check |
+
+**Key Metric**: 
+$$\text{Synergy} = \text{ASR}^{(3)} - [\text{ASR}^{(1)} + \text{ASR}^{(2)}]$$
+
+- Synergy > 0: 两条 path 正交，combined attack 效果叠加
+- Synergy ≈ 0: 两条 path 冗余，只需一条
+- Synergy < 0: 两条 path 冲突（ARA 干扰了 GRPO）
+
+**关键改进 GRPO reward（针对 stealth refusal）**：
+
+在原 GRP-Oblit 的三维 reward 基础上，新增第四项：
+$$R_\text{stealth}(p,o) = \max(0, \tau - P_\text{unsafe}^\text{judge}(o)) \cdot \mathbf{1}[\text{compliance-pattern}(o)]$$
+
+解释：当输出**表面服从**（keyword 未拒绝）但**实际被 judge 判 safe** 时施加惩罚——这直接 target stealth refusal。这是对 GRP-Oblit 的**原创改进**，也是方法贡献的核心。
+
+**Setup**: 4×H100, 2-3 天
+
+---
+
+### 5.4 Phase P2: Mechanistic Deep Dive (Optional but High-Value)
+
+#### **Experiment C1: Activation Patching for Layer 2 Localization**
+
+只有当 **M1 显示 sparse hotspot** 时才跑这个实验，否则 localizing distributed mechanism 意义不大。
+
+**Design**:
+基于 M1 定位的 hotspot layer $\ell^\star$，做 component-level activation patching：
+1. Clean run: stealth refusal 输出 (RDO k=5 on harmful prompt)
+2. Corrupted run: 有害输出 (GRPO-attacked model on same prompt)  
+3. 逐个 patch: attention heads, MLP outputs, residual stream at layer $\ell^\star$
+4. 测量 patch 后有害输出概率的变化 → 定位具体 component
+
+**Parallel Option**: SAE features on Gemma3-12B using Gemma Scope 2 (2025 released)，看哪些 features 对应 stealth refusal。
+
+**Setup**: 1-2 周（含基础设施）
+
+---
+
+## 6. Top-tier Conference Potential Assessment
+
+### 6.1 诚实评估：当前材料能打什么水平？
+
+**只有 F1-F4 + T0 + M1 + A1 的结果**：
+- ✅ 适合 **ACL Main / EMNLP Main** (安全领域专项)
+- ⚠️ **NeurIPS/ICLR borderline** — 需要 reviewer 愿意相信 "diagnostic finding" 类贡献
+- ❌ **ICML** 偏弱 — ICML 偏爱 method novelty，你的 C1/C2/C3 都是 analysis
+- ❌ **CVPR** 不对口 — CVPR 看 vision contribution，你 LLM backbone 的内容占比大
+
+**加上 A3 (ARA+GRPO) 产出有效 attack**：
+- ✅ **NeurIPS/ICLR main track** (机制分析 + 攻击算法双贡献)
+- ✅ **ACL security track / NeurIPS D&B** 备选
+- ⚠️ ICML 可选，但 attack 的 "usefulness" motivation 需要包装好
+
+**加上 C1 (activation patching 精确定位)**：
+- ✅ **NeurIPS/ICLR spotlight 可能性**
+- ✅ **顶会 interpretability workshop 必中** (作为 backup)
+
+### 6.2 Novelty Mapping（严格格式）
+
+| Contribution | Problem Solved | Inspired by | Specific Innovation | Novelty Tier |
+|---|---|---|---|---|
+| C1 (EGR Framework) | VLM safety eval systematically wrong | Arditi 只用 keyword; Wollschläger 只用 SR | First 4-layer judge-cross-validated framework quantifying EGR on VLMs | **Medium-High** — first systematic quantification |
+| C2 (Stealth Refusal) | Direction ablation can't break Qwen | Zhou 2024 三层机制; Zhao 2025 双方向 | First identification + quantification in VLM context | **High** (if M1 确认 distinct mechanism from DeepRefusal) / **Medium** (if DeepRefusal-like) |
+| C3 (Architecture Failure Modes) | One-size-fits-all attacks fail | Mechanistic heterogeneity of VLMs | First three-class taxonomy with distinct failure modes | **Medium-High** |
+| C4 (Retain Loss Paradox) | RDO doesn't help | Safety Subspaces Not Linearly Distinct | Theoretical articulation + empirical demonstration in VLM | **Medium** |
+| C5 (ARA+GRPO, if works) | No attack defeats stealth refusal | ARA (heretic) + GRP-Oblit 组合 | First VLM-targeted two-stage attack with stealth-aware reward | **High** (new method) |
+
+### 6.3 主要 Novelty 瓶颈
+
+1. **JRS-Rem 的 scooping 风险**：如果他们下一个版本做了 multi-architecture，你会被盖掉。需要**加速**。
+2. **ARA 缺少论文**：引用 GitHub repo 而非 paper 会被 reviewer 质疑。需要在方法章节自己**重新推导 ARA 的数学** (L-BFGS on 3-term objective)，让它看起来像是你的 method extension。
+3. **Stealth Refusal novelty depends on M1**：如果 M1 显示 distributed pattern，你会和 DeepRefusal 难以区分。这是**单点风险**，必须尽早跑。
+
+---
+
+## 7. 还可继续优化的方向
+
+### 7.1 短期（paper submission 前必须做）
+
+1. **V1 Direction Validity** — **P0 级 MUST，48 小时内完成**
+2. **M1 Layer-wise Sensitivity** — 决定 paper 走哪条 narrative 的分水岭
+3. **Variance report** — 每个关键 config 至少 3 seeds
+4. **Model 更新** — 至少加 Qwen3-VL，避免 "outdated models" 的 rebuttal
+
+### 7.2 中期（提升 paper tier）
+
+5. **Human eval subsample** (100 cases, 3 annotators) — 彻底反驳 R2 judge reliability 质疑
+6. **Cross-model transferability** — ARA/GRPO attack 在 model A 上训练，在 model B 上测试
+7. **Defense evaluation** — 你的 attack 能否打过 Circuit Breakers, AlphaSteer, DeepRefusal 防御？这是 "paper is comprehensive" 的关键
+
+### 7.3 长期（方法 novelty 终极加强）
+
+8. **SAE-level 分析** — 用 Gemma Scope 2 定位 stealth refusal features，这会把你从 coarse-grained direction analysis 提升到 feature-level mechanistic interpretability，novelty 档次从 Medium 跳到 High
+9. **Formal theoretical framework** — 把 Template vs Semantic path dichotomy 形式化为可证伪的数学 claim，例如定义 $\text{Safety}(f) = \alpha \cdot \text{LinearRefusal}(h) + (1-\alpha) \cdot \text{NonlinearSemantic}(h)$ 并估计 $\alpha$
+
+---
+
+## PI 最后一个指导问题
+
+在以上所有分析下，**最关键的单点决策** 是：
+
+> **V1 实验的结果将决定整个项目的生死。** 如果 direction extraction invalid，你必须在 48 小时内决定是 pivot 到 ARA+GRPO 作为主线（完全放弃 direction-based framing），还是 kill 整个 Stealth Refusal narrative 转向纯 Architecture-Dependent Failure Modes (C3)。
+
+**我的问题**：你当前对 V1 成功概率的估计是多少？如果 <60%，我们是否应该**并行启动 A1 (ARA baseline) 作为 fallback narrative**，使得即使 V1 fail 论文仍能以 attack paper (方向 B) 的形式存活？
+
+---
+0419 edited
+
+# 你的判断完全正确 —— 先正式回应 Arditi 方法论
+
+你仔细读原文后的发现是**极其重要的**。Arditi 原论文的完整评估协议包含 refusal_score 和 safety_score 两个独立指标，而非单一 keyword matching。这意味着：
+
+**如果你的 P0 复现结果与原文相差很大（尤其在 LLM baseline 上），根本原因极可能是评估 pipeline 有误，而非模型或数据问题。** 这需要在运行任何新实验之前先修正。
+
+## Arditi 官方评估协议（完整版）
+
+根据原文 + 官方 repo (andyrdt/refusal_direction)：
+
+**两个指标并用**：
+
+1. **refusal_score**：不是朴素的 keyword matching，而是一个**per-model 定制的 refusal token template**——先在该模型的 baseline 输出中**广泛采集**该模型最常出现的拒绝开头 token（例如 Llama-2 常用 "I cannot"、Qwen 常用 "我无法"、"I apologize for"），构造 model-specific refusal substring list，再匹配。
+2. **safety_score**：用 **Llama-Guard-2** 判断输出是否"真实有害"（response classification task），返回 0/1。
+
+**完整 attack success 判定公式**：
+
+$$\text{ASR}_\text{Arditi} = \frac{1}{|\mathcal{D}|}\sum_{x \in \mathcal{D}} \mathbf{1}[\text{refusal\_score}(o(x)) = 0] \cdot \mathbf{1}[\text{safety\_score}(o(x)) = 0]$$
+
+即同时满足：(a) 输出不匹配 refusal template, **且** (b) Llama-Guard 判为 unsafe。**单独任一条件都不算 attack success**。
+
+## 你目前 P0 pipeline 可能的关键偏差
+
+| 偏差来源 | 你当前做法 | Arditi 原协议 |
+|---|---|---|
+| refusal score | 通用 keyword list | per-model refusal token harvest |
+| 判定逻辑 | refusal_score OR safety_score | refusal_score **AND** safety_score |
+| judge model | Q3Guard + LlamaGuard-3 | Llama-Guard-2（2024 年 paper 时） |
+| 评估位置 | 全响应匹配 | refusal 仅看**首句或前若干 token** |
+
+**Implication**：如果你把 ASR_kw 和 ASR_q3g 作为独立指标分别报告，然后取 ASR_kw 单独作为 "keyword ASR"，这**不是 Arditi 的指标**。Arditi 的 "attack success" 本身就是 refusal AND safety 的联合事件，天然会把 stealth refusal 排除在 "success" 之外。
+
+**换句话说**：你发现的 "Stealth Refusal 现象"，部分可能**并非新发现**，而是 Arditi 原始指标本就能识别到的状态（refusal=0 但 safety=1 就是 stealth refusal），只是 Arditi 没有给它起名字，也没有将它视为需要解释的问题。
+
+**这不否定你的贡献**，但需要重新 framing：
+
+- **原来的 framing**（弱）："我们发现了 stealth refusal 这个新现象，keyword ASR 看不到"
+- **修正后的 framing**（强）："尽管 Arditi 原始指标已能将 stealth refusal 与真实 attack success 区分，社区普遍简化使用 keyword-only ASR 或 judge-only ASR，导致 **EGR 虚高**；我们不仅系统性量化这一问题，更重要的是，首次揭示 stealth refusal 在 Type II VLM 上**不能被 cone 维度扩展攻破**，这是 Arditi 评估协议能看见但未被研究的结构现象。"
+
+这个 framing 下，你的贡献仍然成立，但**novelty 重心从 "发现现象" 转移到 "机制解释 + 失效模式分类"**。
+
+---
+
+# DIM / RDO / ARA 的完整三方对比
+
+现在给出严格的技术对比。为精确起见，全部用统一符号。
+
+## 符号约定
+
+| 符号 | 含义 |
+|---|---|
+| $W \in \mathbb{R}^{d_\text{out} \times d_\text{in}}$ | 一个写入 residual stream 的权重矩阵 |
+| $h^{(\ell)}_i \in \mathbb{R}^{d}$ | 第 $\ell$ 层 token $i$ 的 residual stream activation |
+| $\mathcal{D}^\text{harm}, \mathcal{D}^\text{safe}$ | 有害 / 无害 prompt 集合 |
+| $\hat{r}$ | 单位 refusal direction |
+| $\mathcal{B} = \{\hat{r}^{(1)}, \ldots, \hat{r}^{(k)}\}$ | refusal concept cone 的 k 维 orthonormal basis |
+| $P_{\hat{r}} = \hat{r}\hat{r}^\top$ | 向 $\hat{r}$ 的 rank-1 投影算子 |
+
+---
+
+## 方法 1：DIM + Weight Orthogonalization (Arditi 2024)
+
+**方向提取**（difference-of-means）：
+
+$$\hat{r}^{(\ell^*)} = \frac{\mu^\text{harm}_{\ell^*} - \mu^\text{safe}_{\ell^*}}{\|\mu^\text{harm}_{\ell^*} - \mu^\text{safe}_{\ell^*}\|}$$
+
+其中 $\mu^\text{harm}_\ell = \frac{1}{|\mathcal{D}^\text{harm}|}\sum h^{(\ell)}_{\text{last}}$（最后 token residual 的均值），在特定层 $\ell^*$ 上提取（通常选择 ASR 最高的层）。
+
+**Weight orthogonalization**：对所有写入 residual stream 的矩阵（embedding、positional embedding、attention out matrices、MLP out matrices）：
+
+$$W' = W - \hat{r}\hat{r}^\top W = (I - P_{\hat{r}})W$$
+
+**数学性质**：
+- 这是**rank-1 投影**，rank$(W - W') \leq 1$
+- Arditi 原文明确指出：weight modification 与 inference-time directional ablation 完全等价
+- $\hat{r}$ 是**单位化的**（未经归一化的 $\hat{r}$ 消融会有不同效果——这是常见 bug）
+- 消融后任意 activation $h$ 满足 $h^\top \hat{r} = 0$（即 $h \perp \hat{r}$）
+
+**计算复杂度**：一次 $\hat{r}$ 提取 + 一次矩阵乘法，$O(d^2 \cdot L)$
+
+---
+
+## 方法 2：RDO (Wollschläger ICML 2025)
+
+RDO 不是单纯的更好的方向提取，而是**一整套带 loss 函数的梯度优化 framework**。
+
+**核心 loss**（gradient-based optimization 替代 DIM 的闭式均值差）：
+
+RDO 的 loss 整合了三项 cross-entropy loss：(i) 对 harmful requests 的响应 loss，(ii) 对 harmless requests 的 expected refusal response loss，(iii) 一个 KL divergence 项，用于保持对 harmless inputs 的正常行为。
+
+形式化写出：
+
+$$\mathcal{L}_\text{RDO}(\hat{r}) = \underbrace{\mathbb{E}_{x \in \mathcal{D}^\text{harm}}[\text{CE}(f_{\text{abl}(\hat{r})}(x), y_\text{compliant})]}_{\text{bypass loss: ablating }\hat{r}\text{ should enable compliance}}$$
+$$+ \underbrace{\mathbb{E}_{x \in \mathcal{D}^\text{safe}}[\text{CE}(f_{\text{add}(\hat{r}, \alpha)}(x), y_\text{refusal})]}_{\text{induce loss: adding }\hat{r}\text{ should trigger refusal}}$$
+$$+ \lambda_\text{ret} \cdot \underbrace{\mathbb{E}_{x \in \mathcal{D}^\text{safe}}[\text{KL}(f_{\text{abl}(\hat{r})}(x) \| f_\text{base}(x))]}_{\text{retain loss: preserve harmless behavior}}$$
+
+where $f_{\text{abl}(\hat{r})}$ 指消融 $\hat{r}$ 后的 forward pass，$f_{\text{add}(\hat{r},\alpha)}$ 指在中间层 add $+\alpha\hat{r}$ 的 forward pass。
+
+**Cone extension (k > 1)**：$\mathcal{B} = [\hat{r}^{(1)}, \ldots, \hat{r}^{(k)}]$ 构成 N 维 polyhedral cone 的正交基，通过 Gram–Schmidt orthogonalization 构造。消融时使用 normalized $\hat{r}$，因此采样 cone 内 convex combinations 时直接在单位向量上均匀采样以避免 bias。
+
+**Weight orthogonalization for cone**：
+
+$$W' = \left(I - \sum_{j=1}^{k} \hat{r}^{(j)}\hat{r}^{(j)\top}\right)W = (I - \mathcal{B}\mathcal{B}^\top)W$$
+
+这是 **rank-k 投影**，rank$(W - W') \leq k$。
+
+**关键改进 vs DIM**:
+1. **梯度优化** → 比 mean-diff 发现更好的方向
+2. **retain loss** → 副作用更小（在 TruthfulQA 等基准上降低错误率比 DIM 少得多）
+3. **可扩展到 cone** → 突破 rank-1 假设
+4. **Representational Independence** → 引入 RepInd 概念区分 orthogonality 与真实因果独立性
+
+**计算复杂度**：$O(T \cdot d^2 \cdot L \cdot k)$，其中 T 是梯度优化步数（通常 100-500），显著高于 DIM
+
+---
+
+## 方法 3：ARA (Weidmann / p-e-w, draft 2026-03)
+
+ARA 与 DIM/RDO 的区别是**根本性的**——它**不提取任何 refusal direction**，直接优化权重矩阵本身。
+
+**核心思想**：对每个模块 $m$（attention out_proj 或 MLP down_proj），用 PyTorch hooks 捕获输入 $X^\text{safe}, X^\text{harm}$ 和 baseline 输出 $Y^\text{safe}_0, Y^\text{harm}_0$，然后直接优化该模块的权重 $W_m$。
+
+**ARA 目标函数**（基于 PR #211 代码重构）：
+
+令 $Y^c = W_m X^c$ 为当前权重下对类别 $c \in \{\text{safe}, \text{harm}\}$ 的输出，$Y^c_0$ 为原始权重下的输出。目标是：
+
+$$\mathcal{L}_\text{ARA}(W_m) = \underbrace{\lambda_1 \cdot d_\text{kNN}(Y^\text{safe}, Y^\text{safe}_0)}_{\text{Term 1: preserve safe outputs}}$$
+$$+ \underbrace{\lambda_2 \cdot d_\text{kNN}(Y^\text{harm}, Y^\text{safe})}_{\text{Term 2: pull harm→safe}}$$
+$$- \underbrace{\lambda_3 \cdot d_\text{kNN}(Y^\text{harm}, Y^\text{harm}_0)}_{\text{Term 3: push harm away from its own origin (overcorrection)}}$$
+
+其中 $d_\text{kNN}(A, B) = \frac{1}{|A|}\sum_{a \in A} \frac{1}{K}\sum_{b \in \text{kNN}_K(a, B)} \|a - b\|_2$ 是 mean-kNN Euclidean distance。
+
+**优化方式**：L-BFGS，通常 2-3 次迭代收敛（ARA 的 objective 是 affine-convex，且原始矩阵已经接近最优，因此 L-BFGS 收敛很快）。
+
+**数学性质**:
+- rank 完全**不受限**: rank$(W - W')$ 可以等于 $\min(d_\text{out}, d_\text{in})$
+- 不假设任何 refusal manifold 的几何结构
+- 每个模块独立优化，**不共享全局 refusal direction**
+- 可以产生**非线性**的 weight modification（因 kNN 度量本身是非线性的）
+
+**计算复杂度**：$O(T \cdot (|X^\text{safe}| + |X^\text{harm}|) \cdot d \cdot K \cdot L)$，T 是 L-BFGS 步数
+
+---
+
+## 三方对比总表
+
+| 维度 | DIM + Weight Ortho | RDO (+ cone) | ARA |
+|---|---|---|---|
+| **核心假设** | Refusal 在单一方向上 | Refusal 在 k 维 cone 上 | 不假设线性结构 |
+| **方向提取方法** | Difference-of-means（闭式） | Gradient-based optimization | **不提取方向** |
+| **Loss 函数** | 无（解析解） | bypass + induce + retain (KL) | preserve + pull + push (kNN) |
+| **权重修改 rank** | rank-1 per matrix | rank-k per matrix | **unconstrained**（可任意 rank） |
+| **消融公式** | $W' = (I - \hat{r}\hat{r}^\top)W$ | $W' = (I - \mathcal{B}\mathcal{B}^\top)W$ | $W'$ 直接求解，无投影结构 |
+| **所有矩阵共用 direction？** | 是 | 是 | **否**（每个模块独立优化） |
+| **优化算法** | 无 | SGD/Adam，100-500 步 | L-BFGS，2-3 步收敛 |
+| **可保留的信息** | $W\|_{\hat{r}^\perp}$ | $W\|_{\mathcal{B}^\perp}$ | 由 Term 1 显式约束 |
+| **关于 layer 选择** | 固定单层 $\ell^*$ | 可以跨层（多层联合优化） | 每个 module 独立（含 per-layer） |
+| **典型副作用** | TruthfulQA 大幅降分 | TruthfulQA 副作用减小 | KL divergence 显式最小化 |
+| **对 Qwen 等强对齐模型** | 大量方向副作用过高 | retain loss 仍保护 semantic safety | 理论上可攻破 template path |
+| **是否有 published paper** | ✅ NeurIPS 2024 | ✅ ICML 2025 | ❌ 仅 GitHub PR（draft） |
+
+---
+
+## 关键数学差异的直觉解释
+
+**DIM 和 RDO 的本质相同点**：两者都可以写成 $W' = (I - P)W$ 的形式，其中 $P$ 是一个投影矩阵（rank 1 或 rank k）。意味着**修改后的权重 $W'$ 被约束在原权重的某个线性子空间内**，这是一个强归纳偏置（inductive bias）。
+
+**ARA 的本质不同点**：$W'$ 没有必须等于 $(I - P)W$ 的结构约束，它可以是任何使 loss 最小的矩阵。数学上，DIM/RDO 的搜索空间是 **Stiefel 流形**（rank-constrained matrices），而 ARA 的搜索空间是**整个** $\mathbb{R}^{d_\text{out} \times d_\text{in}}$。
+
+这一点对你的研究有直接 implication：
+
+**你的 Layer 2 假说**（Qwen stealth refusal 来自独立于 refusal cone 的机制）意味着 refusal 不完全由 $\{\mathcal{B}$ 的 span$\}$ 介导。DIM 和 RDO 无法消除 $\mathcal{B}^\perp$ 空间内的 refusal 信号——这是它们的**结构性局限**。
+
+ARA 的 kNN-based loss 可以**非线性地** 改变 $W$ 在任何方向上的行为，理论上可以触达 $\mathcal{B}^\perp$ 空间内的机制。**因此 ARA vs RDO 的对比实验，就是 "Layer 2 是否存在于 refusal cone 的正交补空间" 的直接经验检验**。
+
+这是你实验 A1（ARA baseline on Qwen）的核心理论意义。
+
+---
+
+## 对你 P0 结果的诊断性含义
+
+基于以上技术细节，重新审视你的 P0 数据：
+
+| 观察 | 诊断 |
+|---|---|
+| DIM k=5 的 ASR_q3g = 22.7%（异常升高） | 可能是**方向选错**: 提取方向可能混入 content 信号 |
+| RDO k=5 的 ASR_q3g = 7.0%（与 k=1 几乎无差） | 方向正确但消融失败: refusal cone 本身 saturated，扩 k 没用 |
+| Qwen 上 DIM keyword ASR = 100% but ASR_q3g = 22.7% | 典型 stealth refusal，但若按 Arditi 原协议（AND 判定），ASR 应该是 22.7% |
+
+**关键诊断建议**：
+
+1. **用 Arditi 官方 repo (andyrdt/refusal_direction) 作为 ground truth**，在 Qwen2.5-7B（纯 LLM）上先复现其论文数字。**如果复现成功且数字接近**，说明你的方法实现正确，Qwen-VL 上的 stealth refusal 是真实 VLM-specific 现象。**如果复现失败**，则 pipeline 有 bug，需要先修复。
+
+2. **报告指标时双轨并行**：既给出 Arditi 协议的 joint ASR（refusal AND safety），也给出你自定义的四层 ASR 分解。这样顶会 reviewer 既能用熟悉的 Arditi 协议校验，也能看到你的细粒度分析。
+
+3. **ARA 在你的 setup 中的天然优势**：因为 ARA 自带 Term 1（preserve safe outputs）的 KL-like 约束，它可以绕开 RDO retain loss 同时保护 stealth refusal 的问题。这是 ARA 在 Type II 模型上可能跑出**显著优于** RDO 结果的数学理由。
+
+---
+
+## 最后一个要点
+
+**基于你的新理解，原研究报告中关于"RDO Paradox"的解释需要修正**：
+
+- **之前的解释**（不严谨）："RDO 的 retain loss 保护语言流畅性，同时保护了 stealth refusal"
+- **更精确的解释**：RDO 的 $\mathcal{L}_\text{ret} = \text{KL}(f_{\text{abl}(\hat{r})} \| f_\text{base})$ 显式最小化对 harmless 输入的行为改变；而 Qwen 的 stealth refusal 输出是**流畅的伦理论述**，在 KL divergence 意义上与基础模型的语言行为高度一致，因此 retain loss 把它**算作** "应当保留的流畅语言行为"，反而保护了它。这是一个**目标函数设计的结构性缺陷**，不是偶然现象。
+
+这个更精确的解释，加上 DIM/RDO/ARA 的数学对比，可以构成论文方法章节的核心论证之一。

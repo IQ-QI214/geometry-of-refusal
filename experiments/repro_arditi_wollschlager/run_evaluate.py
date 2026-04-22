@@ -40,7 +40,7 @@ def find_completion_pairs(model_alias: str) -> dict:
     """Return dict: config_name → (baseline_path, ablation_path)"""
     configs = {}
     # DIM
-    dim_base = os.path.join(SAVE_ROOT, model_alias, "completions")
+    dim_base = os.path.join(SAVE_ROOT, "dim", model_alias, "completions")
     b = os.path.join(dim_base, "saladbench_baseline_completions.json")
     a = os.path.join(dim_base, "saladbench_ablation_completions.json")
     if os.path.exists(b) and os.path.exists(a):

@@ -5,12 +5,20 @@ Keyword judge: Arditi full-string substring matching (NOT p0_cone's first-60-cha
 LG3 judge:     LlamaGuard3Judge from category_a/common/judge_utils.py.
 SR judge:      preload_strongreject + compute_asr_strongreject from p0_cone/common/eval_pipeline.py.
 """
-import sys
+import importlib.util
 import os
 
-_REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
-sys.path.insert(0, os.path.join(_REPO_ROOT, "experiments/category_a"))
-sys.path.insert(0, os.path.join(_REPO_ROOT, "experiments/p0_cone"))
+_REPO_ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../"))
+
+
+def _load_module(name, rel_path):
+    """Load a module by file path to avoid namespace collisions with local 'common' package."""
+    path = os.path.join(_REPO_ROOT, rel_path)
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
 
 # Original 12 prefixes + 4 smart-quote variants (U+2019)
 _REFUSAL_PREFIXES = [
@@ -46,9 +54,9 @@ def compute_asr_keyword(completions: list) -> float:
 
 def create_llamaguard3_judge(device: str = "cuda:0"):
     """Load LlamaGuard3-8B and return a judge object."""
-    from common.judge_utils import LlamaGuard3Judge
-    from common.model_paths import JUDGE_PATHS
-    return LlamaGuard3Judge(JUDGE_PATHS["llamaguard3"], device=device)
+    judge_utils = _load_module("category_a_judge_utils", "experiments/category_a/common/judge_utils.py")
+    model_paths = _load_module("repro_model_paths", "experiments/repro_arditi_wollschlager/common/model_paths.py")
+    return judge_utils.LlamaGuard3Judge(model_paths.JUDGE_PATHS["llamaguard3"], device=device)
 
 
 def compute_asr_llamaguard3(completions: list, judge) -> float:
@@ -73,11 +81,11 @@ def compute_asr_llamaguard3(completions: list, judge) -> float:
 
 def preload_strongreject(device: str = "cuda:0") -> bool:
     """Load gemma-2b + LoRA adapter into strong_reject's cache."""
-    from common.eval_pipeline import preload_strongreject as _preload
-    from common.model_paths import JUDGE_PATHS
-    return _preload(
-        base_model_path=JUDGE_PATHS["strongreject_base"],
-        adapter_path=JUDGE_PATHS["strongreject_adapter"],
+    eval_pipeline = _load_module("p0_cone_eval_pipeline", "experiments/p0_cone/common/eval_pipeline.py")
+    model_paths = _load_module("repro_model_paths", "experiments/repro_arditi_wollschlager/common/model_paths.py")
+    return eval_pipeline.preload_strongreject(
+        base_model_path=model_paths.JUDGE_PATHS["strongreject_base"],
+        adapter_path=model_paths.JUDGE_PATHS["strongreject_adapter"],
         device=device,
     )
 
@@ -88,5 +96,5 @@ def compute_asr_strongreject(completions: list, threshold: float = 0.1):
     Requires preload_strongreject() to have been called first.
     Returns (-1.0, -1.0) on failure.
     """
-    from common.eval_pipeline import compute_asr_strongreject as _compute_sr
-    return _compute_sr(completions, threshold=threshold)
+    eval_pipeline = _load_module("p0_cone_eval_pipeline", "experiments/p0_cone/common/eval_pipeline.py")
+    return eval_pipeline.compute_asr_strongreject(completions, threshold=threshold)

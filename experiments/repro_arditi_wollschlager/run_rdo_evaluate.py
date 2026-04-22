@@ -25,11 +25,45 @@ N_TEST = 128
 SAVE_ROOT = "results/repro_arditi_wollschlager"
 
 
+def _make_cone_pre_hook(basis):
+    """Pre-hook that projects out all k basis directions (for cone ablation)."""
+    def hook_fn(module, input):
+        act = input[0] if isinstance(input, tuple) else input
+        b = basis.to(act)
+        for i in range(b.shape[0]):
+            d = b[i] / (b[i].norm() + 1e-8)
+            act = act - (act @ d).unsqueeze(-1) * d
+        return (act, *input[1:]) if isinstance(input, tuple) else act
+    return hook_fn
+
+
+def _make_cone_out_hook(basis):
+    """Output hook that projects out all k basis directions (for cone ablation)."""
+    def hook_fn(module, input, output):
+        act = output[0] if isinstance(output, tuple) else output
+        b = basis.to(act)
+        for i in range(b.shape[0]):
+            d = b[i] / (b[i].norm() + 1e-8)
+            act = act - (act @ d).unsqueeze(-1) * d
+        return (act, *output[1:]) if isinstance(output, tuple) else act
+    return hook_fn
+
+
+def get_cone_ablation_hooks(model_base, basis):
+    """Like get_all_direction_ablation_hooks but handles a (k, d_model) cone basis."""
+    n = model_base.model.config.num_hidden_layers
+    pre_hooks = [(model_base.model_block_modules[l], _make_cone_pre_hook(basis)) for l in range(n)]
+    out_hooks  = [(model_base.model_attn_modules[l],  _make_cone_out_hook(basis)) for l in range(n)]
+    out_hooks += [(model_base.model_mlp_modules[l],   _make_cone_out_hook(basis)) for l in range(n)]
+    return pre_hooks, out_hooks
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=list(MODEL_PATHS.keys()), required=True)
     parser.add_argument("--direction", required=True, help="path to direction .pt file")
     parser.add_argument("--config", required=True, help="config label, e.g. rdo_k1, cone_k5")
+    parser.add_argument("--device", default="cuda:0", help="ignored (device set via CUDA_VISIBLE_DEVICES)")
     args = parser.parse_args()
 
     random.seed(42)
@@ -48,8 +82,24 @@ def main():
     print("Loading model...")
     model_base = construct_model_base(model_path)
 
-    direction = torch.load(args.direction, map_location="cpu").to(model_base.model.dtype)
-    ablation_pre_hooks, ablation_hooks = get_all_direction_ablation_hooks(model_base, direction)
+    raw = torch.load(args.direction, map_location="cpu", weights_only=True)
+    print(f"  loaded tensor shape: {raw.shape}")
+
+    if raw.dim() == 1:
+        # Single direction vector (rdo_k1)
+        direction = raw.to(model_base.model.dtype)
+        ablation_pre_hooks, ablation_hooks = get_all_direction_ablation_hooks(model_base, direction)
+        print(f"  mode: single direction (dim={raw.shape[0]})")
+    elif raw.dim() == 2 and raw.shape[0] == 1:
+        # Shape (1, d_model) — squeeze to 1D
+        direction = raw.squeeze(0).to(model_base.model.dtype)
+        ablation_pre_hooks, ablation_hooks = get_all_direction_ablation_hooks(model_base, direction)
+        print(f"  mode: single direction after squeeze (dim={direction.shape[0]})")
+    else:
+        # Shape (k, d_model) — cone basis
+        basis = raw.to(model_base.model.dtype)
+        ablation_pre_hooks, ablation_hooks = get_cone_ablation_hooks(model_base, basis)
+        print(f"  mode: cone basis (k={raw.shape[0]}, dim={raw.shape[1]})")
 
     print("Generating baseline completions...")
     baseline_comps = model_base.generate_completions(

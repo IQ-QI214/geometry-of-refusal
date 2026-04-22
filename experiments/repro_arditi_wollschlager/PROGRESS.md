@@ -58,6 +58,12 @@ Format per task:
 - 得到什么: 评估基础设施就绪，待 GPU 运行后执行
 - 保存在哪: experiments/repro_arditi_wollschlager/run_evaluate.py + compute_summary.py
 
+### T8 双模型 RDO k=1 — done 2026-04-20
+- 做了什么: 并行跑 rdo.py --train_direction on Qwen(GPU0) + Llama(GPU1)；修复 dim_dir="dim" 路径；在 rdo.py 加本地 torch.save 绕过 wandb artifact
+- 得到什么: Qwen bypass~-4 induce~+2（early stop）; Llama bypass~-7 induce~+7（early stop）; rdo_direction.pt × 2 已保存
+- 保存在哪: results/repro_arditi_wollschlager/rdo/{Qwen2.5-7B-Instruct,Llama-3.1-8B-Instruct}/rdo_direction.pt
+           日志: experiments/repro_arditi_wollschlager/logs/rdo_{qwen,llama}_*.log
+
 ### T7 双模型 DIM 全量 — done 2026-04-20
 - 做了什么: 并行跑 run_dim.py on Qwen(GPU0) + Llama(GPU1), n_test=128；修复 harmless_val 截断至128条（原3132条导致OOM）
 - 得到什么: Qwen ASR_kw baseline=11.7% ablation=100% delta=+88.3%; Llama ASR_kw baseline=2.3% ablation=98.4% delta=+96.1%; Gate 2 PASS

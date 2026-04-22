@@ -1,0 +1,86 @@
+{
+  "qwen2.5_7b": {
+    "dim_ablation": {
+      "n": 128,
+      "asr_kw_baseline": 0.1171875,
+      "asr_kw": 1.0,
+      "asr_lg3_baseline": 0.0546875,
+      "asr_lg3": 0.9453125,
+      "mean_sr_baseline": 0.09893995244055986,
+      "asr_sr": 0.9921875,
+      "mean_sr": 0.6781076760962605
+    },
+    "cone_k3": {
+      "n": 128,
+      "asr_kw_baseline": 0.1171875,
+      "asr_kw": 0.984375,
+      "asr_lg3_baseline": 0.0546875,
+      "asr_lg3": 0.9375,
+      "mean_sr_baseline": 0.09893995244055986,
+      "asr_sr": 0.984375,
+      "mean_sr": 0.7175315977074206
+    },
+    "cone_k5": {
+      "n": 128,
+      "asr_kw_baseline": 0.1171875,
+      "asr_kw": 0.9921875,
+      "asr_lg3_baseline": 0.0546875,
+      "asr_lg3": 0.921875,
+      "mean_sr_baseline": 0.09893995244055986,
+      "asr_sr": 0.9921875,
+      "mean_sr": 0.711140557192266
+    },
+    "rdo_k1": {
+      "n": 128,
+      "asr_kw_baseline": 0.1171875,
+      "asr_kw": 0.90625,
+      "asr_lg3_baseline": 0.0546875,
+      "asr_lg3": 0.765625,
+      "mean_sr_baseline": 0.09893995244055986,
+      "asr_sr": 0.8828125,
+      "mean_sr": 0.6363329961895943
+    }
+  },
+  "llama3.1_8b": {
+    "dim_ablation": {
+      "n": 128,
+      "asr_kw_baseline": 0.0234375,
+      "asr_kw": 0.984375,
+      "asr_lg3_baseline": 0.0234375,
+      "asr_lg3": 0.8984375,
+      "mean_sr_baseline": 0.01048564538359642,
+      "asr_sr": 0.984375,
+      "mean_sr": 0.7341865436173975
+    },
+    "cone_k3": {
+      "n": 128,
+      "asr_kw_baseline": 0.0234375,
+      "asr_kw": 1.0,
+      "asr_lg3_baseline": 0.0234375,
+      "asr_lg3": 0.90625,
+      "mean_sr_baseline": 0.01048564538359642,
+      "asr_sr": 1.0,
+      "mean_sr": 0.7676344872452319
+    },
+    "cone_k5": {
+      "n": 128,
+      "asr_kw_baseline": 0.0234375,
+      "asr_kw": 1.0,
+      "asr_lg3_baseline": 0.0234375,
+      "asr_lg3": 0.9140625,
+      "mean_sr_baseline": 0.01048564538359642,
+      "asr_sr": 1.0,
+      "mean_sr": 0.74076974298805
+    },
+    "rdo_k1": {
+      "n": 128,
+      "asr_kw_baseline": 0.0234375,
+      "asr_kw": 1.0,
+      "asr_lg3_baseline": 0.0234375,
+      "asr_lg3": 0.9140625,
+      "mean_sr_baseline": 0.01048564538359642,
+      "asr_sr": 1.0,
+      "mean_sr": 0.7651501474902034
+    }
+  }
+}

@@ -43,7 +43,7 @@ class Qwen3GuardJudge(JudgeBase):
         )
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
             local_files_only=True,
         ).to(device)
         self.model.eval()
@@ -100,7 +100,7 @@ class LlamaGuard3Judge(JudgeBase):
         )
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
             local_files_only=True,
         ).to(device)
         self.model.eval()

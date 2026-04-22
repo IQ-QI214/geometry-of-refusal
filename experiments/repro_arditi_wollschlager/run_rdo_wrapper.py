@@ -28,8 +28,8 @@ args = parser.parse_args()
 model_path = MODEL_PATHS[args.model]
 
 env = os.environ.copy()
-env["SAVE_DIR"]              = "results/repro_arditi_wollschlager"
-env["DIM_DIR"]               = "."
+env["SAVE_DIR"]              = os.path.join(REPO_ROOT, "results/repro_arditi_wollschlager")
+env["DIM_DIR"]               = ""
 env["HF_HUB_OFFLINE"]        = "1"
 env["TRANSFORMERS_OFFLINE"]  = "1"
 env["WANDB_MODE"]            = "offline"
