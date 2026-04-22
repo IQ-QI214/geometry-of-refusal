@@ -10,7 +10,7 @@ def sha_of_state_dict(sd):
     h = hashlib.sha256()
     for name in sorted(sd.keys()):
         h.update(name.encode())
-        h.update(sd[name].cpu().numpy().tobytes())
+        h.update(sd[name].cpu().float().numpy().tobytes())
     return h.hexdigest()[:16]
 
 
