@@ -11,6 +11,9 @@ VLM_INDICATORS = {
 _MODEL_NAME_MAP = {
     "gemma-3-4b-it-vlm": ("pipeline.model_utils.gemma3_vlm_model", "Gemma3VLMModel"),
     "gemma-3-4b-it":     ("pipeline.model_utils.gemma3_model",     "Gemma3Model"),
+    "qwen2.5-vl-7b":     ("pipeline.model_utils.qwen_vlm_model",   "QwenVLMModel"),
+    "qwen2.5-7b":        ("pipeline.model_utils.qwen_model",       "QwenModel"),
+    "qwen2.5-7b-instruct": ("pipeline.model_utils.qwen_model",     "QwenModel"),
 }
 
 

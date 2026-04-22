@@ -130,7 +130,7 @@ def main():
     print("[1/3] Loading model...")
     model_base = construct_model_base(args.model_path, args.model_name)
     print(f"  Layers     : {len(model_base.model_block_modules)}")
-    print(f"  hidden_size: {model_base.model.config.hidden_size}")
+    print(f"  hidden_size: {getattr(model_base.model.config, 'hidden_size', getattr(getattr(model_base.model.config, 'text_config', None), 'hidden_size', '?'))}")
     print(f"  EOI toks   : {model_base.eoi_toks}")
 
     # -----------------------------------------------------------------------

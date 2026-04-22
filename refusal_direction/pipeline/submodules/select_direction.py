@@ -199,9 +199,9 @@ def select_direction(
         for source_layer in tqdm(range(n_layer), desc=f"Computing KL for source position {source_pos}"):
 
             ablation_dir = candidate_directions[source_pos, source_layer]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
+            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
 
             intervention_logits: Float[Tensor, "n_instructions 1 d_vocab"] = get_last_position_logits(
                 model=model_base.model,
@@ -219,9 +219,9 @@ def select_direction(
         for source_layer in tqdm(range(n_layer), desc=f"Computing refusal ablation for source position {source_pos}"):
 
             ablation_dir = candidate_directions[source_pos, source_layer]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
+            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
 
             refusal_scores = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
             ablation_refusal_scores[source_pos, source_layer] = refusal_scores.mean().item()
@@ -371,9 +371,9 @@ def select_rdo_direction(
     )
     for candidate_idx in tqdm(range(n_candidates), desc=f"Computing KL for candidate directions"):
         ablation_dir = candidate_directions[candidate_idx]
-        fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-        fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-        fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
+        fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+        fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+        fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
 
         intervention_logits: Float[Tensor, "n_instructions 1 d_vocab"] = get_last_position_logits(
             model=model_base.model,
@@ -390,9 +390,9 @@ def select_rdo_direction(
     for candidate_idx in tqdm(range(n_candidates), desc=f"Computing refusal ablation for candidate directions"):
 
         ablation_dir = candidate_directions[candidate_idx]
-        fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-        fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-        fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
+        fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+        fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+        fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
 
         refusal_scores = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
         ablation_refusal_scores[candidate_idx] = refusal_scores.mean().item()
@@ -574,9 +574,9 @@ def select_cone_basis(
 
         # for subspace_idx in tqdm(range(subspace_dim), desc=f"Computing KL for candidate directions {candidate_idx}"):
         #     ablation_dir = candidate_directions[candidate_idx, subspace_idx]
-        #     fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-        #     fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-        #     fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
+        #     fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+        #     fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+        #     fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
 
         #     intervention_logits: Float[Tensor, "n_instructions 1 d_vocab"] = get_last_position_logits(
         #         model=model_base.model,
@@ -592,9 +592,9 @@ def select_cone_basis(
 
         for subspace_idx in tqdm(range(subspace_dim), desc=f"Computing refusal ablation for candidate directions {candidate_idx}"):
             ablation_dir = candidate_directions[candidate_idx, subspace_idx]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(model_base.model.config.num_hidden_layers)]
+            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
 
             refusal_scores = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
             ablation_refusal_scores[candidate_idx, subspace_idx] = refusal_scores.mean().item()
@@ -618,9 +618,9 @@ def select_cone_basis(
 
         for sample_idx in tqdm(range(n_samples), desc=f"Computing KL divergence for sample directions for candidate {candidate_idx}"):
             sample_vector = transformed_samples[sample_idx]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=sample_vector)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(model_base.model.config.num_hidden_layers)]
+            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=sample_vector)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(len(model_base.model_block_modules))]
 
             intervention_logits: Float[Tensor, "n_instructions 1 d_vocab"] = get_last_position_logits(
                 model=model_base.model,
@@ -635,9 +635,9 @@ def select_cone_basis(
 
         for sample_idx in tqdm(range(n_samples), desc=f"Computing refusal ablation for sample directions for candidate {candidate_idx}"):
             sample_vector = transformed_samples[sample_idx]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=sample_vector)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(model_base.model.config.num_hidden_layers)]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(model_base.model.config.num_hidden_layers)]
+            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=sample_vector)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(len(model_base.model_block_modules))]
+            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=sample_vector)) for layer in range(len(model_base.model_block_modules))]
 
             refusal_scores = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
             sample_ablation_refusal_scores[candidate_idx, sample_idx] = refusal_scores.mean().item()
