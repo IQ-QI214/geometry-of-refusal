@@ -1,11 +1,13 @@
 import json
-import wandb
+try:
+    import wandb
+except ImportError:
+    wandb = None
 import torch
 import functools
 import math
 import matplotlib.pyplot as plt
 import os
-import wandb
 
 from typing import List, Optional
 from jaxtyping import Float, Int
