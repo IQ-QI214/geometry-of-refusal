@@ -9,10 +9,20 @@
 #   aggregate— Build 8×6 summary matrix from eval JSONs
 #   all      — sweep → ablate → evaluate → aggregate (default)
 #
+# Log structure (one file per task, co-located with results):
+#   results/pcd/qwen_family/V-text/sweep.log
+#   results/pcd/qwen_family/V-text/ablate.log
+#   results/pcd/qwen_family/V-text/eval.log
+#   results/pcd/stage_b.log   ← master log (all phases, stderr + stdout)
+#
+# Monitor all logs live:
+#   tail -f results/pcd/*/V-*/sweep.log            # all sweep jobs at once
+#   tail -f results/pcd/qwen_family/V-text/*.log   # one condition
+#   tail -f results/pcd/stage_b.log                # master orchestration log
+#
 # Usage:
 #   bash experiments/pcd/run_stage_b.sh [sweep|ablate|evaluate|aggregate|all]
-#
-# Run from project root OR refusal_direction/; script auto-detects ROOT.
+#   bash experiments/pcd/run_stage_b.sh all 2>&1 | tee results/pcd/stage_b.log
 # =============================================================================
 set -uo pipefail
 
@@ -29,94 +39,131 @@ GEMMA_PATH="/inspire/hdd/global_user/wenming-253108090054/models/gemma-3-4b-it"
 STAGE="${1:-all}"
 
 # --------------------------------------------------------------------------- #
-# Helper: launch one experiment on a specific GPU in background               #
+# Helper: launch one GPU job in the background
+#
+#   run_gpu <gpu_id> <conda_env> <log_path> <command...>
+#
+# Log goes to <log_path>; progress also echoed with a [TAG] prefix via tee.
 # --------------------------------------------------------------------------- #
 run_gpu() {
     local gpu=$1
     local env=$2
     local log=$3
     shift 3
+    mkdir -p "$(dirname "$log")"
+    local tag
+    tag="[GPU${gpu}|$(basename "$(dirname "$log")")/$(basename "$log" .log)]"
     CUDA_VISIBLE_DEVICES=$gpu \
         conda run --no-capture-output -n "$env" bash -c \
-        "cd '$RD' && PYTHONPATH=. $* 2>&1 | tee '$log'" &
+        "cd '$RD' && PYTHONPATH=. $*" \
+        > >(while IFS= read -r line; do echo "$tag $line"; done | tee -a "$log") \
+        2>&1 &
 }
 
-wait_all() {
+# Wait for a list of PIDs; exit on any failure and report which log to check.
+wait_jobs() {
     local phase=$1
-    local pids=("${@:2}")
+    shift
+    local -a pids=("$@")
     local failed=0
     for pid in "${pids[@]}"; do
-        wait "$pid" || { echo "[ERROR] A job in $phase failed (pid=$pid)"; failed=1; }
+        if ! wait "$pid"; then
+            echo "[ERROR] $phase — job pid=$pid failed"
+            failed=1
+        fi
     done
-    [ $failed -eq 0 ] || { echo "[ERROR] $phase had failures. Check logs in /tmp/pcd_*.log"; exit 1; }
-    echo "=== $phase complete ==="
+    if [ $failed -ne 0 ]; then
+        echo "[ERROR] $phase had failures — see per-condition *.log files above"
+        exit 1
+    fi
+    echo "✓ $phase done"
+}
+
+# Print a banner and the log paths for a set of jobs about to start.
+log_banner() {
+    local phase=$1; shift
+    echo ""
+    echo "══════════════════════════════════════════════════"
+    echo "  $phase"
+    echo "══════════════════════════════════════════════════"
+    echo "  Logs:"
+    for log in "$@"; do
+        printf "    GPU%s  %s\n" "$(echo "$log" | grep -o 'GPU[0-9]')" \
+               "$(echo "$log" | sed "s|$ROOT/||")" 2>/dev/null || echo "    $log"
+    done
+    echo ""
 }
 
 # --------------------------------------------------------------------------- #
 # Phase 1: DIM Layer Sweep                                                    #
-# 6 conditions split across two batches of 4 GPUs                            #
 # --------------------------------------------------------------------------- #
 phase_sweep() {
-    echo ""
-    echo "############################################################"
-    echo "# Phase 1: DIM Layer Sweep × 6 conditions                  #"
-    echo "############################################################"
     mkdir -p "$ROOT/results/pcd/qwen_family/"{V-text,V-blank-resweep,V-noise}
     mkdir -p "$ROOT/results/pcd/gemma_family/"{V-text,V-blank,V-noise}
 
-    # Batch 1: 4 conditions on 4 GPUs
-    echo "[sweep] Batch 1 starting (Qwen×3 + Gemma V-text) ..."
-    local pids=()
+    local L=(
+        "$ROOT/results/pcd/qwen_family/V-text/sweep.log"
+        "$ROOT/results/pcd/qwen_family/V-blank-resweep/sweep.log"
+        "$ROOT/results/pcd/qwen_family/V-noise/sweep.log"
+        "$ROOT/results/pcd/gemma_family/V-text/sweep.log"
+    )
+    log_banner "Phase 1 — Sweep  Batch 1/2  (Qwen×3 + Gemma V-text)" "${L[@]}"
 
-    run_gpu 0 qwen3-vl /tmp/pcd_sweep_qwen_vtext.log \
+    local pids=()
+    run_gpu 0 qwen3-vl "${L[0]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
          --condition V-text  --output_dir ../results/pcd/qwen_family/V-text"
     pids+=($!)
 
-    run_gpu 1 qwen3-vl /tmp/pcd_sweep_qwen_vblank.log \
+    run_gpu 1 qwen3-vl "${L[1]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
          --condition V-blank --output_dir ../results/pcd/qwen_family/V-blank-resweep"
     pids+=($!)
 
-    run_gpu 2 qwen3-vl /tmp/pcd_sweep_qwen_vnoise.log \
+    run_gpu 2 qwen3-vl "${L[2]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
          --condition V-noise --output_dir ../results/pcd/qwen_family/V-noise"
     pids+=($!)
 
-    run_gpu 3 qwen3-vl /tmp/pcd_sweep_gemma_vtext.log \
+    run_gpu 3 qwen3-vl "${L[3]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
          --condition V-text  --output_dir ../results/pcd/gemma_family/V-text"
     pids+=($!)
 
-    wait_all "sweep-batch1" "${pids[@]}"
+    wait_jobs "sweep-batch1" "${pids[@]}"
 
-    # Batch 2: remaining 2 Gemma conditions
-    echo "[sweep] Batch 2 starting (Gemma V-blank + V-noise) ..."
+    # Batch 2
+    local L2=(
+        "$ROOT/results/pcd/gemma_family/V-blank/sweep.log"
+        "$ROOT/results/pcd/gemma_family/V-noise/sweep.log"
+    )
+    log_banner "Phase 1 — Sweep  Batch 2/2  (Gemma V-blank + V-noise)" "${L2[@]}"
     pids=()
 
-    run_gpu 0 qwen3-vl /tmp/pcd_sweep_gemma_vblank.log \
+    run_gpu 0 qwen3-vl "${L2[0]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
          --condition V-blank --output_dir ../results/pcd/gemma_family/V-blank"
     pids+=($!)
 
-    run_gpu 1 qwen3-vl /tmp/pcd_sweep_gemma_vnoise.log \
+    run_gpu 1 qwen3-vl "${L2[1]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
          --condition V-noise --output_dir ../results/pcd/gemma_family/V-noise"
     pids+=($!)
 
-    wait_all "sweep-batch2" "${pids[@]}"
+    wait_jobs "sweep-batch2" "${pids[@]}"
 
-    # Print summary
     echo ""
-    echo "--- Sweep best_layer.json summary ---"
+    echo "── best_layer summary ──"
     for f in "$ROOT/results/pcd/"{qwen_family,gemma_family}/*/best_layer.json; do
-        echo "$(dirname "$f" | xargs basename) $(dirname "$f" | sed 's|.*/||'): $(cat "$f")"
+        [ -f "$f" ] || continue
+        cond=$(dirname "$f" | sed "s|$ROOT/results/pcd/||")
+        printf "  %-35s  %s\n" "$cond" "$(python3 -c "import json,sys; d=json.load(open('$f')); print(f\"layer={d['layer']} pos={d['pos']} filter={d.get('filter_passed','?')}\")")"
     done
 }
 
@@ -124,16 +171,16 @@ phase_sweep() {
 # Phase 2: DIM Ablate + Generate                                              #
 # --------------------------------------------------------------------------- #
 phase_ablate() {
-    echo ""
-    echo "############################################################"
-    echo "# Phase 2: DIM Ablate + Generate × 6 conditions            #"
-    echo "############################################################"
+    local L=(
+        "$ROOT/results/pcd/qwen_family/V-text/ablate.log"
+        "$ROOT/results/pcd/qwen_family/V-blank-resweep/ablate.log"
+        "$ROOT/results/pcd/qwen_family/V-noise/ablate.log"
+        "$ROOT/results/pcd/gemma_family/V-text/ablate.log"
+    )
+    log_banner "Phase 2 — Ablate  Batch 1/2" "${L[@]}"
 
-    # Batch 1
-    echo "[ablate] Batch 1 starting ..."
     local pids=()
-
-    run_gpu 0 qwen3-vl /tmp/pcd_ablate_qwen_vtext.log \
+    run_gpu 0 qwen3-vl "${L[0]}" \
         "python ../experiments/pcd/exp_pcd_ablate.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
          --condition V-text \
@@ -141,7 +188,7 @@ phase_ablate() {
          --output_dir ../results/pcd/qwen_family/V-text"
     pids+=($!)
 
-    run_gpu 1 qwen3-vl /tmp/pcd_ablate_qwen_vblank.log \
+    run_gpu 1 qwen3-vl "${L[1]}" \
         "python ../experiments/pcd/exp_pcd_ablate.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
          --condition V-blank \
@@ -149,7 +196,7 @@ phase_ablate() {
          --output_dir ../results/pcd/qwen_family/V-blank-resweep"
     pids+=($!)
 
-    run_gpu 2 qwen3-vl /tmp/pcd_ablate_qwen_vnoise.log \
+    run_gpu 2 qwen3-vl "${L[2]}" \
         "python ../experiments/pcd/exp_pcd_ablate.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
          --condition V-noise \
@@ -157,7 +204,7 @@ phase_ablate() {
          --output_dir ../results/pcd/qwen_family/V-noise"
     pids+=($!)
 
-    run_gpu 3 qwen3-vl /tmp/pcd_ablate_gemma_vtext.log \
+    run_gpu 3 qwen3-vl "${L[3]}" \
         "python ../experiments/pcd/exp_pcd_ablate.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
          --condition V-text \
@@ -165,13 +212,16 @@ phase_ablate() {
          --output_dir ../results/pcd/gemma_family/V-text"
     pids+=($!)
 
-    wait_all "ablate-batch1" "${pids[@]}"
+    wait_jobs "ablate-batch1" "${pids[@]}"
 
-    # Batch 2
-    echo "[ablate] Batch 2 starting ..."
+    local L2=(
+        "$ROOT/results/pcd/gemma_family/V-blank/ablate.log"
+        "$ROOT/results/pcd/gemma_family/V-noise/ablate.log"
+    )
+    log_banner "Phase 2 — Ablate  Batch 2/2" "${L2[@]}"
     pids=()
 
-    run_gpu 0 qwen3-vl /tmp/pcd_ablate_gemma_vblank.log \
+    run_gpu 0 qwen3-vl "${L2[0]}" \
         "python ../experiments/pcd/exp_pcd_ablate.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
          --condition V-blank \
@@ -179,7 +229,7 @@ phase_ablate() {
          --output_dir ../results/pcd/gemma_family/V-blank"
     pids+=($!)
 
-    run_gpu 1 qwen3-vl /tmp/pcd_ablate_gemma_vnoise.log \
+    run_gpu 1 qwen3-vl "${L2[1]}" \
         "python ../experiments/pcd/exp_pcd_ablate.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
          --condition V-noise \
@@ -187,21 +237,17 @@ phase_ablate() {
          --output_dir ../results/pcd/gemma_family/V-noise"
     pids+=($!)
 
-    wait_all "ablate-batch2" "${pids[@]}"
+    wait_jobs "ablate-batch2" "${pids[@]}"
 }
 
 # --------------------------------------------------------------------------- #
 # Phase 3: 4-Judge Evaluation                                                 #
-# 6 jobs distributed round-robin across 4 GPUs (1.5 rounds)                  #
-# Each job: kw (no GPU) + lg3 (LlamaGuard-3-8B ~16GB) + arditi               #
+# 6 jobs → round-robin across 4 GPUs (batch1: 4 jobs, batch2: 2 jobs)        #
+# LlamaGuard-3-8B ~16 GB/job; H100 80 GB → safe to run 4 in parallel         #
 # --------------------------------------------------------------------------- #
 phase_evaluate() {
-    echo ""
-    echo "############################################################"
-    echo "# Phase 3: 4-Judge Evaluation × 6 conditions               #"
-    echo "############################################################"
-
-    declare -a JOBS=(
+    # job spec: "result_subdir:model_name:model_path"
+    local JOBS=(
         "qwen_family/V-text:qwen2.5-vl-7b:$QWEN_VLM_PATH"
         "qwen_family/V-blank-resweep:qwen2.5-vl-7b:$QWEN_VLM_PATH"
         "qwen_family/V-noise:qwen2.5-vl-7b:$QWEN_VLM_PATH"
@@ -210,16 +256,20 @@ phase_evaluate() {
         "gemma_family/V-noise:gemma-3-4b-it-vlm:$GEMMA_PATH"
     )
 
+    local total=${#JOBS[@]}
+    local batch_size=4
+    local batch=1
     local i=0
     local pids=()
+    local batch_logs=()
 
     for entry in "${JOBS[@]}"; do
         IFS=':' read -r subdir model_name model_path <<< "$entry"
-        local gpu=$((i % 4))
-        local tag
-        tag=$(echo "$subdir" | tr '/' '_')
+        local gpu=$((i % batch_size))
+        local log="$ROOT/results/pcd/$subdir/eval.log"
+        batch_logs+=("$log")
 
-        run_gpu "$gpu" qwen3-vl "/tmp/pcd_eval_${tag}.log" \
+        run_gpu "$gpu" qwen3-vl "$log" \
             "python ../experiments/pcd/exp_pcd_evaluate.py \
              --responses_json ../results/pcd/$subdir/dim_responses.json \
              --model_name $model_name \
@@ -229,54 +279,66 @@ phase_evaluate() {
         pids+=($!)
         i=$((i + 1))
 
-        # Flush every 4 jobs (one full GPU round)
-        if [ $((i % 4)) -eq 0 ]; then
-            wait_all "evaluate-batch$((i / 4))" "${pids[@]}"
+        if [ $((i % batch_size)) -eq 0 ] || [ $i -eq $total ]; then
+            log_banner "Phase 3 — Evaluate  Batch ${batch}" "${batch_logs[@]}"
+            wait_jobs "evaluate-batch${batch}" "${pids[@]}"
             pids=()
+            batch_logs=()
+            batch=$((batch + 1))
         fi
     done
 
-    # Wait for any remaining jobs
-    if [ ${#pids[@]} -gt 0 ]; then
-        wait_all "evaluate-final" "${pids[@]}"
-    fi
-
-    # Print eval summary
+    # Summary table
     echo ""
-    echo "--- Eval results summary ---"
+    echo "── eval summary ──"
+    printf "  %-35s  %s  %s  %s\n" "condition" "asr_kw" "asr_lg3" "arditi"
     for f in "$ROOT/results/pcd/"{qwen_family,gemma_family}/*/dim_responses_eval.json; do
         [ -f "$f" ] || continue
-        subdir=$(dirname "$f" | sed "s|$ROOT/results/pcd/||")
-        asr_kw=$(python3 -c "import json; d=json.load(open('$f')); print(f\"{d.get('asr_keyword','?'):.3f}\")" 2>/dev/null || echo "?")
-        asr_lg3=$(python3 -c "import json; d=json.load(open('$f')); print(f\"{d.get('asr_lg3','?'):.3f}\")" 2>/dev/null || echo "?")
-        arditi=$(python3 -c "import json; d=json.load(open('$f')); print(f\"{d.get('arditi_joint_asr','?'):.3f}\")" 2>/dev/null || echo "?")
-        printf "  %-35s  asr_kw=%-6s  asr_lg3=%-6s  arditi=%s\n" "$subdir" "$asr_kw" "$asr_lg3" "$arditi"
+        cond=$(dirname "$f" | sed "s|$ROOT/results/pcd/||")
+        python3 - "$f" "$cond" <<'PYEOF'
+import json, sys
+f, cond = sys.argv[1], sys.argv[2]
+d = json.load(open(f))
+print(f"  {cond:<35}  {d.get('asr_keyword',float('nan')):.3f}   "
+      f"{d.get('asr_lg3',float('nan')):.3f}    {d.get('arditi_joint_asr',float('nan')):.3f}")
+PYEOF
     done
 }
 
 # --------------------------------------------------------------------------- #
-# Phase 4: Aggregate matrix                                                   #
+# Phase 4: Aggregate                                                          #
 # --------------------------------------------------------------------------- #
 phase_aggregate() {
     echo ""
-    echo "############################################################"
-    echo "# Phase 4: Aggregate 8x6 Matrix                            #"
-    echo "############################################################"
+    echo "══════════════════════════════════════════════════"
+    echo "  Phase 4 — Aggregate 8×6 Matrix"
+    echo "══════════════════════════════════════════════════"
     cd "$ROOT"
     python3 experiments/pcd/aggregate.py \
-        --root results/pcd \
+        --root    results/pcd \
         --out_json results/pcd/pcd_8x6_matrix.json \
-        --out_md results/pcd/pcd_summary.md
+        --out_md   results/pcd/pcd_summary.md
     echo ""
     cat results/pcd/pcd_summary.md
 }
 
 # --------------------------------------------------------------------------- #
-# Dispatch                                                                    #
+# Entrypoint                                                                  #
 # --------------------------------------------------------------------------- #
-echo "=== PCD Stage B  |  stage=$STAGE  |  ROOT=$ROOT ==="
-echo "    Qwen VLM : $QWEN_VLM_PATH"
-echo "    Gemma    : $GEMMA_PATH"
+echo "╔══════════════════════════════════════════════════╗"
+echo "║  PCD Stage B  |  stage=$STAGE"
+echo "╠══════════════════════════════════════════════════╣"
+echo "║  ROOT    : $ROOT"
+echo "║  Qwen VLM: $QWEN_VLM_PATH"
+echo "║  Gemma   : $GEMMA_PATH"
+echo "╠══════════════════════════════════════════════════╣"
+echo "║  Log structure (per condition, per phase):       ║"
+echo "║    results/pcd/<family>/<condition>/sweep.log    ║"
+echo "║    results/pcd/<family>/<condition>/ablate.log   ║"
+echo "║    results/pcd/<family>/<condition>/eval.log     ║"
+echo "║  Master log: pipe stdout to results/pcd/stage_b.log ║"
+echo "║    e.g.  bash run_stage_b.sh all |& tee results/pcd/stage_b.log"
+echo "╚══════════════════════════════════════════════════╝"
 echo ""
 
 case "$STAGE" in
@@ -290,7 +352,9 @@ case "$STAGE" in
         phase_evaluate
         phase_aggregate
         echo ""
-        echo "=== Stage B COMPLETE ==="
+        echo "╔══════════════════════════════════════════╗"
+        echo "║  Stage B COMPLETE                        ║"
+        echo "╚══════════════════════════════════════════╝"
         ;;
     *)
         echo "Usage: $0 [sweep|ablate|evaluate|aggregate|all]"
