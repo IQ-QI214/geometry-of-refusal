@@ -13,8 +13,9 @@ from typing import List, Optional
 try:
     from jaxtyping import Float, Int
 except ImportError:
-    from typing import Any as _Any
-    Float = _Any; Int = _Any
+    class _JaxStub:
+        def __class_getitem__(cls, item): return cls
+    Float = Int = _JaxStub
 from torch import Tensor
 from tqdm import tqdm
 from einops import rearrange

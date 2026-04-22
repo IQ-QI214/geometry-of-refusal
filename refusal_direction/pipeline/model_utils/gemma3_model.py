@@ -10,8 +10,9 @@ from torch import Tensor
 try:
     from jaxtyping import Float
 except ImportError:
-    from typing import Any as _Any
-    Float = _Any
+    class _JaxStub:
+        def __class_getitem__(cls, item): return cls
+    Float = _JaxStub
 from transformers import AutoTokenizer
 
 from pipeline.utils.utils import get_orthogonalized_matrix

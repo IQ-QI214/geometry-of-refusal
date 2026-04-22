@@ -5,8 +5,9 @@ from torch import Tensor
 try:
     from jaxtyping import Int, Float
 except ImportError:
-    from typing import Any as _Any
-    Int = _Any; Float = _Any
+    class _JaxStub:
+        def __class_getitem__(cls, item): return cls
+    Int = Float = _JaxStub
 
 from pipeline.utils.hook_utils import add_hooks
 
