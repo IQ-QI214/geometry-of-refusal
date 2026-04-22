@@ -104,3 +104,42 @@ class Gemma3Model(ModelBase):
             bias = (coeff * direction).to(dtype=dtype, device=device)
             backbone.layers[layer - 1].mlp.down_proj.bias = torch.nn.Parameter(bias)
         return act_add_fn
+
+    def generate_completions(self, dataset, fwd_pre_hooks=[], fwd_hooks=[],
+                             batch_size=8, max_new_tokens=64, temperature=0):
+        """Override to avoid ModelBase's accelerate dependency."""
+        from transformers import GenerationConfig
+        from pipeline.utils.hook_utils import add_hooks
+
+        generation_config = GenerationConfig(
+            max_new_tokens=max_new_tokens,
+            do_sample=temperature > 0,
+            temperature=temperature,
+        )
+        generation_config.pad_token_id = self.tokenizer.pad_token_id
+
+        completions = []
+        instructions = [x["instruction"] for x in dataset]
+        categories = [x["category"] for x in dataset]
+
+        if self.max_batch_size is None:
+            self.max_batch_size = 4
+
+        for i in range(0, len(dataset), self.max_batch_size):
+            batch = instructions[i:i + self.max_batch_size]
+            tokenized = self.tokenize_instructions_fn(instructions=batch)
+            with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
+                gen_kwargs = {
+                    "input_ids": tokenized.input_ids.to(self.model.device),
+                    "attention_mask": tokenized.attention_mask.to(self.model.device),
+                    "generation_config": generation_config,
+                }
+                gen_toks = self.model.generate(**gen_kwargs)
+                gen_toks = gen_toks[:, tokenized.input_ids.shape[-1]:]
+                for idx, g in enumerate(gen_toks):
+                    completions.append({
+                        "category": categories[i + idx],
+                        "prompt": instructions[i + idx],
+                        "response": self.tokenizer.decode(g, skip_special_tokens=True).strip(),
+                    })
+        return completions

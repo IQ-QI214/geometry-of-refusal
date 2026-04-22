@@ -50,13 +50,23 @@ def main():
     keys_mm = set(lm_from_mm.keys())
     keys_sa = set(lm_standalone.keys())
     print(f"Num language_model.* keys from standalone checkpoint: {len(lm_standalone)}")
-    if keys_mm != keys_sa:
-        print(f"Key mismatch. MM-only: {keys_mm - keys_sa} | SA-only: {keys_sa - keys_mm}")
+
+    # Normalize SA keys: Gemma3ForCausalLM wraps backbone under model.* and adds lm_head.
+    # Strip the model. prefix and drop lm_head to make keys comparable to MM extraction.
+    lm_sa_normalized = {
+        (k[len("model."):] if k.startswith("model.") else k): v
+        for k, v in lm_standalone.items()
+        if k != "lm_head.weight"
+    }
+    keys_sa_norm = set(lm_sa_normalized.keys())
+
+    if keys_mm != keys_sa_norm:
+        print(f"Key mismatch after normalization. MM-only: {keys_mm - keys_sa_norm} | SA-only: {keys_sa_norm - keys_mm}")
         print("ALPHA_RESULT: KEY_MISMATCH")
         return
 
     mm_hash = sha_of_state_dict(lm_from_mm)
-    sa_hash = sha_of_state_dict(lm_standalone)
+    sa_hash = sha_of_state_dict(lm_sa_normalized)
     print(f"multimodal language_model.* hash: {mm_hash}")
     print(f"standalone CausalLM state hash:  {sa_hash}")
     if mm_hash == sa_hash:
