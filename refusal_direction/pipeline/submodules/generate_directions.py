@@ -24,9 +24,12 @@ def get_mean_activations(model, tokenizer, instructions, tokenize_instructions_f
     torch.cuda.empty_cache()
 
     n_positions = len(positions)
-    n_layers = model.config.num_hidden_layers
+    n_layers = len(block_modules)
     n_samples = len(instructions)
-    d_model = model.config.hidden_size
+    cfg = model.config
+    d_model = getattr(cfg, "hidden_size", None) or getattr(
+        getattr(cfg, "text_config", cfg), "hidden_size"
+    )
 
     # we store the mean activations in high-precision to avoid numerical issues
     mean_activations = torch.zeros((n_positions, n_layers, d_model), dtype=torch.float64, device=model.device)
@@ -64,7 +67,7 @@ def generate_directions(model_base: ModelBase, harmful_instructions, harmless_in
 
     mean_diffs = get_mean_diff(model_base.model, model_base.tokenizer, harmful_instructions, harmless_instructions, model_base.tokenize_instructions_fn, model_base.model_block_modules, positions=list(range(-len(model_base.eoi_toks), 0)))
 
-    assert mean_diffs.shape == (len(model_base.eoi_toks), model_base.model.config.num_hidden_layers, model_base.model.config.hidden_size)
+    assert mean_diffs.shape == (len(model_base.eoi_toks), len(model_base.model_block_modules), mean_diffs.shape[2])
     assert not mean_diffs.isnan().any()
 
     torch.save(mean_diffs, f"{artifact_dir}/mean_diffs.pt")
