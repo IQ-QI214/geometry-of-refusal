@@ -45,20 +45,20 @@ class Gemma3Model(ModelBase):
         try:
             from transformers import Gemma3ForCausalLM
             model = Gemma3ForCausalLM.from_pretrained(
-                model_path, torch_dtype=dtype, local_files_only=True
+                model_path, dtype=dtype
             ).eval().to("cuda:0")
         except (ImportError, OSError) as e:
             print(f"Gemma3ForCausalLM not available ({type(e).__name__}: {e}), falling back to extracting language_model from multimodal checkpoint")
             from transformers import Gemma3ForConditionalGeneration
             mm = Gemma3ForConditionalGeneration.from_pretrained(
-                model_path, torch_dtype=dtype, local_files_only=True
+                model_path, dtype=dtype
             ).eval().to("cuda:0")
             model = mm.language_model
         model.requires_grad_(False)
         return model
 
     def _load_tokenizer(self, model_path):
-        tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
         tokenizer.padding_side = "left"
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token

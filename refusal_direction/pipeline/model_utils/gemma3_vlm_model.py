@@ -64,7 +64,9 @@ def tokenize_instructions_gemma3_vlm(
         prompts.append(text)
     if outputs is not None:
         prompts = [p + (o or "") for p, o in zip(prompts, outputs)]
-    images = [img] * len(prompts)
+    # Gemma3 processor (transformers ≥4.52) requires images as [[img], [img], ...]
+    # (one inner list per prompt), not a flat list.
+    images = [[img] for _ in prompts]
     return processor(text=prompts, images=images, padding=True, truncation=False, return_tensors="pt")
 
 
@@ -72,13 +74,13 @@ class Gemma3VLMModel(ModelBase):
 
     def _load_model(self, model_path, dtype=torch.bfloat16):
         model = Gemma3ForConditionalGeneration.from_pretrained(
-            model_path, torch_dtype=dtype, local_files_only=True
+            model_path, dtype=dtype
         ).eval().to("cuda:0")
         model.requires_grad_(False)
         return model
 
     def _load_tokenizer(self, model_path):
-        processor = AutoProcessor.from_pretrained(model_path, local_files_only=True)
+        processor = AutoProcessor.from_pretrained(model_path)
         self._processor = processor
         tokenizer = processor.tokenizer
         tokenizer.padding_side = "left"
