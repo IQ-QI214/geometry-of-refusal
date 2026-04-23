@@ -92,9 +92,65 @@ def main():
     parser.add_argument("--select_batch_size", type=int, default=8)
     parser.add_argument("--induce_refusal_threshold", type=float, default=0.0)
     parser.add_argument("--kl_threshold", type=float, default=0.1)
+    parser.add_argument("--skip_if_done", action="store_true",
+                        help="Exit 0 immediately if best_layer.json already exists")
+    parser.add_argument("--reselect", action="store_true",
+                        help="Skip model+mean_diffs; re-run select_direction from "
+                             "cached direction_evaluations.json with current thresholds")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
+
+    # Fast exit if already completed
+    best_layer_path = os.path.join(args.output_dir, "best_layer.json")
+    if args.skip_if_done and os.path.exists(best_layer_path):
+        print(f"[skip] best_layer.json already exists at {best_layer_path}, skipping.")
+        return
+
+    # -----------------------------------------------------------------------
+    # --reselect mode: skip model load, re-run select_direction from cache
+    # -----------------------------------------------------------------------
+    if args.reselect:
+        evals_path = os.path.join(args.output_dir, "direction_evaluations.json")
+        if not os.path.exists(evals_path):
+            print(f"[reselect] ERROR: {evals_path} not found — cannot reselect.")
+            return
+        print(f"[reselect] Loading {evals_path} and re-selecting with "
+              f"kl_threshold={args.kl_threshold} induce_refusal_threshold={args.induce_refusal_threshold}")
+        with open(evals_path) as f:
+            evals = json.load(f)
+
+        def _passes(e):
+            if args.kl_threshold is not None and e["kl_div_score"] > args.kl_threshold:
+                return False
+            if args.induce_refusal_threshold is not None and e["steering_score"] < args.induce_refusal_threshold:
+                return False
+            return True
+
+        passing = [e for e in evals if _passes(e)]
+        if not passing:
+            print("  WARNING: No entries passed filter — using best by refusal_score (no filter).")
+            passing = evals
+
+        best_e = max(passing, key=lambda e: e["refusal_score"])
+        filter_passed = _passes(best_e) and len([e for e in evals if _passes(e)]) > 0
+        best_pos   = int(best_e["position"])
+        best_layer = int(best_e["layer"])
+        print(f"  Reselected: pos={best_pos}, layer={best_layer}, "
+              f"refusal_score={best_e['refusal_score']:.3f}, "
+              f"kl={best_e['kl_div_score']:.3f}, filter_passed={filter_passed}")
+
+        best_layer_info = {
+            "layer":         best_layer,
+            "pos":           best_pos,
+            "filter_passed": filter_passed,
+            "condition":     args.condition,
+        }
+        with open(best_layer_path, "w") as f:
+            json.dump(best_layer_info, f, indent=2)
+        print(f"  Saved {best_layer_path}")
+        print("=== Reselect Complete ===")
+        return
 
     # -----------------------------------------------------------------------
     # Data paths
@@ -191,8 +247,8 @@ def main():
         evals_path = os.path.join(args.output_dir, "direction_evaluations.json")
         with open(evals_path) as f:
             evals = json.load(f)
-        # Sort by lowest refusal_score (best ablation)
-        evals_sorted = sorted(evals, key=lambda e: e["refusal_score"])
+        # Sort descending: pick direction with HIGHEST refusal_score (best ablation candidate)
+        evals_sorted = sorted(evals, key=lambda e: e["refusal_score"], reverse=True)
         best_entry = evals_sorted[0]
         best_pos   = int(best_entry["position"])
         best_layer = int(best_entry["layer"])

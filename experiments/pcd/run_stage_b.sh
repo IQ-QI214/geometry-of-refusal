@@ -113,25 +113,30 @@ phase_sweep() {
     run_gpu 0 qwen3-vl "${L[0]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
-         --condition V-text  --output_dir ../results/pcd/qwen_family/V-text"
+         --condition V-text  --output_dir ../results/pcd/qwen_family/V-text \
+         --skip_if_done"
     pids+=($!)
 
     run_gpu 1 qwen3-vl "${L[1]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
-         --condition V-blank --output_dir ../results/pcd/qwen_family/V-blank-resweep"
+         --condition V-blank --output_dir ../results/pcd/qwen_family/V-blank-resweep \
+         --skip_if_done"
     pids+=($!)
 
     run_gpu 2 qwen3-vl "${L[2]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name qwen2.5-vl-7b --model_path '$QWEN_VLM_PATH' \
-         --condition V-noise --output_dir ../results/pcd/qwen_family/V-noise"
+         --condition V-noise --output_dir ../results/pcd/qwen_family/V-noise \
+         --skip_if_done"
     pids+=($!)
 
+    # Gemma: kl_threshold=100 + induce_refusal_threshold=-999 (Gemma scores differ in scale)
     run_gpu 3 qwen3-vl "${L[3]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
-         --condition V-text  --output_dir ../results/pcd/gemma_family/V-text"
+         --condition V-text  --output_dir ../results/pcd/gemma_family/V-text \
+         --kl_threshold 100 --induce_refusal_threshold -999 --skip_if_done"
     pids+=($!)
 
     wait_jobs "sweep-batch1" "${pids[@]}"
@@ -147,13 +152,15 @@ phase_sweep() {
     run_gpu 0 qwen3-vl "${L2[0]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
-         --condition V-blank --output_dir ../results/pcd/gemma_family/V-blank"
+         --condition V-blank --output_dir ../results/pcd/gemma_family/V-blank \
+         --kl_threshold 100 --induce_refusal_threshold -999 --skip_if_done"
     pids+=($!)
 
     run_gpu 1 qwen3-vl "${L2[1]}" \
         "python ../experiments/pcd/exp_pcd_layer_sweep.py \
          --model_name gemma-3-4b-it-vlm --model_path '$GEMMA_PATH' \
-         --condition V-noise --output_dir ../results/pcd/gemma_family/V-noise"
+         --condition V-noise --output_dir ../results/pcd/gemma_family/V-noise \
+         --kl_threshold 100 --induce_refusal_threshold -999 --skip_if_done"
     pids+=($!)
 
     wait_jobs "sweep-batch2" "${pids[@]}"
