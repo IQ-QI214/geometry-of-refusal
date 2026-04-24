@@ -1,0 +1,6 @@
+{
+  "layer": 15,
+  "pos": -5,
+  "filter_passed": true,
+  "condition": "V-blank"
+}

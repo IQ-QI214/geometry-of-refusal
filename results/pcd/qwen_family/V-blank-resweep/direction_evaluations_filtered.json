@@ -1,0 +1,9 @@
+[
+    {
+        "position": -5,
+        "layer": 15,
+        "refusal_score": -4.60299015045166,
+        "steering_score": 1.321324110031128,
+        "kl_div_score": 0.07428873280329687
+    }
+]
