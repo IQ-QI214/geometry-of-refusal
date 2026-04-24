@@ -52,7 +52,7 @@ from experiments.pcd.common.arditi_judge import arditi_refusal_match
 
 # Default judge model paths (override via --q3g_path / --lg3_path if needed)
 _DEFAULT_Q3G_PATH = "/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-8B"
-_DEFAULT_LG3_PATH = "/inspire/hdd/global_user/wenming-253108090054/models/Meta-Llama-Guard-3-8B"
+_DEFAULT_LG3_PATH = "/inspire/hdd/global_user/wenming-253108090054/models/llama-guard-3-8b"
 # StrongREJECT defaults
 _DEFAULT_SR_BASE   = "/inspire/hdd/global_user/wenming-253108090054/models/gemma-2b"
 _DEFAULT_SR_ADAPTER = "/inspire/hdd/global_user/wenming-253108090054/models/strongreject-15k-v1"
