@@ -35,7 +35,7 @@ run() {
     nohup bash -c "CUDA_VISIBLE_DEVICES=$gpu conda run --no-capture-output -n qwen3-vl \
         bash -c \"cd '$RD' && PYTHONPATH=. $*\"" \
         >> "$log" 2>&1 &
-    printf "  GPU%d  PID=%-7d  %s\n" "$gpu" "$!" "$(basename $(dirname $log))/$(basename $log)"
+    printf "  GPU%d  PID=%-7d  %s\n" "$gpu" "$!" "$(basename $(dirname $log))/$(basename $log)" >&2
     echo $!
 }
 
