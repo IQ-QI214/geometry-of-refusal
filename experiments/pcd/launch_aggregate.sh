@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 echo "=== 汇总 PCD 8×6 矩阵 ==="
 cd "$ROOT"
-python3 experiments/pcd/aggregate.py \
+conda run --no-capture-output -n qwen3-vl python3 experiments/pcd/aggregate.py \
     --root    results/pcd \
     --out_json results/pcd/pcd_8x6_matrix.json \
     --out_md   results/pcd/pcd_summary.md
