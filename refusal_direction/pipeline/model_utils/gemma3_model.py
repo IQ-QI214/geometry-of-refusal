@@ -125,7 +125,7 @@ class Gemma3Model(ModelBase):
 
         completions = []
         instructions = [x["instruction"] for x in dataset]
-        categories = [x["category"] for x in dataset]
+        categories = [x.get("category") or x.get("source", "") for x in dataset]
 
         if self.max_batch_size is None:
             self.max_batch_size = 4

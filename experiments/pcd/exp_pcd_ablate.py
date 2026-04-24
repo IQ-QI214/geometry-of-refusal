@@ -186,7 +186,7 @@ def main():
     for i, comp in enumerate(completions):
         responses_out.append({
             "instruction": comp.get("prompt") or harmful_val_dataset[i]["instruction"],
-            "category":    comp.get("category") or harmful_val_dataset[i].get("category", ""),
+            "category":    comp.get("category") or harmful_val_dataset[i].get("category") or harmful_val_dataset[i].get("source", ""),
             "response":    comp.get("response", ""),
         })
 
