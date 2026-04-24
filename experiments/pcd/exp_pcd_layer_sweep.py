@@ -90,6 +90,10 @@ def main():
                              "(default: <project_root>/data/saladbench_splits)")
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--select_batch_size", type=int, default=8)
+    parser.add_argument("--select_n_val", type=int, default=128,
+                        help="Max val samples fed to select_direction (harmful + harmless each). "
+                             "Arditi paper uses 32-64; full saladbench val has 3000+ harmless "
+                             "which makes each layer take ~2min. Default 128 keeps it under 1h.")
     parser.add_argument("--induce_refusal_threshold", type=float, default=0.0)
     parser.add_argument("--kl_threshold", type=float, default=0.1)
     parser.add_argument("--skip_if_done", action="store_true",
@@ -179,8 +183,15 @@ def main():
     harmful_train  = harmful_train[:n_train]
     harmless_train = harmless_train[:n_train]
 
+    # Limit val set for select_direction — full saladbench val (3000+ harmless)
+    # makes each direction candidate take ~2 min on H100; 128 samples is enough.
+    n_sel = args.select_n_val
+    select_harmful_val  = harmful_val[:n_sel]
+    select_harmless_val = harmless_val[:n_sel]
+
     print(f"  Train: {len(harmful_train)} harmful / {len(harmless_train)} harmless")
-    print(f"  Val  : {len(harmful_val)} harmful / {len(harmless_val)} harmless")
+    print(f"  Val  : {len(harmful_val)} harmful / {len(harmless_val)} harmless "
+          f"(select_direction uses first {len(select_harmful_val)}/{len(select_harmless_val)})")
 
     # -----------------------------------------------------------------------
     # Load model
@@ -232,8 +243,8 @@ def main():
     try:
         best_pos, best_layer, best_direction = select_direction(
             model_base,
-            harmful_val,
-            harmless_val,
+            select_harmful_val,
+            select_harmless_val,
             mean_diffs,
             artifact_dir=args.output_dir,
             kl_threshold=args.kl_threshold,
