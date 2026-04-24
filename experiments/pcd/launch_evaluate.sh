@@ -30,8 +30,8 @@ echo "=== 批次 1：GPU0-3 并行（Qwen×3 + Gemma/V-text）==="
 
 run() {
     local gpu=$1 log=$2; shift 2
-    nohup bash -c "CUDA_VISIBLE_DEVICES=$gpu conda run --no-capture-output -n qwen3-vl \
-        bash -c \"cd '$RD' && PYTHONPATH=. $*\"" \
+    CUDA_VISIBLE_DEVICES=$gpu conda run --no-capture-output -n qwen3-vl \
+        bash -c "cd '$RD' && PYTHONPATH=. $*" \
         >> "$log" 2>&1 &
     printf "  GPU%d  PID=%-7d  %s\n" "$gpu" "$!" "$(basename $(dirname $log))/$(basename $log)" >&2
     echo $!
