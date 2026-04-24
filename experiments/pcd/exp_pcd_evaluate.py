@@ -97,13 +97,13 @@ def _load_judge(judge_name: str, model_path: str):
     print(f"[evaluate] Loading judge '{judge_name}' from {model_path} via transformers ...")
     # Avoid local_files_only=True — newer huggingface_hub (>=0.24) rejects absolute
     # paths when local_files_only is set due to repo_id validation. Rely on env instead.
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
-        device_map="auto",
-    )
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=64)
+        local_files_only=True,
+    ).eval().cuda()
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=64, device=model.device)
 
     class _InlineJudge:
         def __init__(self, name, pipe_):
