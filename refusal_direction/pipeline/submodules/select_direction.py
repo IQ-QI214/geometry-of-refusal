@@ -182,66 +182,145 @@ def select_direction(
         os.makedirs(artifact_dir)
 
     n_pos, n_layer, d_model = candidate_directions.shape
+    ckpt_path = os.path.join(artifact_dir, "select_direction_ckpt.pt")
 
-    baseline_refusal_scores_harmful = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_hooks=[], batch_size=batch_size)
-    baseline_refusal_scores_harmless = get_refusal_scores(model_base.model, harmless_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_hooks=[], batch_size=batch_size)
+    # ------------------------------------------------------------------ #
+    # Checkpoint resume: load scores computed in a previous interrupted   #
+    # run so we skip already-finished (pos, layer) pairs.                 #
+    # Checkpoint schema:                                                   #
+    #   phase  0 = KL loop in progress                                    #
+    #          1 = KL done, refusal-ablation loop in progress             #
+    #          2 = refusal-ablation done, steering loop in progress       #
+    #          3 = all three loops done (plotting/filtering remains)       #
+    #   pos_done  last source_pos index (negative) fully completed        #
+    # ------------------------------------------------------------------ #
+    def _save_ckpt(phase, pos_done, kl, ref, steer, b_harmful, b_harmless, b_logits):
+        torch.save({
+            "phase": phase, "pos_done": pos_done,
+            "kl": kl.cpu(), "ref": ref.cpu(), "steer": steer.cpu(),
+            "b_harmful": b_harmful.cpu(), "b_harmless": b_harmless.cpu(),
+            "b_logits": b_logits.cpu() if b_logits is not None else None,
+        }, ckpt_path)
 
-    ablation_kl_div_scores = torch.zeros((n_pos, n_layer), device=model_base.model.device, dtype=torch.float64)
-    ablation_refusal_scores = torch.zeros((n_pos, n_layer), device=model_base.model.device, dtype=torch.float64)
-    steering_refusal_scores = torch.zeros((n_pos, n_layer), device=model_base.model.device, dtype=torch.float64)
+    # Try to resume
+    ckpt = None
+    if os.path.exists(ckpt_path):
+        try:
+            ckpt = torch.load(ckpt_path, map_location=model_base.model.device, weights_only=True)
+            print(f"  [select_direction] Resuming from checkpoint: phase={ckpt['phase']} pos_done={ckpt['pos_done']}")
+        except Exception as e:
+            print(f"  [select_direction] Checkpoint load failed ({e}), starting fresh.")
+            ckpt = None
 
-    baseline_harmless_logits = get_last_position_logits(
-        model=model_base.model,
-        tokenizer=model_base.tokenizer,
-        instructions=harmless_instructions,
-        tokenize_instructions_fn=model_base.tokenize_instructions_fn,
-        fwd_pre_hooks=[],
-        fwd_hooks=[],
-        batch_size=batch_size
-    )
+    if ckpt is not None:
+        ablation_kl_div_scores  = ckpt["kl"].to(model_base.model.device)
+        ablation_refusal_scores = ckpt["ref"].to(model_base.model.device)
+        steering_refusal_scores = ckpt["steer"].to(model_base.model.device)
+        baseline_refusal_scores_harmful  = ckpt["b_harmful"].to(model_base.model.device)
+        baseline_refusal_scores_harmless = ckpt["b_harmless"].to(model_base.model.device)
+        baseline_harmless_logits = ckpt["b_logits"].to(model_base.model.device) if ckpt["b_logits"] is not None else None
+        resume_phase    = ckpt["phase"]
+        resume_pos_done = ckpt["pos_done"]  # last fully completed source_pos (negative index)
+    else:
+        baseline_refusal_scores_harmful  = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_hooks=[], batch_size=batch_size)
+        baseline_refusal_scores_harmless = get_refusal_scores(model_base.model, harmless_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_hooks=[], batch_size=batch_size)
+        ablation_kl_div_scores  = torch.zeros((n_pos, n_layer), device=model_base.model.device, dtype=torch.float64)
+        ablation_refusal_scores = torch.zeros((n_pos, n_layer), device=model_base.model.device, dtype=torch.float64)
+        steering_refusal_scores = torch.zeros((n_pos, n_layer), device=model_base.model.device, dtype=torch.float64)
+        baseline_harmless_logits = None
+        resume_phase    = 0
+        resume_pos_done = None  # nothing done yet
 
-    for source_pos in range(-n_pos, 0):
-        for source_layer in tqdm(range(n_layer), desc=f"Computing KL for source position {source_pos}"):
-
-            ablation_dir = candidate_directions[source_pos, source_layer]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
-
-            intervention_logits: Float[Tensor, "n_instructions 1 d_vocab"] = get_last_position_logits(
-                model=model_base.model,
-                tokenizer=model_base.tokenizer,
+    # ------------------------------------------------------------------ #
+    # Phase 0: KL divergence                                              #
+    # ------------------------------------------------------------------ #
+    if resume_phase <= 0:
+        if baseline_harmless_logits is None:
+            baseline_harmless_logits = get_last_position_logits(
+                model=model_base.model, tokenizer=model_base.tokenizer,
                 instructions=harmless_instructions,
                 tokenize_instructions_fn=model_base.tokenize_instructions_fn,
-                fwd_pre_hooks=fwd_pre_hooks,
-                fwd_hooks=fwd_hooks,
-                batch_size=batch_size
+                fwd_pre_hooks=[], fwd_hooks=[], batch_size=batch_size
             )
 
-            ablation_kl_div_scores[source_pos, source_layer] = kl_div_fn(baseline_harmless_logits, intervention_logits, mask=None).mean(dim=0).item()
+        for source_pos in range(-n_pos, 0):
+            # Skip positions already completed in a previous run
+            if resume_phase == 0 and resume_pos_done is not None and source_pos <= resume_pos_done:
+                print(f"  [ckpt] KL pos={source_pos} already done, skipping.")
+                continue
 
-    for source_pos in range(-n_pos, 0):
-        for source_layer in tqdm(range(n_layer), desc=f"Computing refusal ablation for source position {source_pos}"):
+            for source_layer in tqdm(range(n_layer), desc=f"Computing KL for source position {source_pos}"):
+                ablation_dir = candidate_directions[source_pos, source_layer]
+                fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+                fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+                fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+                intervention_logits: Float[Tensor, "n_instructions 1 d_vocab"] = get_last_position_logits(
+                    model=model_base.model, tokenizer=model_base.tokenizer,
+                    instructions=harmless_instructions,
+                    tokenize_instructions_fn=model_base.tokenize_instructions_fn,
+                    fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size
+                )
+                ablation_kl_div_scores[source_pos, source_layer] = kl_div_fn(baseline_harmless_logits, intervention_logits, mask=None).mean(dim=0).item()
 
-            ablation_dir = candidate_directions[source_pos, source_layer]
-            fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
-            fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
-            fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+            # Save checkpoint after each completed source_pos
+            _save_ckpt(0, source_pos, ablation_kl_div_scores, ablation_refusal_scores,
+                       steering_refusal_scores, baseline_refusal_scores_harmful,
+                       baseline_refusal_scores_harmless, baseline_harmless_logits)
 
-            refusal_scores = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
-            ablation_refusal_scores[source_pos, source_layer] = refusal_scores.mean().item()
+        # Phase 0 done — advance checkpoint
+        _save_ckpt(1, None, ablation_kl_div_scores, ablation_refusal_scores,
+                   steering_refusal_scores, baseline_refusal_scores_harmful,
+                   baseline_refusal_scores_harmless, baseline_harmless_logits)
 
-    for source_pos in range(-n_pos, 0):
-        for source_layer in tqdm(range(n_layer), desc=f"Computing refusal addition for source position {source_pos}"):
+    # ------------------------------------------------------------------ #
+    # Phase 1: Refusal ablation scores                                    #
+    # ------------------------------------------------------------------ #
+    if resume_phase <= 1:
+        for source_pos in range(-n_pos, 0):
+            if resume_phase == 1 and resume_pos_done is not None and source_pos <= resume_pos_done:
+                print(f"  [ckpt] refusal-ablation pos={source_pos} already done, skipping.")
+                continue
 
-            refusal_vector = candidate_directions[source_pos, source_layer]
-            coeff = torch.tensor(1.0)
+            for source_layer in tqdm(range(n_layer), desc=f"Computing refusal ablation for source position {source_pos}"):
+                ablation_dir = candidate_directions[source_pos, source_layer]
+                fwd_pre_hooks = [(model_base.model_block_modules[layer], get_direction_ablation_input_pre_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+                fwd_hooks = [(model_base.model_attn_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+                fwd_hooks += [(model_base.model_mlp_modules[layer], get_direction_ablation_output_hook(direction=ablation_dir)) for layer in range(len(model_base.model_block_modules))]
+                refusal_scores = get_refusal_scores(model_base.model, harmful_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
+                ablation_refusal_scores[source_pos, source_layer] = refusal_scores.mean().item()
 
-            fwd_pre_hooks = [(model_base.model_block_modules[source_layer], get_activation_addition_input_pre_hook(vector=refusal_vector, coeff=coeff))]
-            fwd_hooks = []
+            _save_ckpt(1, source_pos, ablation_kl_div_scores, ablation_refusal_scores,
+                       steering_refusal_scores, baseline_refusal_scores_harmful,
+                       baseline_refusal_scores_harmless, baseline_harmless_logits)
 
-            refusal_scores = get_refusal_scores(model_base.model, harmless_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
-            steering_refusal_scores[source_pos, source_layer] = refusal_scores.mean().item()
+        _save_ckpt(2, None, ablation_kl_div_scores, ablation_refusal_scores,
+                   steering_refusal_scores, baseline_refusal_scores_harmful,
+                   baseline_refusal_scores_harmless, baseline_harmless_logits)
+
+    # ------------------------------------------------------------------ #
+    # Phase 2: Steering (activation addition) scores                      #
+    # ------------------------------------------------------------------ #
+    if resume_phase <= 2:
+        for source_pos in range(-n_pos, 0):
+            if resume_phase == 2 and resume_pos_done is not None and source_pos <= resume_pos_done:
+                print(f"  [ckpt] steering pos={source_pos} already done, skipping.")
+                continue
+
+            for source_layer in tqdm(range(n_layer), desc=f"Computing refusal addition for source position {source_pos}"):
+                refusal_vector = candidate_directions[source_pos, source_layer]
+                coeff = torch.tensor(1.0)
+                fwd_pre_hooks = [(model_base.model_block_modules[source_layer], get_activation_addition_input_pre_hook(vector=refusal_vector, coeff=coeff))]
+                fwd_hooks = []
+                refusal_scores = get_refusal_scores(model_base.model, harmless_instructions, model_base.tokenize_instructions_fn, model_base.refusal_toks, fwd_pre_hooks=fwd_pre_hooks, fwd_hooks=fwd_hooks, batch_size=batch_size)
+                steering_refusal_scores[source_pos, source_layer] = refusal_scores.mean().item()
+
+            _save_ckpt(2, source_pos, ablation_kl_div_scores, ablation_refusal_scores,
+                       steering_refusal_scores, baseline_refusal_scores_harmful,
+                       baseline_refusal_scores_harmless, baseline_harmless_logits)
+
+        _save_ckpt(3, None, ablation_kl_div_scores, ablation_refusal_scores,
+                   steering_refusal_scores, baseline_refusal_scores_harmful,
+                   baseline_refusal_scores_harmless, baseline_harmless_logits)
 
     plot_refusal_scores(
         refusal_scores=ablation_refusal_scores,
