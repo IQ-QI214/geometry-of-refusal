@@ -97,11 +97,11 @@ class Qwen3VLMModel(ModelBase):
         # that config.json `architectures` matches. Update class if needed.
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
             model_path,
-            dtype=dtype,
+            torch_dtype=dtype,
+            device_map={"": "cuda:0"},
+            local_files_only=True,
             trust_remote_code=True,
         ).eval()
-        # Qwen3-VL: manual .to() instead of device_map (avoids accelerate issues)
-        model = model.to("cuda:0")
         model.requires_grad_(False)
         return model
 
@@ -142,6 +142,19 @@ class Qwen3VLMModel(ModelBase):
         return torch.nn.ModuleList([
             block.mlp for block in self.model_block_modules
         ])
+
+    def _get_attn_hook_names(self):
+        # model.model.language_model.layers → hook path: model.language_model.layers.{i}.*
+        return [
+            f"model.language_model.layers.{i}.self_attn.o_proj"
+            for i in range(len(self._get_model_block_modules()))
+        ]
+
+    def _get_mlp_hook_names(self):
+        return [
+            f"model.language_model.layers.{i}.mlp.down_proj"
+            for i in range(len(self._get_model_block_modules()))
+        ]
 
     def _get_orthogonalization_mod_fn(self, direction: Float[Tensor, "d_model"]):
         def orthogonalize_fn(model):
