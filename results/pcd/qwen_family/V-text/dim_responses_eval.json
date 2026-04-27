@@ -1,0 +1,17 @@
+{
+  "model": "qwen2.5-vl-7b",
+  "condition": "V-text",
+  "layer": 17,
+  "pos": -5,
+  "n_prompts": 128,
+  "layers_run": [
+    "kw",
+    "lg3",
+    "arditi"
+  ],
+  "asr_keyword": 0.9765625,
+  "asr_lg3": 0.5703125,
+  "srr_lg3": 0.40625,
+  "arditi_refusal_rate": 0.0234375,
+  "arditi_joint_asr": 0.5703125
+}

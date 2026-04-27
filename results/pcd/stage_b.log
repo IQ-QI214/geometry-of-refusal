@@ -1,0 +1,135 @@
+╔══════════════════════════════════════════════════════════╗
+║  PCD Stage B  |  stage=all                              ║
+║  ROOT    : /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal║
+║  GPU pool: 4 GPUs (named-pipe semaphore)              ║
+╠══════════════════════════════════════════════════════════╣
+║  Logs: results/pcd/<family>/<cond>/{sweep,ablate,eval}.log  ║
+║  Master: bash run_stage_b.sh all |& tee results/pcd/stage_b.log ║
+╚══════════════════════════════════════════════════════════╝
+
+
+══════════════════════════════════════════════════════════
+  Phase 1 — DIM Layer Sweep  (6 jobs, pool of 4 GPUs)
+══════════════════════════════════════════════════════════
+[GPU0|V-text/sweep] [skip] best_layer.json already exists at ../results/pcd/qwen_family/V-text/best_layer.json, skipping.
+[GPU3|V-text/sweep] [skip] best_layer.json already exists at ../results/pcd/gemma_family/V-text/best_layer.json, skipping.
+[GPU1|V-blank-resweep/sweep] === PCD Layer Sweep: model=qwen2.5-vl-7b  condition=V-blank ===
+[GPU2|V-noise/sweep] === PCD Layer Sweep: model=qwen2.5-vl-7b  condition=V-noise ===
+[GPU1|V-blank-resweep/sweep]   output_dir : ../results/pcd/qwen_family/V-blank-resweep
+[GPU1|V-blank-resweep/sweep]   data_dir   : /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/data/saladbench_splits
+[GPU1|V-blank-resweep/sweep]   Train: 1184 harmful / 1184 harmless
+[GPU1|V-blank-resweep/sweep]   Val  : 128 harmful / 3132 harmless
+[GPU1|V-blank-resweep/sweep] [1/3] Loading model...
+[GPU2|V-noise/sweep]   output_dir : ../results/pcd/qwen_family/V-noise
+[GPU2|V-noise/sweep]   data_dir   : /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/data/saladbench_splits
+[GPU2|V-noise/sweep]   Train: 1184 harmful / 1184 harmless
+[GPU2|V-noise/sweep]   Val  : 128 harmful / 3132 harmless
+[GPU2|V-noise/sweep] [1/3] Loading model...
+[GPU|V-noise/sweep] === PCD Layer Sweep: model=gemma-3-4b-it-vlm  condition=V-noise ===
+[GPU|V-noise/sweep]   output_dir : ../results/pcd/gemma_family/V-noise
+[GPU|V-noise/sweep]   data_dir   : /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/data/saladbench_splits
+[GPU|V-noise/sweep]   Train: 1184 harmful / 1184 harmless
+[GPU|V-noise/sweep]   Val  : 128 harmful / 3132 harmless
+[GPU|V-noise/sweep] [1/3] Loading model...
+[GPU30|V-blank/sweep] === PCD Layer Sweep: model=gemma-3-4b-it-vlm  condition=V-blank ===
+[GPU30|V-blank/sweep]   output_dir : ../results/pcd/gemma_family/V-blank
+[GPU30|V-blank/sweep]   data_dir   : /inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/data/saladbench_splits
+[GPU30|V-blank/sweep]   Train: 1184 harmful / 1184 harmless
+[GPU30|V-blank/sweep]   Val  : 128 harmful / 3132 harmless
+[GPU30|V-blank/sweep] [1/3] Loading model...
+[GPU2|V-noise/sweep] Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:01<00:07,  1.81s/it]Loading checkpoint shards:  40%|████      | 2/5 [00:03<00:05,  1.84s/it]Loading checkpoint shards:  60%|██████    | 3/5 [00:05<00:03,  1.90s/it]Loading checkpoint shards:  80%|████████  | 4/5 [00:07<00:01,  1.93s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:07<00:00,  1.53s/it]
+[GPU1|V-blank-resweep/sweep] Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:01<00:07,  1.82s/it]Loading checkpoint shards:  40%|████      | 2/5 [00:03<00:05,  1.84s/it]Loading checkpoint shards:  60%|██████    | 3/5 [00:05<00:03,  1.91s/it]Loading checkpoint shards:  80%|████████  | 4/5 [00:07<00:01,  1.94s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:07<00:00,  1.54s/it]
+[GPU|V-noise/sweep] Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:03<00:03,  3.20s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:06<00:00,  3.54s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:06<00:00,  3.49s/it]
+[GPU30|V-blank/sweep] Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:03<00:03,  3.01s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:06<00:00,  3.46s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:06<00:00,  3.39s/it]
+[GPU30|V-blank/sweep] Traceback (most recent call last):
+[GPU30|V-blank/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/../experiments/pcd/exp_pcd_layer_sweep.py", line 278, in <module>
+[GPU30|V-blank/sweep]     main()
+[GPU30|V-blank/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/../experiments/pcd/exp_pcd_layer_sweep.py", line 189, in main
+[GPU30|V-blank/sweep]     model_base = construct_model_base(args.model_path, args.model_name)
+[GPU30|V-blank/sweep]                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[GPU30|V-blank/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/model_utils/model_factory.py", line 29, in construct_model_base
+[GPU30|V-blank/sweep]     return cls(model_path)
+[GPU30|V-blank/sweep]            ^^^^^^^^^^^^^^^
+[GPU30|V-blank/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/model_utils/model_base.py", line 17, in __init__
+[GPU|V-noise/sweep] Traceback (most recent call last):
+[GPU|V-noise/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/../experiments/pcd/exp_pcd_layer_sweep.py", line 278, in <module>
+[GPU|V-noise/sweep]     main()
+[GPU|V-noise/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/../experiments/pcd/exp_pcd_layer_sweep.py", line 189, in main
+[GPU|V-noise/sweep]     model_base = construct_model_base(args.model_path, args.model_name)
+[GPU|V-noise/sweep]                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[GPU|V-noise/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/model_utils/model_factory.py", line 29, in construct_model_base
+[GPU|V-noise/sweep]     return cls(model_path)
+[GPU|V-noise/sweep]            ^^^^^^^^^^^^^^^
+[GPU|V-noise/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/model_utils/model_base.py", line 17, in __init__
+[GPU30|V-blank/sweep]     self.model: AutoModelForCausalLM = self._load_model(model_name_or_path)
+[GPU|V-noise/sweep]     self.model: AutoModelForCausalLM = self._load_model(model_name_or_path)
+[GPU30|V-blank/sweep]                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[GPU|V-noise/sweep]                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[GPU30|V-blank/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/model_utils/gemma3_vlm_model.py", line 78, in _load_model
+[GPU|V-noise/sweep]   File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction/pipeline/model_utils/gemma3_vlm_model.py", line 78, in _load_model
+[GPU30|V-blank/sweep]     ).eval().to("cuda:0")
+[GPU|V-noise/sweep]     ).eval().to("cuda:0")
+[GPU30|V-blank/sweep]              ^^^^^^^^^^^^
+[GPU|V-noise/sweep]              ^^^^^^^^^^^^
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4343, in to
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4343, in to
+[GPU30|V-blank/sweep]     return super().to(*args, **kwargs)
+[GPU|V-noise/sweep]     return super().to(*args, **kwargs)
+[GPU30|V-blank/sweep]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[GPU|V-noise/sweep]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1371, in to
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1371, in to
+[GPU30|V-blank/sweep]     return self._apply(convert)
+[GPU30|V-blank/sweep]            ^^^^^^^^^^^^^^^^^^^^
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 930, in _apply
+[GPU30|V-blank/sweep]     module._apply(fn)
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 930, in _apply
+[GPU|V-noise/sweep]     return self._apply(convert)
+[GPU|V-noise/sweep]            ^^^^^^^^^^^^^^^^^^^^
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 930, in _apply
+[GPU|V-noise/sweep]     module._apply(fn)
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 930, in _apply
+[GPU30|V-blank/sweep]     module._apply(fn)
+[GPU|V-noise/sweep]     module._apply(fn)
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 930, in _apply
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 930, in _apply
+[GPU30|V-blank/sweep]     module._apply(fn)
+[GPU30|V-blank/sweep]   [Previous line repeated 2 more times]
+[GPU|V-noise/sweep]     module._apply(fn)
+[GPU|V-noise/sweep]   [Previous line repeated 2 more times]
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 957, in _apply
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 957, in _apply
+[GPU30|V-blank/sweep]     param_applied = fn(param)
+[GPU30|V-blank/sweep]                     ^^^^^^^^^
+[GPU|V-noise/sweep]     param_applied = fn(param)
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1357, in convert
+[GPU|V-noise/sweep]                     ^^^^^^^^^
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1357, in convert
+[GPU30|V-blank/sweep]     return t.to(
+[GPU30|V-blank/sweep]            ^^^^^
+[GPU|V-noise/sweep]     return t.to(
+[GPU30|V-blank/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/cuda/__init__.py", line 410, in _lazy_init
+[GPU|V-noise/sweep]            ^^^^^
+[GPU|V-noise/sweep]   File "/opt/conda/envs/qwen3-vl/lib/python3.12/site-packages/torch/cuda/__init__.py", line 410, in _lazy_init
+[GPU30|V-blank/sweep]     torch._C._cuda_init()
+[GPU30|V-blank/sweep] RuntimeError: No CUDA GPUs are available
+[GPU|V-noise/sweep]     torch._C._cuda_init()
+[GPU|V-noise/sweep] RuntimeError: No CUDA GPUs are available
+[GPU|V-noise/sweep] ERROR conda.cli.main_run:execute(125): `conda run bash -c cd '/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction' && PYTHONPATH=. python ../experiments/pcd/exp_pcd_layer_sweep.py          --model_name gemma-3-4b-it-vlm --model_path '/inspire/hdd/global_user/wenming-253108090054/models/gemma-3-4b-it'          --condition V-noise --output_dir ../results/pcd/gemma_family/V-noise          --kl_threshold 100 --induce_refusal_threshold -999 --skip_if_done` failed. (See above for error)
+[GPU30|V-blank/sweep] ERROR conda.cli.main_run:execute(125): `conda run bash -c cd '/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/refusal_direction' && PYTHONPATH=. python ../experiments/pcd/exp_pcd_layer_sweep.py          --model_name gemma-3-4b-it-vlm --model_path '/inspire/hdd/global_user/wenming-253108090054/models/gemma-3-4b-it'          --condition V-blank --output_dir ../results/pcd/gemma_family/V-blank          --kl_threshold 100 --induce_refusal_threshold -999 --skip_if_done` failed. (See above for error)
+[GPU1|V-blank-resweep/sweep] The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+[GPU2|V-noise/sweep] The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+[GPU2|V-noise/sweep]   Layers     : 28
+[GPU2|V-noise/sweep]   hidden_size: 3584
+[GPU2|V-noise/sweep]   EOI toks   : [151645, 198, 151644, 77091, 198]
+[GPU2|V-noise/sweep]   Overriding tokenize_instructions_fn with image_mode='noise'
+[GPU2|V-noise/sweep] [2/3] Loading cached mean_diffs from ../results/pcd/qwen_family/V-noise/mean_diffs.pt ...
+[GPU2|V-noise/sweep]   mean_diffs shape: torch.Size([5, 28, 3584])
+[GPU2|V-noise/sweep] [3/3] Selecting best (pos, layer) via select_direction on val set ...
+[GPU1|V-blank-resweep/sweep]   Layers     : 28
+[GPU1|V-blank-resweep/sweep]   hidden_size: 3584
+[GPU1|V-blank-resweep/sweep]   EOI toks   : [151645, 198, 151644, 77091, 198]
+[GPU1|V-blank-resweep/sweep]   Overriding tokenize_instructions_fn with image_mode='blank'
+[GPU1|V-blank-resweep/sweep] [2/3] Loading cached mean_diffs from ../results/pcd/qwen_family/V-blank-resweep/mean_diffs.pt ...
+[GPU1|V-blank-resweep/sweep]   mean_diffs shape: torch.Size([5, 28, 3584])
+[GPU1|V-blank-resweep/sweep] [3/3] Selecting best (pos, layer) via select_direction on val set ...

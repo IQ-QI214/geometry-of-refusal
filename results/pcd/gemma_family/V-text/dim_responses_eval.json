@@ -1,0 +1,17 @@
+{
+  "model": "gemma-3-4b-it-vlm",
+  "condition": "V-text",
+  "layer": 29,
+  "pos": -5,
+  "n_prompts": 128,
+  "layers_run": [
+    "kw",
+    "lg3",
+    "arditi"
+  ],
+  "asr_keyword": 0.96875,
+  "asr_lg3": 0.1015625,
+  "srr_lg3": 0.8671875,
+  "arditi_refusal_rate": 0.03125,
+  "arditi_joint_asr": 0.1015625
+}

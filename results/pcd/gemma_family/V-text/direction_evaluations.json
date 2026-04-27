@@ -1,0 +1,1192 @@
+[
+    {
+        "position": -5,
+        "layer": 0,
+        "refusal_score": 5.420929908752441,
+        "steering_score": -18.0572509765625,
+        "kl_div_score": 0.0
+    },
+    {
+        "position": -5,
+        "layer": 1,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.048439025878906,
+        "kl_div_score": 13.71709581811714
+    },
+    {
+        "position": -5,
+        "layer": 2,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.047439575195312,
+        "kl_div_score": 13.709036151425597
+    },
+    {
+        "position": -5,
+        "layer": 3,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.044328689575195,
+        "kl_div_score": 13.713744348076037
+    },
+    {
+        "position": -5,
+        "layer": 4,
+        "refusal_score": -14.238036155700684,
+        "steering_score": -18.045270919799805,
+        "kl_div_score": 12.17539442472335
+    },
+    {
+        "position": -5,
+        "layer": 5,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.062705993652344,
+        "kl_div_score": 13.717095818119487
+    },
+    {
+        "position": -5,
+        "layer": 6,
+        "refusal_score": -18.419231414794922,
+        "steering_score": -18.056114196777344,
+        "kl_div_score": 13.717095765206702
+    },
+    {
+        "position": -5,
+        "layer": 7,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.03830909729004,
+        "kl_div_score": 13.717095782793207
+    },
+    {
+        "position": -5,
+        "layer": 8,
+        "refusal_score": -8.430477142333984,
+        "steering_score": -18.045515060424805,
+        "kl_div_score": 9.01435764760603
+    },
+    {
+        "position": -5,
+        "layer": 9,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.165340423583984,
+        "kl_div_score": 13.717095755843014
+    },
+    {
+        "position": -5,
+        "layer": 10,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -14.261177062988281,
+        "kl_div_score": 13.717095672092885
+    },
+    {
+        "position": -5,
+        "layer": 11,
+        "refusal_score": -18.41628646850586,
+        "steering_score": -1.6247591972351074,
+        "kl_div_score": 13.69403520210748
+    },
+    {
+        "position": -5,
+        "layer": 12,
+        "refusal_score": -18.411888122558594,
+        "steering_score": 4.790855407714844,
+        "kl_div_score": 13.684158730610305
+    },
+    {
+        "position": -5,
+        "layer": 13,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 10.882322311401367,
+        "kl_div_score": 13.71681000549767
+    },
+    {
+        "position": -5,
+        "layer": 14,
+        "refusal_score": -18.42059326171875,
+        "steering_score": 13.418689727783203,
+        "kl_div_score": 13.716274377792548
+    },
+    {
+        "position": -5,
+        "layer": 15,
+        "refusal_score": -18.42022705078125,
+        "steering_score": 13.894898414611816,
+        "kl_div_score": 13.713219768862027
+    },
+    {
+        "position": -5,
+        "layer": 16,
+        "refusal_score": -17.966629028320312,
+        "steering_score": 6.483313083648682,
+        "kl_div_score": 13.714430141963991
+    },
+    {
+        "position": -5,
+        "layer": 17,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 3.0465848445892334,
+        "kl_div_score": 13.695609771647426
+    },
+    {
+        "position": -5,
+        "layer": 18,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 4.157736301422119,
+        "kl_div_score": 13.671249029434474
+    },
+    {
+        "position": -5,
+        "layer": 19,
+        "refusal_score": -18.420673370361328,
+        "steering_score": 2.908876657485962,
+        "kl_div_score": 13.313559455511452
+    },
+    {
+        "position": -5,
+        "layer": 20,
+        "refusal_score": -18.420574188232422,
+        "steering_score": -8.304614067077637,
+        "kl_div_score": 13.366902393555158
+    },
+    {
+        "position": -5,
+        "layer": 21,
+        "refusal_score": -18.42043685913086,
+        "steering_score": -15.495429992675781,
+        "kl_div_score": 12.869673435640799
+    },
+    {
+        "position": -5,
+        "layer": 22,
+        "refusal_score": -18.416545867919922,
+        "steering_score": -16.0424747467041,
+        "kl_div_score": 12.837548301852426
+    },
+    {
+        "position": -5,
+        "layer": 23,
+        "refusal_score": -18.415790557861328,
+        "steering_score": -16.561662673950195,
+        "kl_div_score": 13.696238248769738
+    },
+    {
+        "position": -5,
+        "layer": 24,
+        "refusal_score": -7.779629707336426,
+        "steering_score": -16.697166442871094,
+        "kl_div_score": 13.695424431019559
+    },
+    {
+        "position": -5,
+        "layer": 25,
+        "refusal_score": -9.398244857788086,
+        "steering_score": -16.94084930419922,
+        "kl_div_score": 13.701233743006954
+    },
+    {
+        "position": -5,
+        "layer": 26,
+        "refusal_score": -7.560708045959473,
+        "steering_score": -16.8919734954834,
+        "kl_div_score": 13.645392761541846
+    },
+    {
+        "position": -5,
+        "layer": 27,
+        "refusal_score": -3.3309173583984375,
+        "steering_score": -16.73521614074707,
+        "kl_div_score": 12.522970901010904
+    },
+    {
+        "position": -5,
+        "layer": 28,
+        "refusal_score": -1.393210768699646,
+        "steering_score": -16.75494384765625,
+        "kl_div_score": 12.817425119471665
+    },
+    {
+        "position": -5,
+        "layer": 29,
+        "refusal_score": 12.631549835205078,
+        "steering_score": -16.779197692871094,
+        "kl_div_score": 5.9916774207915395
+    },
+    {
+        "position": -5,
+        "layer": 30,
+        "refusal_score": -12.168791770935059,
+        "steering_score": -16.540300369262695,
+        "kl_div_score": 13.509585174066814
+    },
+    {
+        "position": -5,
+        "layer": 31,
+        "refusal_score": -17.066192626953125,
+        "steering_score": -16.44639778137207,
+        "kl_div_score": 13.527767287507567
+    },
+    {
+        "position": -5,
+        "layer": 32,
+        "refusal_score": -18.40599822998047,
+        "steering_score": -16.974775314331055,
+        "kl_div_score": 1.8720050003881366
+    },
+    {
+        "position": -5,
+        "layer": 33,
+        "refusal_score": -16.556814193725586,
+        "steering_score": -16.84219741821289,
+        "kl_div_score": 13.591571035563861
+    },
+    {
+        "position": -4,
+        "layer": 0,
+        "refusal_score": 5.420929908752441,
+        "steering_score": -18.0572509765625,
+        "kl_div_score": 0.0
+    },
+    {
+        "position": -4,
+        "layer": 1,
+        "refusal_score": -5.7302374839782715,
+        "steering_score": -18.057201385498047,
+        "kl_div_score": 10.171373743045521
+    },
+    {
+        "position": -4,
+        "layer": 2,
+        "refusal_score": 4.163846015930176,
+        "steering_score": -18.055070877075195,
+        "kl_div_score": 4.558541749461192
+    },
+    {
+        "position": -4,
+        "layer": 3,
+        "refusal_score": 0.42167654633522034,
+        "steering_score": -18.05612564086914,
+        "kl_div_score": 0.42993947756480483
+    },
+    {
+        "position": -4,
+        "layer": 4,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.048206329345703,
+        "kl_div_score": 13.717095755025369
+    },
+    {
+        "position": -4,
+        "layer": 5,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.05919647216797,
+        "kl_div_score": 13.717095810092234
+    },
+    {
+        "position": -4,
+        "layer": 6,
+        "refusal_score": -18.374942779541016,
+        "steering_score": -18.04623794555664,
+        "kl_div_score": 13.693974391866217
+    },
+    {
+        "position": -4,
+        "layer": 7,
+        "refusal_score": -18.420650482177734,
+        "steering_score": -17.975791931152344,
+        "kl_div_score": 13.717095732712819
+    },
+    {
+        "position": -4,
+        "layer": 8,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.675708770751953,
+        "kl_div_score": 13.717095817328511
+    },
+    {
+        "position": -4,
+        "layer": 9,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.686765670776367,
+        "kl_div_score": 13.717095515114709
+    },
+    {
+        "position": -4,
+        "layer": 10,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.944116592407227,
+        "kl_div_score": 13.717095791782038
+    },
+    {
+        "position": -4,
+        "layer": 11,
+        "refusal_score": -18.190092086791992,
+        "steering_score": -16.77399253845215,
+        "kl_div_score": 13.714976902126311
+    },
+    {
+        "position": -4,
+        "layer": 12,
+        "refusal_score": -18.203868865966797,
+        "steering_score": -15.671847343444824,
+        "kl_div_score": 13.717062414794304
+    },
+    {
+        "position": -4,
+        "layer": 13,
+        "refusal_score": -16.795459747314453,
+        "steering_score": -14.729719161987305,
+        "kl_div_score": 13.713896434499123
+    },
+    {
+        "position": -4,
+        "layer": 14,
+        "refusal_score": -18.25967025756836,
+        "steering_score": -11.97139835357666,
+        "kl_div_score": 13.716120766123476
+    },
+    {
+        "position": -4,
+        "layer": 15,
+        "refusal_score": -18.419979095458984,
+        "steering_score": -4.762670040130615,
+        "kl_div_score": 13.717095738425565
+    },
+    {
+        "position": -4,
+        "layer": 16,
+        "refusal_score": -18.403688430786133,
+        "steering_score": -15.657981872558594,
+        "kl_div_score": 13.717094775109267
+    },
+    {
+        "position": -4,
+        "layer": 17,
+        "refusal_score": -18.420677185058594,
+        "steering_score": -16.470624923706055,
+        "kl_div_score": 13.717095777251176
+    },
+    {
+        "position": -4,
+        "layer": 18,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.847545623779297,
+        "kl_div_score": 13.717095817502077
+    },
+    {
+        "position": -4,
+        "layer": 19,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.637083053588867,
+        "kl_div_score": 13.717095818116894
+    },
+    {
+        "position": -4,
+        "layer": 20,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.317716598510742,
+        "kl_div_score": 13.717095818119912
+    },
+    {
+        "position": -4,
+        "layer": 21,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.406946182250977,
+        "kl_div_score": 13.717095818119738
+    },
+    {
+        "position": -4,
+        "layer": 22,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.492259979248047,
+        "kl_div_score": 13.717095818119994
+    },
+    {
+        "position": -4,
+        "layer": 23,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.719738006591797,
+        "kl_div_score": 13.71709581812
+    },
+    {
+        "position": -4,
+        "layer": 24,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.784168243408203,
+        "kl_div_score": 13.71709581812
+    },
+    {
+        "position": -4,
+        "layer": 25,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.812223434448242,
+        "kl_div_score": 13.717095818076862
+    },
+    {
+        "position": -4,
+        "layer": 26,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.848039627075195,
+        "kl_div_score": 13.717095597758924
+    },
+    {
+        "position": -4,
+        "layer": 27,
+        "refusal_score": -18.420679092407227,
+        "steering_score": -17.943782806396484,
+        "kl_div_score": 13.717088094685122
+    },
+    {
+        "position": -4,
+        "layer": 28,
+        "refusal_score": -18.410924911499023,
+        "steering_score": -17.9683895111084,
+        "kl_div_score": 13.71576268328419
+    },
+    {
+        "position": -4,
+        "layer": 29,
+        "refusal_score": -18.42052459716797,
+        "steering_score": -17.972379684448242,
+        "kl_div_score": 13.71645695207946
+    },
+    {
+        "position": -4,
+        "layer": 30,
+        "refusal_score": -18.420616149902344,
+        "steering_score": -17.952045440673828,
+        "kl_div_score": 13.716858610033793
+    },
+    {
+        "position": -4,
+        "layer": 31,
+        "refusal_score": -18.420482635498047,
+        "steering_score": -17.997758865356445,
+        "kl_div_score": 13.716963974254908
+    },
+    {
+        "position": -4,
+        "layer": 32,
+        "refusal_score": -18.33029556274414,
+        "steering_score": -17.93943214416504,
+        "kl_div_score": 13.715381489339089
+    },
+    {
+        "position": -4,
+        "layer": 33,
+        "refusal_score": -17.368209838867188,
+        "steering_score": -17.941431045532227,
+        "kl_div_score": 13.71232761057397
+    },
+    {
+        "position": -3,
+        "layer": 0,
+        "refusal_score": 5.420929908752441,
+        "steering_score": -18.0572509765625,
+        "kl_div_score": 0.0
+    },
+    {
+        "position": -3,
+        "layer": 1,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.051803588867188,
+        "kl_div_score": 13.717095818096341
+    },
+    {
+        "position": -3,
+        "layer": 2,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.052766799926758,
+        "kl_div_score": 13.716755702700704
+    },
+    {
+        "position": -3,
+        "layer": 3,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.055397033691406,
+        "kl_div_score": 13.716166759220128
+    },
+    {
+        "position": -3,
+        "layer": 4,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.056529998779297,
+        "kl_div_score": 13.717085227221697
+    },
+    {
+        "position": -3,
+        "layer": 5,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.06260871887207,
+        "kl_div_score": 13.717095817562674
+    },
+    {
+        "position": -3,
+        "layer": 6,
+        "refusal_score": -18.420061111450195,
+        "steering_score": -18.05785369873047,
+        "kl_div_score": 13.717094762155664
+    },
+    {
+        "position": -3,
+        "layer": 7,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.02642059326172,
+        "kl_div_score": 13.714655140035532
+    },
+    {
+        "position": -3,
+        "layer": 8,
+        "refusal_score": -18.420570373535156,
+        "steering_score": -18.0322322845459,
+        "kl_div_score": 13.71709566233415
+    },
+    {
+        "position": -3,
+        "layer": 9,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.002058029174805,
+        "kl_div_score": 13.717095405240059
+    },
+    {
+        "position": -3,
+        "layer": 10,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -14.318734169006348,
+        "kl_div_score": 13.717088321294518
+    },
+    {
+        "position": -3,
+        "layer": 11,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -9.452716827392578,
+        "kl_div_score": 13.706396464140152
+    },
+    {
+        "position": -3,
+        "layer": 12,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 1.5416219234466553,
+        "kl_div_score": 13.712709997498129
+    },
+    {
+        "position": -3,
+        "layer": 13,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 5.021662712097168,
+        "kl_div_score": 13.714613074185541
+    },
+    {
+        "position": -3,
+        "layer": 14,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 11.94129467010498,
+        "kl_div_score": 13.713217117193924
+    },
+    {
+        "position": -3,
+        "layer": 15,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 11.697809219360352,
+        "kl_div_score": 13.715784710875221
+    },
+    {
+        "position": -3,
+        "layer": 16,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -0.24214042723178864,
+        "kl_div_score": 13.712450006182994
+    },
+    {
+        "position": -3,
+        "layer": 17,
+        "refusal_score": 9.637455940246582,
+        "steering_score": -0.5042064785957336,
+        "kl_div_score": 13.17633434781336
+    },
+    {
+        "position": -3,
+        "layer": 18,
+        "refusal_score": -18.112194061279297,
+        "steering_score": 0.2548835873603821,
+        "kl_div_score": 13.715828030874517
+    },
+    {
+        "position": -3,
+        "layer": 19,
+        "refusal_score": -18.319889068603516,
+        "steering_score": 0.3950275778770447,
+        "kl_div_score": 13.717008575344114
+    },
+    {
+        "position": -3,
+        "layer": 20,
+        "refusal_score": -7.796984672546387,
+        "steering_score": -9.998983383178711,
+        "kl_div_score": 9.873579027791871
+    },
+    {
+        "position": -3,
+        "layer": 21,
+        "refusal_score": -18.304641723632812,
+        "steering_score": -13.356595039367676,
+        "kl_div_score": 13.71708863247401
+    },
+    {
+        "position": -3,
+        "layer": 22,
+        "refusal_score": -14.508109092712402,
+        "steering_score": -14.263282775878906,
+        "kl_div_score": 13.714285924133844
+    },
+    {
+        "position": -3,
+        "layer": 23,
+        "refusal_score": -11.864316940307617,
+        "steering_score": -14.983183860778809,
+        "kl_div_score": 13.70688883542052
+    },
+    {
+        "position": -3,
+        "layer": 24,
+        "refusal_score": -1.0198369026184082,
+        "steering_score": -15.683658599853516,
+        "kl_div_score": 9.673247060527613
+    },
+    {
+        "position": -3,
+        "layer": 25,
+        "refusal_score": -18.140541076660156,
+        "steering_score": -16.70086669921875,
+        "kl_div_score": 13.598877789116335
+    },
+    {
+        "position": -3,
+        "layer": 26,
+        "refusal_score": -18.25432777404785,
+        "steering_score": -17.071182250976562,
+        "kl_div_score": 13.375115082783127
+    },
+    {
+        "position": -3,
+        "layer": 27,
+        "refusal_score": -18.4105281829834,
+        "steering_score": -17.191978454589844,
+        "kl_div_score": 13.409592984908324
+    },
+    {
+        "position": -3,
+        "layer": 28,
+        "refusal_score": -18.414052963256836,
+        "steering_score": -17.17853546142578,
+        "kl_div_score": 13.42909100189357
+    },
+    {
+        "position": -3,
+        "layer": 29,
+        "refusal_score": -18.26408576965332,
+        "steering_score": -17.292469024658203,
+        "kl_div_score": 13.494507111587106
+    },
+    {
+        "position": -3,
+        "layer": 30,
+        "refusal_score": -17.72385025024414,
+        "steering_score": -17.328874588012695,
+        "kl_div_score": 13.479768347792502
+    },
+    {
+        "position": -3,
+        "layer": 31,
+        "refusal_score": -16.35738182067871,
+        "steering_score": -17.369470596313477,
+        "kl_div_score": 13.195654475554
+    },
+    {
+        "position": -3,
+        "layer": 32,
+        "refusal_score": -18.17597198486328,
+        "steering_score": -17.512514114379883,
+        "kl_div_score": 13.60951876047572
+    },
+    {
+        "position": -3,
+        "layer": 33,
+        "refusal_score": -18.34284019470215,
+        "steering_score": -17.49022102355957,
+        "kl_div_score": 13.592686828621671
+    },
+    {
+        "position": -2,
+        "layer": 0,
+        "refusal_score": 5.420929908752441,
+        "steering_score": -18.0572509765625,
+        "kl_div_score": 0.0
+    },
+    {
+        "position": -2,
+        "layer": 1,
+        "refusal_score": -18.420642852783203,
+        "steering_score": -18.056926727294922,
+        "kl_div_score": 13.716327417497343
+    },
+    {
+        "position": -2,
+        "layer": 2,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.055938720703125,
+        "kl_div_score": 13.717095818119503
+    },
+    {
+        "position": -2,
+        "layer": 3,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.058536529541016,
+        "kl_div_score": 13.71709152975428
+    },
+    {
+        "position": -2,
+        "layer": 4,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.05598258972168,
+        "kl_div_score": 13.717095817478384
+    },
+    {
+        "position": -2,
+        "layer": 5,
+        "refusal_score": -18.417591094970703,
+        "steering_score": -18.046236038208008,
+        "kl_div_score": 13.472062832662564
+    },
+    {
+        "position": -2,
+        "layer": 6,
+        "refusal_score": -16.49768829345703,
+        "steering_score": -18.047773361206055,
+        "kl_div_score": 6.989877655510931
+    },
+    {
+        "position": -2,
+        "layer": 7,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.032947540283203,
+        "kl_div_score": 13.717043545665563
+    },
+    {
+        "position": -2,
+        "layer": 8,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.03214454650879,
+        "kl_div_score": 13.715620076927522
+    },
+    {
+        "position": -2,
+        "layer": 9,
+        "refusal_score": -18.42066192626953,
+        "steering_score": -18.04542350769043,
+        "kl_div_score": 13.701857024783534
+    },
+    {
+        "position": -2,
+        "layer": 10,
+        "refusal_score": -18.420671463012695,
+        "steering_score": -18.04449462890625,
+        "kl_div_score": 13.713674208172144
+    },
+    {
+        "position": -2,
+        "layer": 11,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -17.260969161987305,
+        "kl_div_score": 13.715127854988543
+    },
+    {
+        "position": -2,
+        "layer": 12,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.10047149658203,
+        "kl_div_score": 13.7168978224101
+    },
+    {
+        "position": -2,
+        "layer": 13,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -16.242013931274414,
+        "kl_div_score": 13.713771912254284
+    },
+    {
+        "position": -2,
+        "layer": 14,
+        "refusal_score": 10.058113098144531,
+        "steering_score": -14.793272972106934,
+        "kl_div_score": 2.6616433606003564
+    },
+    {
+        "position": -2,
+        "layer": 15,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -14.087533950805664,
+        "kl_div_score": 13.717034450262682
+    },
+    {
+        "position": -2,
+        "layer": 16,
+        "refusal_score": -18.420677185058594,
+        "steering_score": 6.318202018737793,
+        "kl_div_score": 13.717095784492061
+    },
+    {
+        "position": -2,
+        "layer": 17,
+        "refusal_score": -18.420133590698242,
+        "steering_score": 4.373966217041016,
+        "kl_div_score": 13.71709581627449
+    },
+    {
+        "position": -2,
+        "layer": 18,
+        "refusal_score": -18.420650482177734,
+        "steering_score": 5.646702289581299,
+        "kl_div_score": 13.717093840006637
+    },
+    {
+        "position": -2,
+        "layer": 19,
+        "refusal_score": -18.420654296875,
+        "steering_score": 6.226129055023193,
+        "kl_div_score": 13.717069103774929
+    },
+    {
+        "position": -2,
+        "layer": 20,
+        "refusal_score": -18.380277633666992,
+        "steering_score": 6.753159523010254,
+        "kl_div_score": 13.715962088286014
+    },
+    {
+        "position": -2,
+        "layer": 21,
+        "refusal_score": -16.37788963317871,
+        "steering_score": 3.513509750366211,
+        "kl_div_score": 13.710735092249875
+    },
+    {
+        "position": -2,
+        "layer": 22,
+        "refusal_score": -10.240742683410645,
+        "steering_score": 2.4841272830963135,
+        "kl_div_score": 13.47155271283313
+    },
+    {
+        "position": -2,
+        "layer": 23,
+        "refusal_score": -11.829033851623535,
+        "steering_score": 2.3794937133789062,
+        "kl_div_score": 13.710244534007867
+    },
+    {
+        "position": -2,
+        "layer": 24,
+        "refusal_score": -7.2683024406433105,
+        "steering_score": 4.390635967254639,
+        "kl_div_score": 13.67372082494086
+    },
+    {
+        "position": -2,
+        "layer": 25,
+        "refusal_score": -12.546770095825195,
+        "steering_score": 2.248347043991089,
+        "kl_div_score": 13.684511262969542
+    },
+    {
+        "position": -2,
+        "layer": 26,
+        "refusal_score": -7.057674407958984,
+        "steering_score": 0.7816112041473389,
+        "kl_div_score": 13.683276188079244
+    },
+    {
+        "position": -2,
+        "layer": 27,
+        "refusal_score": -2.5113067626953125,
+        "steering_score": 0.4326971471309662,
+        "kl_div_score": 13.671743285591926
+    },
+    {
+        "position": -2,
+        "layer": 28,
+        "refusal_score": -6.372413635253906,
+        "steering_score": -0.07319492101669312,
+        "kl_div_score": 13.682297900846663
+    },
+    {
+        "position": -2,
+        "layer": 29,
+        "refusal_score": -3.6348252296447754,
+        "steering_score": -0.23990635573863983,
+        "kl_div_score": 13.684213223315863
+    },
+    {
+        "position": -2,
+        "layer": 30,
+        "refusal_score": -7.889698028564453,
+        "steering_score": 0.253545880317688,
+        "kl_div_score": 13.6991131168205
+    },
+    {
+        "position": -2,
+        "layer": 31,
+        "refusal_score": -6.7722907066345215,
+        "steering_score": 0.5765637755393982,
+        "kl_div_score": 1.3136405653788021
+    },
+    {
+        "position": -2,
+        "layer": 32,
+        "refusal_score": -18.15340805053711,
+        "steering_score": -9.259113311767578,
+        "kl_div_score": 13.706343608335516
+    },
+    {
+        "position": -2,
+        "layer": 33,
+        "refusal_score": -18.371784210205078,
+        "steering_score": -7.527822971343994,
+        "kl_div_score": 13.705711709413228
+    },
+    {
+        "position": -1,
+        "layer": 0,
+        "refusal_score": 5.420929908752441,
+        "steering_score": -18.0572509765625,
+        "kl_div_score": 0.0
+    },
+    {
+        "position": -1,
+        "layer": 1,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.055627822875977,
+        "kl_div_score": 13.71672513247592
+    },
+    {
+        "position": -1,
+        "layer": 2,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.05217742919922,
+        "kl_div_score": 13.717095418841398
+    },
+    {
+        "position": -1,
+        "layer": 3,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.054237365722656,
+        "kl_div_score": 13.717095469608147
+    },
+    {
+        "position": -1,
+        "layer": 4,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.054725646972656,
+        "kl_div_score": 13.715604242187219
+    },
+    {
+        "position": -1,
+        "layer": 5,
+        "refusal_score": -18.419523239135742,
+        "steering_score": -18.056167602539062,
+        "kl_div_score": 13.697768520812849
+    },
+    {
+        "position": -1,
+        "layer": 6,
+        "refusal_score": -18.420677185058594,
+        "steering_score": -18.062923431396484,
+        "kl_div_score": 13.71662346896024
+    },
+    {
+        "position": -1,
+        "layer": 7,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.059968948364258,
+        "kl_div_score": 13.717095344604449
+    },
+    {
+        "position": -1,
+        "layer": 8,
+        "refusal_score": -17.728553771972656,
+        "steering_score": -18.05384635925293,
+        "kl_div_score": 13.190955631718532
+    },
+    {
+        "position": -1,
+        "layer": 9,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -18.05570411682129,
+        "kl_div_score": 13.674386049508382
+    },
+    {
+        "position": -1,
+        "layer": 10,
+        "refusal_score": -17.40866470336914,
+        "steering_score": -18.068788528442383,
+        "kl_div_score": 13.361396442793765
+    },
+    {
+        "position": -1,
+        "layer": 11,
+        "refusal_score": -16.43974494934082,
+        "steering_score": -16.676010131835938,
+        "kl_div_score": 13.184248485096578
+    },
+    {
+        "position": -1,
+        "layer": 12,
+        "refusal_score": -18.420677185058594,
+        "steering_score": -10.279677391052246,
+        "kl_div_score": 13.717045603908408
+    },
+    {
+        "position": -1,
+        "layer": 13,
+        "refusal_score": -18.42009162902832,
+        "steering_score": -8.316657066345215,
+        "kl_div_score": 13.71596968874295
+    },
+    {
+        "position": -1,
+        "layer": 14,
+        "refusal_score": -18.420665740966797,
+        "steering_score": -6.427573204040527,
+        "kl_div_score": 13.716966133670068
+    },
+    {
+        "position": -1,
+        "layer": 15,
+        "refusal_score": -18.42050552368164,
+        "steering_score": -7.458488941192627,
+        "kl_div_score": 13.716237464191062
+    },
+    {
+        "position": -1,
+        "layer": 16,
+        "refusal_score": -18.42068099975586,
+        "steering_score": -2.9101901054382324,
+        "kl_div_score": 13.716321116167002
+    },
+    {
+        "position": -1,
+        "layer": 17,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 4.623901844024658,
+        "kl_div_score": 13.710809109361614
+    },
+    {
+        "position": -1,
+        "layer": 18,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 8.304072380065918,
+        "kl_div_score": 13.714121884833212
+    },
+    {
+        "position": -1,
+        "layer": 19,
+        "refusal_score": -18.42058563232422,
+        "steering_score": 7.6437201499938965,
+        "kl_div_score": 13.59196643648503
+    },
+    {
+        "position": -1,
+        "layer": 20,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 6.500004291534424,
+        "kl_div_score": 13.713269424705466
+    },
+    {
+        "position": -1,
+        "layer": 21,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 5.553548812866211,
+        "kl_div_score": 13.708205482518215
+    },
+    {
+        "position": -1,
+        "layer": 22,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 4.410651206970215,
+        "kl_div_score": 13.694545545856547
+    },
+    {
+        "position": -1,
+        "layer": 23,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 5.854725360870361,
+        "kl_div_score": 13.49168552968508
+    },
+    {
+        "position": -1,
+        "layer": 24,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 4.807830810546875,
+        "kl_div_score": 13.635732623037221
+    },
+    {
+        "position": -1,
+        "layer": 25,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 3.9163641929626465,
+        "kl_div_score": 13.494213929746088
+    },
+    {
+        "position": -1,
+        "layer": 26,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 3.9791676998138428,
+        "kl_div_score": 13.312586277698177
+    },
+    {
+        "position": -1,
+        "layer": 27,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 3.7560513019561768,
+        "kl_div_score": 13.188748290563693
+    },
+    {
+        "position": -1,
+        "layer": 28,
+        "refusal_score": -18.42068099975586,
+        "steering_score": 3.6648294925689697,
+        "kl_div_score": 13.129828010421457
+    },
+    {
+        "position": -1,
+        "layer": 29,
+        "refusal_score": -18.41999626159668,
+        "steering_score": 4.328572750091553,
+        "kl_div_score": 13.155415258702437
+    },
+    {
+        "position": -1,
+        "layer": 30,
+        "refusal_score": -18.414674758911133,
+        "steering_score": 4.097212314605713,
+        "kl_div_score": 13.681033183160642
+    },
+    {
+        "position": -1,
+        "layer": 31,
+        "refusal_score": -18.42038345336914,
+        "steering_score": 3.8682188987731934,
+        "kl_div_score": 12.581428806116284
+    },
+    {
+        "position": -1,
+        "layer": 32,
+        "refusal_score": -17.115230560302734,
+        "steering_score": 2.888511896133423,
+        "kl_div_score": 13.598043409256482
+    },
+    {
+        "position": -1,
+        "layer": 33,
+        "refusal_score": -14.438312530517578,
+        "steering_score": 3.6823360919952393,
+        "kl_div_score": 13.623516506060566
+    }
+]
