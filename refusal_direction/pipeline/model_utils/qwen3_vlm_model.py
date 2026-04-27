@@ -109,6 +109,7 @@ class Qwen3VLMModel(ModelBase):
         processor = AutoProcessor.from_pretrained(
             model_path,
             trust_remote_code=True,
+            local_files_only=True,
         )
         self._processor = processor
         tokenizer = processor.tokenizer
