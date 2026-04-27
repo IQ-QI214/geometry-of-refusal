@@ -4,6 +4,7 @@ from pipeline.model_utils.model_base import ModelBase
 # (Qwen2.5-VL path contains "qwen" so VLM must be matched first)
 VLM_INDICATORS = {
     "llava": ["llava-1.5", "llava-hf"],
+    "qwen3_vlm": ["Qwen3-VL", "qwen3-vl"],
     "qwen_vlm": ["Qwen2.5-VL", "qwen2.5-vl"],
 }
 
@@ -11,6 +12,7 @@ VLM_INDICATORS = {
 _MODEL_NAME_MAP = {
     "gemma-3-4b-it-vlm": ("pipeline.model_utils.gemma3_vlm_model", "Gemma3VLMModel"),
     "gemma-3-4b-it":     ("pipeline.model_utils.gemma3_model",     "Gemma3Model"),
+    "qwen3vl_8b":        ("pipeline.model_utils.qwen3_vlm_model",  "Qwen3VLMModel"),
     "qwen2.5-vl-7b":     ("pipeline.model_utils.qwen_vlm_model",   "QwenVLMModel"),
     "qwen2.5-7b":        ("pipeline.model_utils.qwen_model",       "QwenModel"),
     "qwen2.5-7b-instruct": ("pipeline.model_utils.qwen_model",     "QwenModel"),
@@ -37,6 +39,11 @@ def construct_model_base(model_path: str, model_name: str = None) -> ModelBase:
         if indicator.lower() in path_lower:
             from pipeline.model_utils.llava_vlm_model import LlavaVLMModel
             return LlavaVLMModel(model_path)
+
+    for indicator in VLM_INDICATORS["qwen3_vlm"]:
+        if indicator.lower() in path_lower:
+            from pipeline.model_utils.qwen3_vlm_model import Qwen3VLMModel
+            return Qwen3VLMModel(model_path)
 
     for indicator in VLM_INDICATORS["qwen_vlm"]:
         if indicator.lower() in path_lower:
