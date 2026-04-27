@@ -44,7 +44,7 @@ def load_data(n: int):
     return harmful, harmless
 
 
-def run_condition_a(model_base, harmful, harmful_instructions, best_layer, best_pos):
+def run_condition_a(model_base, harmful_instructions, best_layer, best_pos):
     """标准 DIM 消融：仅正交化 backbone 方向，与 PCD 完全一致。"""
     from pipeline.submodules.generate_directions import get_mean_diff
     from pipeline.submodules.generate import generate_completions
@@ -101,14 +101,17 @@ def compute_projector_mean_diff(model_base, harmful_instructions, harmless_instr
 
     print(f"[projector_test] Found projector: {proj_name}")
 
+    device = next(model_base.model.parameters()).device
+
     # 收集 harmful activations
     h = proj_module.register_forward_hook(
         functools.partial(_hook_collect, harmful_acts)
     )
     with torch.no_grad():
         for instr in harmful_instructions[:32]:
-            model_base.tokenize_instructions_fn([instr], image_mode="blank")
-            # 只需 forward pass，不生成
+            inputs = model_base.tokenize_instructions_fn([instr], image_mode="blank")
+            inputs = {k: v.to(device) for k, v in inputs.items() if isinstance(v, torch.Tensor)}
+            model_base.model(**inputs)
     h.remove()
 
     # 收集 harmless activations
@@ -117,7 +120,9 @@ def compute_projector_mean_diff(model_base, harmful_instructions, harmless_instr
     )
     with torch.no_grad():
         for instr in harmless_instructions[:32]:
-            model_base.tokenize_instructions_fn([instr], image_mode="blank")
+            inputs = model_base.tokenize_instructions_fn([instr], image_mode="blank")
+            inputs = {k: v.to(device) for k, v in inputs.items() if isinstance(v, torch.Tensor)}
+            model_base.model(**inputs)
     h.remove()
 
     harmful_mean = torch.stack(harmful_acts).mean(0)
@@ -194,7 +199,7 @@ def main():
 
     # 조건 A
     print("[projector_test] Running condition A (backbone only)...")
-    resp_a = run_condition_a(model_base, harmful, harmful_instructions, best_layer, best_pos)
+    resp_a = run_condition_a(model_base, harmful_instructions, best_layer, best_pos)
     asr_a = score_lg3(resp_a, harmful_instructions)
     print(f"[projector_test] Condition A ASR_LG3: {asr_a:.3f}")
 

@@ -1,0 +1,22 @@
+[
+  {
+    "model": "Qwen2.5-VL-7B",
+    "c1_llm_vs_vtext": 0.6708,
+    "c2_vtext_vs_vblank": 0.8038,
+    "c3_llm_vs_vblank": 0.4915,
+    "cascade_prediction_c1xc2": 0.5392,
+    "angle_sum_prediction": 0.098,
+    "cascade_error_c3_minus_pred": -0.0477,
+    "interpretation": "cascade"
+  },
+  {
+    "model": "Qwen3-VL-8B",
+    "status": "sweep not yet complete"
+  },
+  {
+    "model": "Gemma-3-4B",
+    "c1_llm_vs_vtext": "N/A (L≡V-text, no VL alignment shift)",
+    "c2_vtext_vs_vblank": -0.0058,
+    "c3_llm_vs_vblank": "N/A"
+  }
+]
