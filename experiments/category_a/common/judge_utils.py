@@ -112,9 +112,14 @@ class LlamaGuard3Judge(JudgeBase):
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": response},
         ]
-        input_ids = self.tokenizer.apply_chat_template(
+        encoded = self.tokenizer.apply_chat_template(
             messages, return_tensors="pt"
-        ).to(self.model.device)
+        )
+        # transformers 5.x returns BatchEncoding; older versions return a tensor
+        if hasattr(encoded, "input_ids"):
+            input_ids = encoded.input_ids.to(self.model.device)
+        else:
+            input_ids = encoded.to(self.model.device)
 
         with torch.no_grad():
             output = self.model.generate(

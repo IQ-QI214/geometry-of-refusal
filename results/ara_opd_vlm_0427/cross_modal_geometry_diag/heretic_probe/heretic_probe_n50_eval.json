@@ -1,0 +1,17 @@
+{
+  "model": "gemma-4-heretic",
+  "n": 50,
+  "metrics": {
+    "asr_keyword": 0.98,
+    "asr_sr": 1.0,
+    "mean_sr": 0.5317578125,
+    "asr_qwen3guard": 0.4,
+    "asr_llamaguard": 0.46,
+    "srr_qwen3guard": 0.58,
+    "srr_llamaguard": 0.52
+  },
+  "egr_q3g": 2.4499999999999997,
+  "srr_q3g": 0.58,
+  "egr_lg": 2.1304347826086953,
+  "srr_lg": 0.52
+}

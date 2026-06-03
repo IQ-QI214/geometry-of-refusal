@@ -4,7 +4,7 @@ set -euo pipefail
 export PYTHONPATH=refusal_direction
 
 MODEL_NAME="qwen3vl_8b"
-MODEL_PATH="/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B-Instruct"
+MODEL_PATH="/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B"
 OUTBASE="results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl"
 
 for COND in V-text V-blank V-noise; do

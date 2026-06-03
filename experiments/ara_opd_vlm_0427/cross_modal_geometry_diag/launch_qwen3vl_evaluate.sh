@@ -4,7 +4,7 @@ set -euo pipefail
 export PYTHONPATH=refusal_direction
 
 MODEL_NAME="qwen3vl_8b"
-MODEL_PATH="/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B-Instruct"
+MODEL_PATH="/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B"
 OUTBASE="results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl"
 Q3G_PATH="/inspire/hdd/global_user/wenming-253108090054/models/Qwen3Guard-Gen-8B"
 LG3_PATH="/inspire/hdd/global_user/wenming-253108090054/models/llama-guard-3-8b"

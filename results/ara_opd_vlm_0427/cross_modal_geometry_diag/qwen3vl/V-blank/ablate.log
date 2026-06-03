@@ -1,0 +1,13 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/experiments/pcd/exp_pcd_ablate.py", line 211, in <module>
+    main()
+  File "/inspire/hdd/global_user/wenming-253108090054/zhujiaqi/geometry-of-refusal/experiments/pcd/exp_pcd_ablate.py", line 88, in main
+    raise FileNotFoundError(
+FileNotFoundError: best_layer.json not found at results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl/V-blank/sweep/best_layer.json. Run exp_pcd_layer_sweep.py first.
+
+ERROR conda.cli.main_run:execute(125): `conda run python3 experiments/pcd/exp_pcd_ablate.py --model_name qwen3vl_8b --model_path /inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B --condition V-blank --sweep_dir results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl/V-blank/sweep --output_dir results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl/V-blank` failed. (See above for error)
+=== PCD Ablation: model=qwen3vl_8b  condition=V-blank ===
+  sweep_dir  : results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl/V-blank/sweep
+  output_dir : results/ara_opd_vlm_0427/cross_modal_geometry_diag/qwen3vl/V-blank
+

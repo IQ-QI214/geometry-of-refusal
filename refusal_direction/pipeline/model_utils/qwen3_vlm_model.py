@@ -3,7 +3,7 @@ import functools
 
 import numpy as np
 from torch import Tensor
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+from transformers import AutoModelForImageTextToText, AutoProcessor
 from typing import List, Literal
 try:
     from jaxtyping import Float
@@ -16,11 +16,9 @@ from PIL import Image
 from pipeline.utils.utils import get_orthogonalized_matrix
 from pipeline.model_utils.model_base import ModelBase
 
-# NOTE: Qwen3-VL-8B-Instruct uses the same architecture class as Qwen2.5-VL:
-#   Qwen2_5_VLForConditionalGeneration
-# Verify after model download: check config.json `architectures` field.
-# Expected: ["Qwen2_5_VLForConditionalGeneration"]
-QWEN3_VLM_REFUSAL_TOKS = [40, 2121]  # ['I', 'As'] — shared tokenizer with Qwen family
+# Qwen3-VL-8B uses Qwen3VLForConditionalGeneration (confirmed from config.json).
+# Using AutoModelForImageTextToText for forward compatibility.
+QWEN3_VLM_REFUSAL_TOKS = [40, 2121]  # ['I', 'As'] — verify with Qwen3 tokenizer
 
 _BLANK_IMAGE = Image.new("RGB", (336, 336), (255, 255, 255))
 
@@ -93,12 +91,13 @@ def tokenize_instructions_qwen3_vlm(
 class Qwen3VLMModel(ModelBase):
 
     def _load_model(self, model_path, dtype=torch.bfloat16):
-        # NOTE: Using Qwen2_5_VLForConditionalGeneration — verify after model download
-        # that config.json `architectures` matches. Update class if needed.
-        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+        import os, accelerate  # noqa: F401 — needed for device_map="auto"
+        n_gpus = int(os.environ.get("CUDA_VISIBLE_DEVICES", "0").count(",")) + 1 if os.environ.get("CUDA_VISIBLE_DEVICES") else 1
+        device_map = "auto" if n_gpus > 1 else {"": "cuda:0"}
+        model = AutoModelForImageTextToText.from_pretrained(
             model_path,
-            torch_dtype=dtype,
-            device_map={"": "cuda:0"},
+            dtype=dtype,
+            device_map=device_map,
             local_files_only=True,
             trust_remote_code=True,
         ).eval()
@@ -131,7 +130,7 @@ class Qwen3VLMModel(ModelBase):
         return QWEN3_VLM_REFUSAL_TOKS
 
     def _get_model_block_modules(self):
-        # Qwen2_5_VLForConditionalGeneration: model.model.language_model.layers
+        # Qwen3VLForConditionalGeneration: model.model.language_model.layers
         return self.model.model.language_model.layers
 
     def _get_attn_modules(self):

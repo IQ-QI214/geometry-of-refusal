@@ -29,7 +29,7 @@ sys.path.insert(0, str(_ROOT))
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
-MODEL_PATH = "/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B-Instruct"
+MODEL_PATH = "/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B"
 DIAG_ROOT = _ROOT / "results" / "ara_opd_vlm_0427" / "cross_modal_geometry_diag" / "qwen3vl"
 OUT_PATH = _ROOT / "results" / "ara_opd_vlm_0427" / "cross_modal_geometry_diag" / "projector_causal_test.json"
 DATA_DIR = _ROOT / "data" / "saladbench_splits"

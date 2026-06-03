@@ -25,20 +25,32 @@ WHEELS="$ROOT/pip_wheels_py312"
 LOCK="$ROOT/requirements.lock"
 VENV="$ROOT/.venv_gemma_probe"
 
-PYVER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-if [[ "$PYVER" != "3.12" ]]; then
-  echo "WARNING: Python is $PYVER, expected 3.12. Proceeding anyway." >&2
-fi
-
 [[ -d "$WHEELS" ]] || { echo "ERROR: $WHEELS missing" >&2; exit 1; }
 [[ -f "$LOCK" ]]   || { echo "ERROR: $LOCK missing"   >&2; exit 1; }
 
 # ---------------------------------------------------------------------------
-# 1. Create venv (with --system-site-packages so NGC torch is visible)
+# 1. Find Python 3.12 with torch (prefer qwen3-vl conda env)
+# ---------------------------------------------------------------------------
+QWEN3VL_PY="/opt/conda/envs/qwen3-vl/bin/python3"
+if [[ -x "$QWEN3VL_PY" ]]; then
+  PYBIN="$QWEN3VL_PY"
+  echo "[install_offline] using qwen3-vl Python: $PYBIN"
+else
+  PYBIN="python3"
+  echo "[install_offline] qwen3-vl not found, using: $PYBIN"
+fi
+
+PYVER=$("$PYBIN" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+if [[ "$PYVER" != "3.12" ]]; then
+  echo "WARNING: Python is $PYVER, expected 3.12. Proceeding anyway." >&2
+fi
+
+# ---------------------------------------------------------------------------
+# 2. Create venv (with --system-site-packages so qwen3-vl torch is visible)
 # ---------------------------------------------------------------------------
 if [[ ! -d "$VENV" ]]; then
   echo "[install_offline] creating venv at $VENV ..."
-  python3 -m venv --system-site-packages "$VENV"
+  "$PYBIN" -m venv --system-site-packages "$VENV"
 else
   echo "[install_offline] reusing existing venv at $VENV"
 fi

@@ -80,7 +80,7 @@ def main():
     OUT_MODULES.write_text(json.dumps(modules, indent=2, ensure_ascii=False))
     print(f"Saved target_modules.json to {OUT_MODULES}")
 
-    # HANDOFF.md 생성
+    # 生成 HANDOFF.md
     handoff = f"""# ARA-OPD-VLM 诊断阶段 Handoff
 
 **更新时间**：{datetime.now().strftime('%Y-%m-%d %H:%M')}
