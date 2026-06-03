@@ -14,8 +14,8 @@ def load_qwen3vl(model_path: str, device: str = "cuda:0"):
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         model_path,
-        torch_dtype=torch.bfloat16,
-        device_map=device,
+        dtype=torch.bfloat16,
+        device_map={"": device},
         trust_remote_code=True,
     )
     model.eval()
@@ -33,7 +33,7 @@ def load_internvl3(model_path: str, device: str = "cuda:1"):
     model = AutoModel.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
-        device_map=device,
+        device_map={"": device},
         trust_remote_code=True,
     )
     model.eval()
