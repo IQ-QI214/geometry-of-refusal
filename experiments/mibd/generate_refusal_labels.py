@@ -6,7 +6,8 @@ Usage (InternVL3, rdo env, GPU 0):
     --config experiments/mibd/configs/phase1_probe_internvl3.yaml \
     --data-dir data/saladbench_splits \
     --mmsafety-dir /inspire/hdd/global_user/wenming-253108090054/czk/MML/dataset/mm-safebench \
-    --output results/mibd/phase1_probe/internvl3_8b/refusal_labels.json
+    --output results/mibd/phase1_probe/internvl3_8b/refusal_labels.json \
+    --log-file results/mibd/phase1_probe/internvl3_8b/refusal_labels_gen.log
 
 Usage (Qwen3-VL, qwen3-vl env, GPU 1):
   conda run -n qwen3-vl python -m experiments.mibd.generate_refusal_labels \
@@ -14,7 +15,8 @@ Usage (Qwen3-VL, qwen3-vl env, GPU 1):
     --config experiments/mibd/configs/phase1_probe_qwen3vl.yaml \
     --data-dir data/saladbench_splits \
     --mmsafety-dir /inspire/hdd/global_user/wenming-253108090054/czk/MML/dataset/mm-safebench \
-    --output results/mibd/phase1_probe/qwen3_vl_8b/refusal_labels.json
+    --output results/mibd/phase1_probe/qwen3_vl_8b/refusal_labels.json \
+    --log-file results/mibd/phase1_probe/qwen3_vl_8b/refusal_labels_gen.log
 
 Output format: {"<sample_id>": "refusal" | "compliance", ...}
 Only V-text samples are run (text-only inference to avoid image complexity).
@@ -23,13 +25,34 @@ Same sample IDs as produced by load_harmbench_phase1 with the same config + seed
 from __future__ import annotations
 
 import argparse
+import functools
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 import torch
 import yaml
+
+print = functools.partial(print, flush=True)
+
+
+class _Tee:
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for s in self._streams:
+            s.write(data)
+
+    def flush(self):
+        for s in self._streams:
+            s.flush()
+
+    @property
+    def encoding(self):
+        return getattr(self._streams[0], "encoding", "utf-8")
 
 
 # --------------------------------------------------------------------------- #
@@ -114,9 +137,20 @@ def main() -> None:
     parser.add_argument("--mmsafety-dir", default=None)
     parser.add_argument("--output", required=True)
     parser.add_argument("--max-new-tokens", type=int, default=128)
+    parser.add_argument("--log-file", default=None,
+                        help="Path to save a copy of all stdout+stderr output")
     args = parser.parse_args()
 
-    device = f"cuda:{args.gpu}"
+    if args.log_file:
+        log_path = Path(args.log_file)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        _log_fh = log_path.open("w", buffering=1)
+        sys.stdout = _Tee(sys.__stdout__, _log_fh)
+        sys.stderr = _Tee(sys.__stderr__, _log_fh)
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+    device = "cuda:0"
+
     cfg = yaml.safe_load(Path(args.config).read_text())
     model_path = cfg["model_id"]
     seed = cfg.get("seed", 42)
