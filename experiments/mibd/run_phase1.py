@@ -24,6 +24,7 @@ import os
 
 from experiments.mibd.config import load_experiment_config
 from experiments.mibd.data.loaders import load_harmbench_phase1, load_mmsafety_figstep
+from experiments.mibd.data.schema import MIBDSample
 from experiments.mibd.eval.phase1_report import build_go_no_go_report, Phase1ResultSet, LocusResult
 from experiments.mibd.eval.summary import build_phase1_summary, save_summary
 from experiments.mibd.extraction.pipeline import run_extraction
@@ -80,6 +81,22 @@ def main():
             max_samples=cfg.max_samples // len(cfg.visual_conditions),
             seed=cfg.seed,
         )
+        # FigStep has no harmless pairs; reuse V-text harmless as FigStep harmless
+        vtext_harmless = [s for s in text_samples if s.label == "harmless" and s.visual_condition == "V-text"]
+        figstep_harmless = [
+            MIBDSample.from_dict({
+                "id": s.id + "_figstep",
+                "text": s.text,
+                "image_path": None,
+                "label": "harmless",
+                "category": s.category,
+                "source": s.source,
+                "paired_id": None,
+                "visual_condition": "FigStep",
+            })
+            for s in vtext_harmless
+        ]
+        figstep_samples = figstep_samples + figstep_harmless
     all_samples = text_samples + figstep_samples
     print(f"[run_phase1] loaded {len(all_samples)} samples")
 
