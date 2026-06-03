@@ -58,3 +58,47 @@ def load_harmbench_phase1(
         for item in harmless_sel:
             samples.append(_make_text_sample(item, "harmless", vc, "alpaca", "general"))
     return samples
+
+
+def load_mmsafety_figstep(
+    mmsafety_dir: str,
+    max_samples: int = 512,
+    seed: int = 42,
+) -> list[MIBDSample]:
+    """Load MM-SafetyBench FigStep images as harmful MIBDSamples."""
+    base = Path(mmsafety_dir)
+    all_items: list[dict] = []
+    for cat_dir in sorted(base.iterdir()):
+        if not cat_dir.is_dir():
+            continue
+        data_file = cat_dir / "data.json"
+        figstep_dir = cat_dir / "images_figstep"
+        if not data_file.exists() or not figstep_dir.exists():
+            continue
+        items = json.loads(data_file.read_text())
+        for item in items:
+            img_path = figstep_dir / f"{item['id']}.png"
+            if img_path.exists():
+                all_items.append({
+                    "text": item.get("qr_prompt", item.get("original_prompt", "")),
+                    "image_path": str(img_path),
+                    "category": cat_dir.name,
+                })
+
+    rng = random.Random(seed)
+    rng.shuffle(all_items)
+    selected = all_items[:max_samples]
+
+    return [
+        MIBDSample.from_dict({
+            "id": str(uuid.uuid4()),
+            "text": it["text"],
+            "image_path": it["image_path"],
+            "label": "harmful",
+            "category": it["category"],
+            "source": "mm-safetybench",
+            "paired_id": None,
+            "visual_condition": "FigStep",
+        })
+        for it in selected
+    ]

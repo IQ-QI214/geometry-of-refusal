@@ -38,3 +38,26 @@ def test_load_harmbench_phase1_balanced(tmp_path):
     harmful_count = sum(1 for s in samples if s.label == "harmful")
     harmless_count = sum(1 for s in samples if s.label == "harmless")
     assert harmful_count == harmless_count
+
+from experiments.mibd.data.loaders import load_mmsafety_figstep
+
+def test_load_mmsafety_figstep_returns_figstep_samples(tmp_path):
+    cat_dir = tmp_path / "02"
+    cat_dir.mkdir()
+    figstep_dir = cat_dir / "images_figstep"
+    figstep_dir.mkdir()
+    img_file = figstep_dir / "1.png"
+    from PIL import Image
+    Image.new("RGB", (64, 64)).save(str(img_file))
+    data = [{"id": 1, "original_prompt": "do something harmful", "qr_prompt": "do this"}]
+    (cat_dir / "data.json").write_text(json.dumps(data))
+
+    samples = load_mmsafety_figstep(
+        mmsafety_dir=str(tmp_path),
+        max_samples=10,
+        seed=42,
+    )
+    assert len(samples) > 0
+    assert all(s.visual_condition == "FigStep" for s in samples)
+    assert all(s.image_path is not None for s in samples)
+    assert all(s.label == "harmful" for s in samples)
