@@ -8,7 +8,7 @@ visual_conditions:
   - FigStep
 layer_grid:
   start: 0
-  stop: 32
+  stop: 36
   step: 1
 token_grid:
   - -8

@@ -1,6 +1,6 @@
 """MIBD model adapters for hidden state extraction.
 
-Qwen3VLAdapter  — Qwen3-VL-8B-Instruct (qwen3-vl env, 32 LLM layers)
+Qwen3VLAdapter  — Qwen3-VL-8B-Instruct (qwen3-vl env, 36 LLM layers)
 InternVL3Adapter — InternVL3-8B       (rdo env,     28 LLM layers)
 """
 from __future__ import annotations
@@ -55,7 +55,7 @@ class MIBDModelAdapter(ABC):
 class Qwen3VLAdapter(MIBDModelAdapter):
     """
     Qwen3-VL-8B-Instruct hidden state extraction adapter.
-    LLM layers: model.model.layers (32 layers for 8B variant).
+    LLM layers: model.model.language_model.layers (36 layers for 8B variant).
     Uses forward hooks to capture layer outputs without extra memory overhead.
     """
 
@@ -66,7 +66,7 @@ class Qwen3VLAdapter(MIBDModelAdapter):
 
     @property
     def num_llm_layers(self) -> int:
-        return len(self.model.model.layers)
+        return len(self.model.model.language_model.layers)
 
     def prepare_inputs(
         self, sample: MIBDSample, image: Image.Image | None
@@ -104,7 +104,7 @@ class Qwen3VLAdapter(MIBDModelAdapter):
         captured: dict[int, torch.Tensor] = {}
         hooks = []
 
-        for idx, layer in enumerate(self.model.model.layers):
+        for idx, layer in enumerate(self.model.model.language_model.layers):
             if idx not in layer_set:
                 continue
 
