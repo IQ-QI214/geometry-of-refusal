@@ -1,0 +1,22 @@
+model_id: Qwen/Qwen3-VL-8B-Instruct
+dataset: harmbench_mm_safetybench_guard
+visual_conditions:
+  - V-text
+  - V-blank
+  - V-noise
+  - V-real
+  - FigStep
+layer_grid:
+  start: 0
+  stop: 32
+  step: 1
+token_grid:
+  - -8
+  - -5
+  - -3
+  - -1
+seed: 42
+max_samples: 1024
+batch_size: 4
+output_dir: results/mibd/phase2_guard/qwen3_vl_8b
+
