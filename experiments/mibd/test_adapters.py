@@ -20,7 +20,8 @@ def test_qwen3vl_adapter_prepare_inputs_vtext():
         "paired_id": None, "visual_condition": "V-text",
     })
     result = adapter.prepare_inputs(sample, image=None)
-    assert "input_ids" in result or result is not None
+    assert result is not None
+    assert "input_ids" in result
 
 
 def test_internvl3_adapter_llm_layer_count():
