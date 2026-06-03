@@ -1,4 +1,4 @@
-model_id: Qwen/Qwen3-VL-8B-Instruct
+model_id: /inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B
 dataset: harmbench_mm_safetybench_guard
 visual_conditions:
   - V-text
