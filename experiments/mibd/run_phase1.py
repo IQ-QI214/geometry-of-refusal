@@ -105,6 +105,7 @@ def main():
             for s in vtext_harmless
         ]
         figstep_samples = figstep_samples + figstep_harmless
+    all_samples = text_samples + figstep_samples
     print(f"[run_phase1] loaded {len(all_samples)} samples")
     print(f"[run_phase1] starting hidden state extraction "
           f"({len(cfg.layers)} layers × {len(cfg.token_positions)} positions × {len(all_samples)} samples) ...")
