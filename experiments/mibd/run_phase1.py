@@ -84,18 +84,22 @@ def main():
     )
     figstep_samples = []
     if "FigStep" in cfg.visual_conditions:
-        figstep_samples = load_mmsafety_figstep(
+        figstep_harmful = load_mmsafety_figstep(
             mmsafety_dir=args.mmsafety_dir,
             max_samples=cfg.max_samples // len(cfg.visual_conditions),
             seed=cfg.seed,
         )
-        # FigStep has no harmless pairs; reuse V-text harmless as FigStep harmless
+        # FigStep harmless: reuse V-text harmless text but assign a FigStep image
+        # so the only difference between harmful/harmless is the text, not image presence.
+        import random as _random
+        _rng = _random.Random(cfg.seed)
+        harmful_image_paths = [s.image_path for s in figstep_harmful if s.image_path]
         vtext_harmless = [s for s in text_samples if s.label == "harmless" and s.visual_condition == "V-text"]
         figstep_harmless = [
             MIBDSample.from_dict({
                 "id": s.id + "_figstep",
                 "text": s.text,
-                "image_path": None,
+                "image_path": _rng.choice(harmful_image_paths) if harmful_image_paths else None,
                 "label": "harmless",
                 "category": s.category,
                 "source": s.source,
@@ -104,7 +108,7 @@ def main():
             })
             for s in vtext_harmless
         ]
-        figstep_samples = figstep_samples + figstep_harmless
+        figstep_samples = figstep_harmful + figstep_harmless
     all_samples = text_samples + figstep_samples
     print(f"[run_phase1] loaded {len(all_samples)} samples")
     print(f"[run_phase1] starting hidden state extraction "
