@@ -33,7 +33,7 @@ echo "============================================================"
 
 cd "$ROOT"
 
-conda run -n qwen3-vl python -m experiments.mibd.run_phase1 \
+conda run --no-capture-output -n qwen3-vl python -u -m experiments.mibd.run_phase1 \
   --model qwen3vl \
   --gpu "$GPU" \
   --config experiments/mibd/configs/phase1_probe.yaml \

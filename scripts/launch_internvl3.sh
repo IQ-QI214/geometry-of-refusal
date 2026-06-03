@@ -32,7 +32,7 @@ echo "============================================================"
 
 cd "$ROOT"
 
-conda run -n rdo python -m experiments.mibd.run_phase1 \
+conda run --no-capture-output -n rdo python -u -m experiments.mibd.run_phase1 \
   --model internvl3 \
   --gpu "$GPU" \
   --config experiments/mibd/configs/phase1_probe_internvl3.yaml \

@@ -23,7 +23,12 @@ def run_extraction(
     storage: dict[str, dict[tuple[int, int], dict[str, list[np.ndarray]]]] = \
         defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
+    total = len(samples)
+    log_interval = max(1, total // 20)  # print ~20 progress updates
+
     for i, sample in enumerate(samples):
+        if i % log_interval == 0 or i == total - 1:
+            print(f"[extraction] {i+1}/{total}  vc={sample.visual_condition}  label={sample.label}", flush=True)
         image = adapter.build_image_for_condition(sample, seed=seed + i)
         inputs = adapter.prepare_inputs(sample, image)
         hidden_map = adapter.extract_hidden(inputs, layers, token_positions)
@@ -31,6 +36,7 @@ def run_extraction(
         for (layer_idx, pos), vec in hidden_map.items():
             storage[sample.visual_condition][(layer_idx, pos)][sample.label].append(vec)
 
+    print(f"[extraction] done — {total} samples processed", flush=True)
     return _consolidate_storage(storage)
 
 

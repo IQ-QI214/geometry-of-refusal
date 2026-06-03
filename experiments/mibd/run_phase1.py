@@ -21,6 +21,11 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
+import functools
+
+# Force line-buffered stdout so every print() appears immediately in tee/tmux
+print = functools.partial(print, flush=True)
 
 from experiments.mibd.config import load_experiment_config
 from experiments.mibd.data.loaders import load_harmbench_phase1, load_mmsafety_figstep
@@ -56,6 +61,7 @@ def main():
           f"conditions={cfg.visual_conditions} layers={len(cfg.layers)} "
           f"max_samples={cfg.max_samples}")
 
+    print(f"[run_phase1] loading model from {cfg.model_id} ...")
     if args.model == "qwen3vl":
         from experiments.mibd.models.loader import load_qwen3vl
         from experiments.mibd.models.adapters import Qwen3VLAdapter
@@ -66,7 +72,9 @@ def main():
         from experiments.mibd.models.adapters import InternVL3Adapter
         model, tokenizer = load_internvl3(cfg.model_id, device=device)
         adapter = InternVL3Adapter(model=model, tokenizer=tokenizer, device=device)
+    print(f"[run_phase1] model loaded, num_llm_layers={adapter.num_llm_layers}")
 
+    print("[run_phase1] loading datasets ...")
     text_conditions = [vc for vc in cfg.visual_conditions if vc != "FigStep"]
     text_samples = load_harmbench_phase1(
         data_dir=args.data_dir,
@@ -97,9 +105,9 @@ def main():
             for s in vtext_harmless
         ]
         figstep_samples = figstep_samples + figstep_harmless
-    all_samples = text_samples + figstep_samples
     print(f"[run_phase1] loaded {len(all_samples)} samples")
-
+    print(f"[run_phase1] starting hidden state extraction "
+          f"({len(cfg.layers)} layers × {len(cfg.token_positions)} positions × {len(all_samples)} samples) ...")
     all_hidden = run_extraction(
         adapter=adapter,
         samples=all_samples,
