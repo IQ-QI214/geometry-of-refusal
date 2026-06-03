@@ -47,6 +47,7 @@ class _Tee:
         for s in self._streams:
             s.flush()
 
+from experiments.mibd.audit.held_out import array_held_out_auc, array_held_out_auc_train_selected
 from experiments.mibd.audit.margins import compute_score_margins, condition_margin_table
 from experiments.mibd.audit.permutation import permutation_auc
 from experiments.mibd.audit.splits import (
@@ -105,6 +106,17 @@ def _remap_labels(
     return remapped
 
 
+# Thin wrappers kept for internal call-site naming consistency.
+def _array_held_out_auc_train_selected(
+    vc_hidden: dict[tuple[int, int], dict[str, np.ndarray]],
+    pos_label: str,
+    neg_label: str,
+    seed: int,
+    test_frac: float = 0.2,
+) -> dict:
+    return array_held_out_auc_train_selected(vc_hidden, pos_label, neg_label, seed, test_frac)
+
+
 def _array_held_out_auc(
     vc_hidden: dict[tuple[int, int], dict[str, np.ndarray]],
     layer: int,
@@ -114,43 +126,21 @@ def _array_held_out_auc(
     seed: int,
     test_frac: float = 0.2,
 ) -> float:
-    """Held-out AUC from already-extracted arrays — no GPU needed.
-
-    Splits pos/neg arrays into train/test, trains probe on train at the given
-    fixed (layer, pos), evaluates on test.  Uses the same locus that was
-    selected on full data (selection leakage is noted in the report).
-    Returns -1.0 (N/A) if the split is too small.
-    """
-    lp = vc_hidden.get((layer, pos))
-    if lp is None:
-        return -1.0
-    pos_arr = lp.get(pos_label)
-    neg_arr = lp.get(neg_label)
-    if pos_arr is None or neg_arr is None:
-        return -1.0
-
-    rng = np.random.default_rng(seed)
-    n_test_pos = min(max(1, round(len(pos_arr) * test_frac)), len(pos_arr) - 1)
-    n_test_neg = min(max(1, round(len(neg_arr) * test_frac)), len(neg_arr) - 1)
-
-    pos_idx = rng.permutation(len(pos_arr))
-    neg_idx = rng.permutation(len(neg_arr))
-
-    train_pos = pos_arr[pos_idx[n_test_pos:]]
-    train_neg = neg_arr[neg_idx[n_test_neg:]]
-    test_pos  = pos_arr[pos_idx[:n_test_pos]]
-    test_neg  = neg_arr[neg_idx[:n_test_neg]]
-
-    print(f"[held_out]     train {pos_label}={len(train_pos)} {neg_label}={len(train_neg)} "
-          f"| test {pos_label}={len(test_pos)} {neg_label}={len(test_neg)}")
-
-    if len(train_pos) < 2 or len(train_neg) < 2 or len(test_pos) < 1 or len(test_neg) < 1:
-        return -1.0
-
-    direction = mean_difference_direction(train_pos, train_neg)
-    test_all = np.vstack([test_pos, test_neg])
-    test_labels = np.array([1] * len(test_pos) + [0] * len(test_neg))
-    return float(binary_auc(test_labels, project_scores(test_all, direction)))
+    result = array_held_out_auc(vc_hidden, layer, pos, pos_label, neg_label, seed, test_frac)
+    if result != -1.0:
+        lp = vc_hidden.get((layer, pos), {})
+        pos_arr = lp.get(pos_label)
+        neg_arr = lp.get(neg_label)
+        if pos_arr is not None and neg_arr is not None:
+            rng = np.random.default_rng(seed)
+            n_test_pos = min(max(1, round(len(pos_arr) * test_frac)), len(pos_arr) - 1)
+            n_test_neg = min(max(1, round(len(neg_arr) * test_frac)), len(neg_arr) - 1)
+            print(
+                f"[held_out]     train {pos_label}={len(pos_arr) - n_test_pos} "
+                f"{neg_label}={len(neg_arr) - n_test_neg} "
+                f"| test {pos_label}={n_test_pos} {neg_label}={n_test_neg}"
+            )
+    return result
 
 
 def _diagnose_hidden_identity(
@@ -254,6 +244,8 @@ def main() -> None:
     )
     parser.add_argument("--log-file", default=None,
                         help="Path to save a copy of all stdout output (tee to file)")
+    parser.add_argument("--n-permutations", type=int, default=100,
+                        help="Number of nested permutations per condition (default 100; use 200-500 for stability)")
     args = parser.parse_args()
 
     if args.signal_type == "refusal" and args.refusal_labels is None:
@@ -394,11 +386,15 @@ def main() -> None:
     print("[run_phase1p5_audit] running identity diagnosis (detect condition cache mixing) ...")
     _diagnose_hidden_identity(all_hidden, best_layer, best_pos)
 
-    print("[run_phase1p5_audit] running permutation test on V-text best locus ...")
-    perm_auc = permutation_auc(
-        vtext_hidden_map, layer=best_layer, pos=best_pos, n_permutations=100, seed=cfg.seed
+    print("[run_phase1p5_audit] running nested permutation test on V-text ...")
+    perm_stats = permutation_auc(
+        vtext_hidden_map, n_permutations=args.n_permutations, seed=cfg.seed
     )
-    print(f"[run_phase1p5_audit] permutation AUC: {perm_auc:.4f}")
+    print(
+        f"[run_phase1p5_audit] permutation stats: "
+        f"mean={perm_stats['mean']:.4f} std={perm_stats['std']:.4f} "
+        f"p95={perm_stats['p95']:.4f} n={perm_stats['n_valid']}"
+    )
 
     # Per-condition margin table
     all_margins = condition_margin_table(condition_directions, all_hidden, best_layer, best_pos)
@@ -492,6 +488,21 @@ def main() -> None:
         print(f"[run_phase1p5_audit]   {vc} held-out AUC = "
               f"{'N/A' if vc_held_out_auc == -1.0 else f'{vc_held_out_auc:.4f}'}")
 
+        # Train-only locus selection held-out AUC (no selection leakage).
+        print(f"[run_phase1p5_audit] train-only locus selection held-out AUC for {vc} ...")
+        ts_result = _array_held_out_auc_train_selected(
+            vc_hidden,
+            pos_label=pos_label, neg_label=neg_label,
+            seed=cfg.seed,
+        )
+        vc_held_out_auc_ts = ts_result["held_out_auc"]
+        ts_locus = (ts_result["best_layer"], ts_result["best_pos"]) if ts_result["best_layer"] >= 0 else None
+        print(
+            f"[run_phase1p5_audit]   {vc} train-selected held-out AUC = "
+            f"{'N/A' if vc_held_out_auc_ts == -1.0 else f'{vc_held_out_auc_ts:.4f}'}"
+            + (f" locus=({ts_result['best_layer']},{ts_result['best_pos']})" if ts_locus else "")
+        )
+
         # Group split and cross-cat only computed on V-text (GPU-based)
         if vc == "V-text":
             vc_group_split_auc = group_split_auc
@@ -500,17 +511,18 @@ def main() -> None:
             vc_group_split_auc = -1.0
             vc_cross_cat_aucs = {}
 
-        # Per-condition permutation AUC
+        # Per-condition permutation stats (nested)
         if vc == "V-text":
-            vc_perm_auc = perm_auc
+            vc_perm_stats = perm_stats
         else:
             try:
-                vc_perm_auc = permutation_auc(
-                    vc_hidden, layer=best_layer, pos=best_pos,
-                    n_permutations=50, seed=cfg.seed,
+                vc_perm_stats = permutation_auc(
+                    vc_hidden, n_permutations=args.n_permutations, seed=cfg.seed,
                 )
             except (KeyError, ValueError):
-                vc_perm_auc = float("nan")
+                vc_perm_stats = {}
+
+        vc_perm_auc_float = float(vc_perm_stats.get("mean", float("nan"))) if vc_perm_stats else float("nan")
 
         # Static transfer margin drop (V-text only)
         transfer_margin_drop: dict[str, float] = {}
@@ -535,10 +547,14 @@ def main() -> None:
             train_auc=float(train_auc),
             held_out_auc=float(vc_held_out_auc),
             group_split_auc=float(vc_group_split_auc),
-            permutation_auc=float(vc_perm_auc),
+            permutation_auc=vc_perm_auc_float,
             cross_category_aucs=vc_cross_cat_aucs,
             margins=margins,
             static_transfer_margin_drop=transfer_margin_drop,
+            train_selected_locus=ts_locus,
+            full_data_locus=(best_layer, best_pos),
+            held_out_auc_train_selected=float(vc_held_out_auc_ts),
+            permutation_stats=vc_perm_stats,
         ))
 
     report_md = build_phase1p5_report(

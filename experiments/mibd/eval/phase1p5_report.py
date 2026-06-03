@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 _NA = -1.0  # sentinel: metric not available (not a real score)
 
@@ -13,10 +13,15 @@ class AuditResult:
     train_auc: float
     held_out_auc: float           # _NA if not computed for this condition
     group_split_auc: float        # _NA if no paired_ids
-    permutation_auc: float
+    permutation_auc: float        # legacy float field (mean); kept for backward compat
     cross_category_aucs: dict[str, float]   # {test_category: auc or _NA}
     margins: dict
     static_transfer_margin_drop: dict[str, float]
+    # New fields (default to sentinel / empty so old construction still works)
+    train_selected_locus: tuple[int, int] | None = None
+    full_data_locus: tuple[int, int] | None = None
+    held_out_auc_train_selected: float = _NA
+    permutation_stats: dict = field(default_factory=dict)
 
 
 def _fmt(value: float, na_str: str = "N/A") -> str:
@@ -50,7 +55,29 @@ def build_phase1p5_report(
             lines.append(f"| Group split (by paired_id) | {_fmt(ar.group_split_auc)} |")
         else:
             lines.append("| Group split (by paired_id) | N/A (no paired ids) |")
-        lines.append(f"| Permutation (mean over 100) | {_fmt(ar.permutation_auc)} |")
+
+        # Train-only locus selection held-out AUC
+        if ar.held_out_auc_train_selected != _NA:
+            locus_str = ""
+            if ar.train_selected_locus is not None:
+                bl, bp = ar.train_selected_locus
+                locus_str = f" (locus: layer={bl} pos={bp})"
+            lines.append(
+                f"| Train-only held-out AUC | {_fmt(ar.held_out_auc_train_selected)}"
+                f"{locus_str} |"
+            )
+
+        # Permutation row: use permutation_stats if available, else fall back to float
+        perm_stats = ar.permutation_stats
+        if perm_stats and perm_stats.get("n_valid", 0) > 0:
+            mean = perm_stats.get("mean", float("nan"))
+            std = perm_stats.get("std", float("nan"))
+            p95 = perm_stats.get("p95", float("nan"))
+            n_valid = perm_stats.get("n_valid", 0)
+            perm_cell = f"{mean:.4f} ± {std:.4f} (p95={p95:.4f}, n={n_valid})"
+        else:
+            perm_cell = _fmt(ar.permutation_auc)
+        lines.append(f"| Permutation (nested) | {perm_cell} |")
         lines.append("")
 
         if ar.cross_category_aucs:
@@ -101,16 +128,24 @@ def build_phase1p5_report(
 
 def _condition_verdict(ar: AuditResult) -> str:
     issues = []
-    # Only flag held-out AUC if it was actually computed
     if ar.held_out_auc != _NA and ar.held_out_auc == ar.held_out_auc:
         if ar.held_out_auc < 0.70:
             issues.append(f"held-out AUC low ({ar.held_out_auc:.3f})")
         gap = ar.train_auc - ar.held_out_auc
         if gap > 0.15:
             issues.append(f"large train/held-out gap ({gap:.3f}) — possible overfit")
-    if ar.permutation_auc == ar.permutation_auc and ar.permutation_auc != _NA:
-        if ar.permutation_auc > 0.60:
-            issues.append(f"permutation AUC high ({ar.permutation_auc:.3f}) — possible artifact")
+
+    # Use permutation_stats["mean"] if available, else fall back to permutation_auc float
+    perm_stats = ar.permutation_stats
+    if perm_stats and perm_stats.get("n_valid", 0) > 0:
+        perm_mean = perm_stats.get("mean", float("nan"))
+    else:
+        perm_mean = ar.permutation_auc
+
+    if perm_mean == perm_mean and perm_mean != _NA:  # not nan, not sentinel
+        if perm_mean > 0.60:
+            issues.append(f"permutation AUC high ({perm_mean:.3f}) — possible artifact")
+
     if not issues:
         return "PASS — probe appears valid"
     return "WARN — " + "; ".join(issues)
@@ -124,7 +159,8 @@ def _overall_conclusion(audit_results: list[AuditResult]) -> str:
     if n_warn == 0:
         return (
             f"All {n_total} condition(s) passed validity checks. "
-            "Probes appear non-artifactual and generalize to held-out data."
+            "Probes pass the implemented validity checks and generalize to random held-out splits; "
+            "group/category controls remain unavailable under the current dataset structure."
         )
     return (
         f"{n_warn}/{n_total} condition(s) flagged with warnings. "

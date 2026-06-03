@@ -11,7 +11,8 @@ Signal: `harmfulness`
 | Train (full) | 1.0000 |
 | Held-out (random 20%) | 1.0000 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Permutation (mean over 100) | 0.5422 |
+| Train-only held-out AUC | 0.9941 (locus: layer=5 pos=-3) |
+| Permutation (nested) | 0.4753 ± 0.1864 (p95=0.7589, n=200) |
 
 ### Cross-Category AUCs
 
@@ -71,7 +72,8 @@ Signal: `harmfulness`
 | Train (full) | 0.9998 |
 | Held-out (random 20%) | 1.0000 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Permutation (mean over 100) | 0.6094 |
+| Train-only held-out AUC | 1.0000 (locus: layer=7 pos=-3) |
+| Permutation (nested) | 0.4715 ± 0.1731 (p95=0.7580, n=200) |
 
 ### Margin Statistics
 
@@ -84,7 +86,7 @@ Signal: `harmfulness`
 | N harmful | 64 |
 | N harmless | 64 |
 
-**Audit verdict:** WARN — permutation AUC high (0.609) — possible artifact
+**Audit verdict:** PASS — probe appears valid
 
 ---
 
@@ -97,7 +99,8 @@ Signal: `harmfulness`
 | Train (full) | 0.9995 |
 | Held-out (random 20%) | 0.9822 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Permutation (mean over 100) | 0.6079 |
+| Train-only held-out AUC | 1.0000 (locus: layer=7 pos=-3) |
+| Permutation (nested) | 0.4861 ± 0.1837 (p95=0.8047, n=200) |
 
 ### Margin Statistics
 
@@ -110,7 +113,7 @@ Signal: `harmfulness`
 | N harmful | 64 |
 | N harmless | 64 |
 
-**Audit verdict:** WARN — permutation AUC high (0.608) — possible artifact
+**Audit verdict:** PASS — probe appears valid
 
 ---
 
@@ -123,7 +126,8 @@ Signal: `harmfulness`
 | Train (full) | 0.9990 |
 | Held-out (random 20%) | 0.9941 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Permutation (mean over 100) | 0.5931 |
+| Train-only held-out AUC | 1.0000 (locus: layer=7 pos=-3) |
+| Permutation (nested) | 0.4736 ± 0.1668 (p95=0.7343, n=200) |
 
 ### Margin Statistics
 
@@ -149,7 +153,8 @@ Signal: `harmfulness`
 | Train (full) | 1.0000 |
 | Held-out (random 20%) | 1.0000 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Permutation (mean over 100) | 0.4525 |
+| Train-only held-out AUC | 1.0000 (locus: layer=0 pos=-1) |
+| Permutation (nested) | 0.4842 ± 0.2238 (p95=0.8704, n=200) |
 
 ### Margin Statistics
 
@@ -168,4 +173,4 @@ Signal: `harmfulness`
 
 ## Overall Audit Conclusion
 
-2/5 condition(s) flagged with warnings. Review per-condition sections above before proceeding to Phase 2.
+All 5 condition(s) passed validity checks. Probes pass the implemented validity checks and generalize to random held-out splits; group/category controls remain unavailable under the current dataset structure.

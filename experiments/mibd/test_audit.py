@@ -248,3 +248,135 @@ def test_build_phase1p5_report_no_paired_ids():
     )
     report = build_phase1p5_report([ar], model_id="m", signal_type="refusal")
     assert "N/A" in report
+
+
+# ---------------------------------------------------------------------------
+# NEW: nested permutation tests
+# ---------------------------------------------------------------------------
+
+def _make_multi_locus_hidden_map(
+    n_harmful: int = 20,
+    n_harmless: int = 20,
+    dim: int = 8,
+    n_layers: int = 3,
+    n_pos: int = 2,
+    seed: int = 0,
+    separable: bool = True,
+) -> dict[tuple[int, int], dict[str, np.ndarray]]:
+    rng = np.random.default_rng(seed)
+    hmap = {}
+    for layer in range(n_layers):
+        for pos in range(n_pos):
+            if separable:
+                harmful = rng.standard_normal((n_harmful, dim)) + 2.0
+                harmless = rng.standard_normal((n_harmless, dim))
+            else:
+                harmful = rng.standard_normal((n_harmful, dim))
+                harmless = rng.standard_normal((n_harmless, dim))
+            hmap[(layer, pos)] = {"harmful": harmful, "harmless": harmless}
+    return hmap
+
+
+def test_nested_permutation_returns_stats_dict():
+    """nested permutation_auc 返回包含 mean/std/p95/n_valid 的 dict"""
+    hmap = _make_multi_locus_hidden_map(n_harmful=20, n_harmless=20, dim=8, seed=10)
+    result = permutation_auc(hmap, n_permutations=20, seed=0)
+    assert isinstance(result, dict)
+    for key in ("mean", "std", "min", "max", "p95", "n_valid"):
+        assert key in result, f"missing key: {key}"
+    assert result["n_valid"] > 0
+
+
+def test_nested_permutation_mean_near_half_separable():
+    """完全可分数据下，nested permutation mean 接近 0.5（< 0.65）"""
+    hmap = _make_multi_locus_hidden_map(
+        n_harmful=30, n_harmless=30, dim=16, n_layers=2, n_pos=2,
+        seed=7, separable=True,
+    )
+    result = permutation_auc(hmap, n_permutations=100, seed=42)
+    assert isinstance(result, dict)
+    assert result["n_valid"] > 0
+    assert result["mean"] < 0.65, (
+        f"Nested permutation mean too high ({result['mean']:.4f}) — locus selection leakage"
+    )
+
+
+def test_array_held_out_auc_train_selected_returns_dict():
+    """_array_held_out_auc_train_selected 返回包含 held_out_auc/best_layer/best_pos 的 dict"""
+    from experiments.mibd.audit.held_out import array_held_out_auc_train_selected
+
+    hmap = _make_multi_locus_hidden_map(n_harmful=30, n_harmless=30, dim=8, seed=20)
+    result = array_held_out_auc_train_selected(
+        hmap, pos_label="harmful", neg_label="harmless", seed=0
+    )
+    assert isinstance(result, dict)
+    for key in ("held_out_auc", "train_auc", "best_layer", "best_pos",
+                "train_pos_n", "train_neg_n", "test_pos_n", "test_neg_n"):
+        assert key in result, f"missing key: {key}"
+    assert result["held_out_auc"] != -1.0
+    assert result["best_layer"] >= 0
+    assert result["best_pos"] >= 0
+
+
+def test_held_out_auc_train_selected_less_than_full_data_on_small_data():
+    """在样本量极小时，train-only locus 选出的 AUC 应 <= full-data locus AUC"""
+    from experiments.mibd.audit.held_out import array_held_out_auc, array_held_out_auc_train_selected
+    from experiments.mibd.probes.train import find_best_locus, train_probes_for_condition
+
+    # Very small dataset to maximize selection leakage effect.
+    hmap = _make_multi_locus_hidden_map(
+        n_harmful=8, n_harmless=8, dim=4, n_layers=4, n_pos=3, seed=99, separable=True
+    )
+
+    # full-data locus selection
+    probe_results = train_probes_for_condition(
+        {k: {"harmful": v["harmful"], "harmless": v["harmless"]} for k, v in hmap.items()}
+    )
+    full_layer, full_pos = find_best_locus(probe_results)
+    full_ho_auc = array_held_out_auc(
+        hmap, full_layer, full_pos,
+        pos_label="harmful", neg_label="harmless", seed=0
+    )
+
+    ts_result = array_held_out_auc_train_selected(
+        hmap, pos_label="harmful", neg_label="harmless", seed=0
+    )
+    ts_auc = ts_result["held_out_auc"]
+
+    # Both should be valid (not -1.0 sentinel).
+    assert full_ho_auc != -1.0, "full-data held-out AUC should be computable"
+    assert ts_auc != -1.0, "train-selected held-out AUC should be computable"
+    # Train-only selection should not exceed full-data selection (no leakage advantage).
+    assert ts_auc <= full_ho_auc + 0.05, (
+        f"train-selected AUC ({ts_auc:.4f}) exceeds full-data AUC ({full_ho_auc:.4f}) "
+        "by more than tolerance — unexpected"
+    )
+
+
+def test_phase1p5_report_no_negative_one():
+    """报告中不出现 -1.0000 字符串"""
+    ar = AuditResult(
+        model_id="m",
+        signal_type="harmfulness",
+        visual_condition="V-text",
+        train_auc=0.95,
+        held_out_auc=0.90,
+        group_split_auc=-1.0,
+        permutation_auc=0.51,
+        cross_category_aucs={"cat_a": 0.88},
+        margins={
+            "mean_gap": 1.2,
+            "median_gap": 1.1,
+            "iqr_harmful": 0.5,
+            "iqr_harmless": 0.4,
+            "n_harmful": 40,
+            "n_harmless": 40,
+        },
+        static_transfer_margin_drop={},
+        train_selected_locus=(2, 1),
+        full_data_locus=(3, 0),
+        held_out_auc_train_selected=0.88,
+        permutation_stats={"mean": 0.51, "std": 0.04, "min": 0.43, "max": 0.59, "p95": 0.58, "n_valid": 50},
+    )
+    report = build_phase1p5_report([ar], model_id="m", signal_type="harmfulness")
+    assert "-1.0000" not in report, f"report contains -1.0000:\n{report}"
