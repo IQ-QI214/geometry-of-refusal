@@ -1,12 +1,18 @@
 from __future__ import annotations
+import hashlib
 import json
 import random
-import uuid
 from pathlib import Path
 from typing import Sequence
 
 from experiments.mibd.data.schema import MIBDSample
 from experiments.mibd.config import SUPPORTED_VISUAL_CONDITIONS
+
+
+def _stable_id(text: str, visual_condition: str, label: str, source: str) -> str:
+    """Deterministic sample ID so refusal-label JSONs match across runs."""
+    key = f"{source}|{visual_condition}|{label}|{text}"
+    return hashlib.sha256(key.encode()).hexdigest()[:16]
 
 
 def _make_text_sample(
@@ -17,9 +23,10 @@ def _make_text_sample(
     default_category: str,
     image_path: str | None = None,
 ) -> MIBDSample:
+    text = item["instruction"]
     return MIBDSample.from_dict({
-        "id": str(uuid.uuid4()),
-        "text": item["instruction"],
+        "id": _stable_id(text, visual_condition, label, source),
+        "text": text,
         "image_path": image_path,
         "label": label,
         "category": str(item.get("category") or default_category),
@@ -126,7 +133,7 @@ def load_mmsafety_figstep(
 
     return [
         MIBDSample.from_dict({
-            "id": str(uuid.uuid4()),
+            "id": _stable_id(it["text"], "FigStep", "harmful", "mm-safetybench"),
             "text": it["text"],
             "image_path": it["image_path"],
             "label": "harmful",

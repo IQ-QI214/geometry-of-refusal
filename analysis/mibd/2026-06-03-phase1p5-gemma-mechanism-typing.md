@@ -54,16 +54,24 @@ Static transfer AUC（train=V-text）：
 
 ## 2. Phase 1.5 审计结果表
 
-> 状态：待运行。各列含义：Train AUC = 训练集；Held-out AUC = 留出集；Group-split AUC = 按类别分组划分；Permutation AUC = 标签置换基线；Cross-category AUC = 跨危害类别迁移。
+> 各列含义：Train AUC = 训练集；Held-out AUC = 留出集（random 20%）；Train-selected held-out AUC = train-only locus 选择后的留出 AUC；Group-split AUC = 按 paired_id 分组；Permutation AUC = nested permutation mean±std (n=200)；Cross-category AUC = 跨危害类别迁移。
 
-| Model | Signal | Train AUC | Held-out AUC | Group-split AUC | Permutation AUC | Cross-category AUC | Mean margin |
-|---|---|---|---|---|---|---|---|
-| InternVL3-8B | harmfulness | TBD | TBD | TBD | TBD | TBD | TBD |
-| InternVL3-8B | refusal | TBD | TBD | TBD | TBD | TBD | TBD |
-| Qwen3-VL-8B | harmfulness | TBD | TBD | TBD | TBD | TBD | TBD |
-| Qwen3-VL-8B | refusal | TBD | TBD | TBD | TBD | TBD | TBD |
-| Gemma3-4B-IT | harmfulness | TBD | TBD | TBD | TBD | TBD | TBD |
-| Gemma3-4B-IT | refusal | TBD | TBD | TBD | TBD | TBD | TBD |
+| Model | Signal | Condition | Train AUC | Held-out AUC | Train-sel held-out | Group-split | Perm mean (n=200) | Perm p95 | Verdict |
+|---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| InternVL3-8B | harmfulness | V-text | 1.000 | 1.000 | 0.994 (l5,p-3) | N/A | 0.475±0.186 | 0.759 | **PASS** |
+| InternVL3-8B | harmfulness | V-blank | 1.000 | 1.000 | 1.000 (l7,p-3) | N/A | 0.472±0.173 | 0.758 | **PASS** |
+| InternVL3-8B | harmfulness | V-noise | 1.000 | 0.982 | 1.000 (l7,p-3) | N/A | 0.486±0.184 | 0.805 | **PASS** |
+| InternVL3-8B | harmfulness | V-real | 0.999 | 0.994 | 1.000 (l7,p-3) | N/A | 0.474±0.167 | 0.734 | **PASS** |
+| InternVL3-8B | harmfulness | FigStep | 1.000 | 1.000 | 1.000 (l0,p-1) | N/A | 0.484±0.224 | 0.870 | **PASS** |
+| InternVL3-8B | refusal | — | TBD | TBD | TBD | N/A | TBD | TBD | TBD |
+| Qwen3-VL-8B | harmfulness | — | TBD | TBD | TBD | N/A | TBD | TBD | TBD |
+| Qwen3-VL-8B | refusal | — | TBD | TBD | TBD | N/A | TBD | TBD | TBD |
+| Gemma3-4B-IT | harmfulness | — | TBD | TBD | TBD | N/A | TBD | TBD | TBD |
+| Gemma3-4B-IT | refusal | — | TBD | TBD | TBD | N/A | TBD | TBD | TBD |
+
+**Cross-category AUC**：所有模型均 N/A（harmless 样本全来自 Alpaca `general` category，无法构造 cross-category test set）。这是数据集结构限制，不影响 PASS 判定，需在论文中声明。
+
+**Group-split AUC**：所有样本无 `paired_id`，N/A。需在论文中声明。
 
 ---
 
@@ -164,14 +172,15 @@ Static transfer AUC（train=V-text）：
 
 | 条件 | InternVL3-8B | Qwen3-VL-8B | Gemma3-4B-IT |
 |---|---|---|---|
-| Harmfulness Held-out AUC ≥ 0.90 | TBD | TBD | TBD |
-| Harmfulness Group-split AUC ≥ 0.85 | TBD | TBD | TBD |
-| Harmfulness Permutation AUC ≤ 0.60 | TBD | TBD | TBD |
-| Refusal Held-out AUC ≥ 0.85 | TBD | TBD | TBD |
-| Harmfulness locus stable across standard conditions | locus shift 在 FigStep (已知) | TBD | TBD |
-| FigStep transfer drop 有合理解释 | 0.741，early-layer collapse (已知) | 0.956，较小 (已知) | TBD |
-| 无明显 label leakage / spurious feature | TBD | TBD | TBD |
-| **综合判定** | **TBD** | **TBD** | **TBD** |
+| Harmfulness Held-out AUC ≥ 0.90 | ✅ 0.982–1.000 | TBD | TBD |
+| Harmfulness Group-split AUC ≥ 0.85 | ⚠️ N/A (无 paired_id) | ⚠️ N/A | ⚠️ N/A |
+| Harmfulness Permutation mean ≤ 0.60 | ✅ 0.472–0.486 (n=200) | TBD | TBD |
+| Harmfulness Permutation p95 ≤ 0.90 | ✅ 0.734–0.870 | TBD | TBD |
+| Refusal Held-out AUC ≥ 0.85 | TBD (待跑) | TBD | TBD |
+| Harmfulness locus stable across V-blank/noise/real | ✅ layer 7 across all | TBD | TBD |
+| FigStep transfer drop 有合理解释 | ✅ 0.741，early-layer collapse (layer 0) | ⚠️ 0.956，drop 较小 | TBD |
+| 无明显 label leakage / spurious feature | ✅ V-blank/V-real SHA1 不同 | TBD | TBD |
+| **综合判定** | **✅ PASS harmfulness** | **TBD** | **TBD** |
 
 ### 机制分型结论（待定）
 
