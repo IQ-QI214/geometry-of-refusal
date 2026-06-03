@@ -1,0 +1,54 @@
+{
+  "model_id": "/inspire/hdd/global_user/wenming-253108090054/models/InternVL3-8B",
+  "signal_type": "harmfulness",
+  "results": [
+    {
+      "visual_condition": "V-text",
+      "layer": 6,
+      "token_pos": -3,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "V-blank",
+      "layer": 7,
+      "token_pos": -3,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "V-noise",
+      "layer": 7,
+      "token_pos": -3,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "V-real",
+      "layer": 7,
+      "token_pos": -3,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "FigStep",
+      "layer": 0,
+      "token_pos": -1,
+      "auc": 1.0
+    }
+  ],
+  "condition_cosines": {
+    "FigStep|V-blank": 0.11015548890934732,
+    "FigStep|V-noise": 0.12016623192331755,
+    "FigStep|V-real": 0.11015548890934732,
+    "FigStep|V-text": 0.1362810112136014,
+    "V-blank|V-noise": 0.9827498246376016,
+    "V-blank|V-real": 1.0000000000000002,
+    "V-blank|V-text": 0.8776553656907212,
+    "V-noise|V-real": 0.9827498246376016,
+    "V-noise|V-text": 0.8333397763678659,
+    "V-real|V-text": 0.8776553656907212
+  },
+  "static_transfer_auc": {
+    "V-text|V-blank": 1.0,
+    "V-text|V-noise": 1.0,
+    "V-text|V-real": 1.0,
+    "V-text|FigStep": 0.7408088235294118
+  }
+}

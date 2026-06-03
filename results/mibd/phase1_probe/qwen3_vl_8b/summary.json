@@ -1,0 +1,54 @@
+{
+  "model_id": "/inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B",
+  "signal_type": "harmfulness",
+  "results": [
+    {
+      "visual_condition": "V-text",
+      "layer": 15,
+      "token_pos": -1,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "V-blank",
+      "layer": 17,
+      "token_pos": -1,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "V-noise",
+      "layer": 16,
+      "token_pos": -1,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "V-real",
+      "layer": 17,
+      "token_pos": -1,
+      "auc": 1.0
+    },
+    {
+      "visual_condition": "FigStep",
+      "layer": 1,
+      "token_pos": -1,
+      "auc": 1.0
+    }
+  ],
+  "condition_cosines": {
+    "FigStep|V-blank": 0.1242843898702568,
+    "FigStep|V-noise": 0.15344401526673554,
+    "FigStep|V-real": 0.1242843898702568,
+    "FigStep|V-text": 0.25868292105031604,
+    "V-blank|V-noise": 0.9814778456610742,
+    "V-blank|V-real": 1.0,
+    "V-blank|V-text": 0.8838872076052302,
+    "V-noise|V-real": 0.9814778456610742,
+    "V-noise|V-text": 0.913606039426692,
+    "V-real|V-text": 0.8838872076052302
+  },
+  "static_transfer_auc": {
+    "V-text|V-blank": 1.0,
+    "V-text|V-noise": 1.0,
+    "V-text|V-real": 1.0,
+    "V-text|FigStep": 0.9558823529411765
+  }
+}
