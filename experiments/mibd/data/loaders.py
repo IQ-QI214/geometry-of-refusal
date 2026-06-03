@@ -9,6 +9,25 @@ from experiments.mibd.data.schema import MIBDSample
 from experiments.mibd.config import SUPPORTED_VISUAL_CONDITIONS
 
 
+def _make_text_sample(
+    item: dict,
+    label: str,
+    visual_condition: str,
+    source: str,
+    default_category: str,
+) -> MIBDSample:
+    return MIBDSample.from_dict({
+        "id": str(uuid.uuid4()),
+        "text": item["instruction"],
+        "image_path": None,
+        "label": label,
+        "category": str(item.get("category") or default_category),
+        "source": source,
+        "paired_id": None,
+        "visual_condition": visual_condition,
+    })
+
+
 def load_harmbench_phase1(
     data_dir: str,
     visual_conditions: Sequence[str],
@@ -35,25 +54,7 @@ def load_harmbench_phase1(
     samples: list[MIBDSample] = []
     for vc in visual_conditions:
         for item in harmful_sel:
-            samples.append(MIBDSample.from_dict({
-                "id": str(uuid.uuid4()),
-                "text": item["instruction"],
-                "image_path": None,
-                "label": "harmful",
-                "category": str(item.get("category") or "unknown"),
-                "source": "harmbench",
-                "paired_id": None,
-                "visual_condition": vc,
-            }))
+            samples.append(_make_text_sample(item, "harmful", vc, "harmbench", "unknown"))
         for item in harmless_sel:
-            samples.append(MIBDSample.from_dict({
-                "id": str(uuid.uuid4()),
-                "text": item["instruction"],
-                "image_path": None,
-                "label": "harmless",
-                "category": str(item.get("category") or "general"),
-                "source": "alpaca",
-                "paired_id": None,
-                "visual_condition": vc,
-            }))
+            samples.append(_make_text_sample(item, "harmless", vc, "alpaca", "general"))
     return samples
