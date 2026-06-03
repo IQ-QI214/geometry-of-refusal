@@ -23,19 +23,14 @@ def load_qwen3vl(model_path: str, device: str = "cuda:0"):
 
 
 def load_internvl3(model_path: str, device: str = "cuda:1"):
-    """Load InternVL3-8B. Requires rdo env (timm)."""
-    import sys
+    """Load InternVL3-8B via AutoModel. Requires rdo env (timm)."""
     import torch
-    from transformers import AutoTokenizer
-
-    if model_path not in sys.path:
-        sys.path.insert(0, model_path)
-    from modeling_internvl_chat import InternVLChatModel
+    from transformers import AutoModel, AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(
         model_path, trust_remote_code=True, use_fast=False
     )
-    model = InternVLChatModel.from_pretrained(
+    model = AutoModel.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
         device_map=device,
