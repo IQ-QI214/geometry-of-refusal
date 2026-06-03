@@ -10,8 +10,13 @@ from experiments.mibd.config import SUPPORTED_VISUAL_CONDITIONS
 
 
 def _stable_id(text: str, visual_condition: str, label: str, source: str) -> str:
-    """Deterministic sample ID so refusal-label JSONs match across runs."""
-    key = f"{source}|{visual_condition}|{label}|{text}"
+    """Deterministic sample ID so refusal-label JSONs match across runs.
+
+    visual_condition is intentionally excluded: the same text across V-text /
+    V-blank / V-noise / V-real / FigStep must share the same ID so that refusal
+    labels generated on V-text samples can be applied to all conditions.
+    """
+    key = f"{source}|{label}|{text}"
     return hashlib.sha256(key.encode()).hexdigest()[:16]
 
 
