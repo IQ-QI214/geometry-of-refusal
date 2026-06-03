@@ -105,6 +105,84 @@ def _remap_labels(
     return remapped
 
 
+def _array_held_out_auc(
+    vc_hidden: dict[tuple[int, int], dict[str, np.ndarray]],
+    layer: int,
+    pos: int,
+    pos_label: str,
+    neg_label: str,
+    seed: int,
+    test_frac: float = 0.2,
+) -> float:
+    """Held-out AUC from already-extracted arrays — no GPU needed.
+
+    Splits pos/neg arrays into train/test, trains probe on train at the given
+    fixed (layer, pos), evaluates on test.  Uses the same locus that was
+    selected on full data (selection leakage is noted in the report).
+    Returns -1.0 (N/A) if the split is too small.
+    """
+    lp = vc_hidden.get((layer, pos))
+    if lp is None:
+        return -1.0
+    pos_arr = lp.get(pos_label)
+    neg_arr = lp.get(neg_label)
+    if pos_arr is None or neg_arr is None:
+        return -1.0
+
+    rng = np.random.default_rng(seed)
+    n_test_pos = min(max(1, round(len(pos_arr) * test_frac)), len(pos_arr) - 1)
+    n_test_neg = min(max(1, round(len(neg_arr) * test_frac)), len(neg_arr) - 1)
+
+    pos_idx = rng.permutation(len(pos_arr))
+    neg_idx = rng.permutation(len(neg_arr))
+
+    train_pos = pos_arr[pos_idx[n_test_pos:]]
+    train_neg = neg_arr[neg_idx[n_test_neg:]]
+    test_pos  = pos_arr[pos_idx[:n_test_pos]]
+    test_neg  = neg_arr[neg_idx[:n_test_neg]]
+
+    print(f"[held_out]     train {pos_label}={len(train_pos)} {neg_label}={len(train_neg)} "
+          f"| test {pos_label}={len(test_pos)} {neg_label}={len(test_neg)}")
+
+    if len(train_pos) < 2 or len(train_neg) < 2 or len(test_pos) < 1 or len(test_neg) < 1:
+        return -1.0
+
+    direction = mean_difference_direction(train_pos, train_neg)
+    test_all = np.vstack([test_pos, test_neg])
+    test_labels = np.array([1] * len(test_pos) + [0] * len(test_neg))
+    return float(binary_auc(test_labels, project_scores(test_all, direction)))
+
+
+def _diagnose_hidden_identity(
+    all_hidden: dict[str, dict[tuple[int, int], dict[str, np.ndarray]]],
+    layer: int,
+    pos: int,
+) -> None:
+    """Print SHA1 of harmful hidden states per condition to detect cache mixing."""
+    import hashlib
+    from collections import defaultdict
+
+    condition_hashes: dict[str, str] = {}
+    for vc in sorted(all_hidden):
+        lp = all_hidden[vc].get((layer, pos))
+        if lp is None:
+            continue
+        arr = lp.get("harmful")
+        if arr is None:
+            continue
+        h = hashlib.sha1(arr.tobytes()).hexdigest()[:12]
+        condition_hashes[vc] = h
+        print(f"[identity]   {vc:<12} harmful SHA1={h} shape={arr.shape}")
+
+    by_hash: dict[str, list[str]] = defaultdict(list)
+    for vc, h in condition_hashes.items():
+        by_hash[h].append(vc)
+    for h, vcs in by_hash.items():
+        if len(vcs) > 1:
+            print(f"[identity] WARNING: identical hidden states detected: {vcs} "
+                  f"— these conditions share the same representations")
+
+
 def _probe_auc_on_split(
     adapter,
     train_samples: list[MIBDSample],
@@ -220,6 +298,7 @@ def main() -> None:
         visual_conditions=text_conditions,
         max_samples=cfg.max_samples,
         seed=cfg.seed,
+        mmsafety_dir=args.mmsafety_dir,
     )
     figstep_samples: list[MIBDSample] = []
     if "FigStep" in cfg.visual_conditions:
@@ -312,6 +391,9 @@ def main() -> None:
     )
     vtext_mean_gap = vtext_margin_dict["mean_gap"]
 
+    print("[run_phase1p5_audit] running identity diagnosis (detect condition cache mixing) ...")
+    _diagnose_hidden_identity(all_hidden, best_layer, best_pos)
+
     print("[run_phase1p5_audit] running permutation test on V-text best locus ...")
     perm_auc = permutation_auc(
         vtext_hidden_map, layer=best_layer, pos=best_pos, n_permutations=100, seed=cfg.seed
@@ -398,25 +480,34 @@ def main() -> None:
             continue
         train_auc = pr.get((best_layer, best_pos), {}).get("auc", -1.0)
 
-        # held_out, group_split, cross_cat are computed on V-text; other conditions reuse
+        # Held-out AUC computed from arrays for every condition (no extra GPU pass needed).
+        # Note: best_layer/best_pos selected on full data → slight selection leakage.
+        vc_hidden = all_hidden.get(vc, {})
+        print(f"[run_phase1p5_audit] held-out AUC for {vc} ...")
+        vc_held_out_auc = _array_held_out_auc(
+            vc_hidden, best_layer, best_pos,
+            pos_label=pos_label, neg_label=neg_label,
+            seed=cfg.seed,
+        )
+        print(f"[run_phase1p5_audit]   {vc} held-out AUC = "
+              f"{'N/A' if vc_held_out_auc == -1.0 else f'{vc_held_out_auc:.4f}'}")
+
+        # Group split and cross-cat only computed on V-text (GPU-based)
         if vc == "V-text":
-            vc_held_out_auc = held_out_auc
             vc_group_split_auc = group_split_auc
             vc_cross_cat_aucs = cross_cat_aucs
         else:
-            vc_held_out_auc = -1.0
             vc_group_split_auc = -1.0
             vc_cross_cat_aucs = {}
 
-        # Per-condition permutation AUC (reuse V-text result, compute for others)
+        # Per-condition permutation AUC
         if vc == "V-text":
             vc_perm_auc = perm_auc
         else:
-            vc_hidden = all_hidden.get(vc, {})
             try:
                 vc_perm_auc = permutation_auc(
                     vc_hidden, layer=best_layer, pos=best_pos,
-                    n_permutations=50, seed=cfg.seed
+                    n_permutations=50, seed=cfg.seed,
                 )
             except (KeyError, ValueError):
                 vc_perm_auc = float("nan")

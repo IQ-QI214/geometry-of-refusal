@@ -15,11 +15,12 @@ def _make_text_sample(
     visual_condition: str,
     source: str,
     default_category: str,
+    image_path: str | None = None,
 ) -> MIBDSample:
     return MIBDSample.from_dict({
         "id": str(uuid.uuid4()),
         "text": item["instruction"],
-        "image_path": None,
+        "image_path": image_path,
         "label": label,
         "category": str(item.get("category") or default_category),
         "source": source,
@@ -28,14 +29,38 @@ def _make_text_sample(
     })
 
 
+def _collect_real_image_paths(mmsafety_dir: str | Path | None, seed: int = 42) -> list[str]:
+    """Collect figstep image paths from mm-safetybench for use as V-real images."""
+    if mmsafety_dir is None:
+        return []
+    base = Path(mmsafety_dir)
+    paths: list[str] = []
+    for cat_dir in sorted(base.iterdir()):
+        if not cat_dir.is_dir():
+            continue
+        figstep_dir = cat_dir / "images_figstep"
+        if not figstep_dir.exists():
+            continue
+        for img_path in sorted(figstep_dir.glob("*.png")):
+            paths.append(str(img_path))
+    rng = random.Random(seed)
+    rng.shuffle(paths)
+    return paths
+
+
 def load_harmbench_phase1(
     data_dir: str,
     visual_conditions: Sequence[str],
     max_samples: int = 512,
     seed: int = 42,
     split: str = "test",
+    mmsafety_dir: str | Path | None = None,
 ) -> list[MIBDSample]:
-    """Load HarmBench text samples and expand across visual conditions."""
+    """Load HarmBench text samples and expand across visual conditions.
+
+    For V-real condition: assigns real images from mmsafety_dir if provided,
+    otherwise falls back to blank (same as V-blank — not ideal for experiments).
+    """
     for vc in visual_conditions:
         if vc not in SUPPORTED_VISUAL_CONDITIONS:
             raise ValueError(f"Unsupported visual condition: {vc}")
@@ -51,12 +76,22 @@ def load_harmbench_phase1(
     harmful_sel = rng.sample(harmful_raw, min(n_per_label, len(harmful_raw)))
     harmless_sel = rng.sample(harmless_raw, min(n_per_label, len(harmless_raw)))
 
+    # Pre-collect real image pool for V-real condition
+    real_image_pool = _collect_real_image_paths(mmsafety_dir, seed=seed) if mmsafety_dir else []
+    real_rng = random.Random(seed + 1)
+
     samples: list[MIBDSample] = []
     for vc in visual_conditions:
         for item in harmful_sel:
-            samples.append(_make_text_sample(item, "harmful", vc, "harmbench", "unknown"))
+            img = None
+            if vc == "V-real" and real_image_pool:
+                img = real_rng.choice(real_image_pool)
+            samples.append(_make_text_sample(item, "harmful", vc, "harmbench", "unknown", image_path=img))
         for item in harmless_sel:
-            samples.append(_make_text_sample(item, "harmless", vc, "alpaca", "general"))
+            img = None
+            if vc == "V-real" and real_image_pool:
+                img = real_rng.choice(real_image_pool)
+            samples.append(_make_text_sample(item, "harmless", vc, "alpaca", "general", image_path=img))
     return samples
 
 

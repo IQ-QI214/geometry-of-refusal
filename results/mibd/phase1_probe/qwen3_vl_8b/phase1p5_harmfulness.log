@@ -19,3 +19,6 @@
 [extraction] 364/678  vc=V-noise  label=harmless
 [extraction] 397/678  vc=V-real  label=harmful
 [extraction] 430/678  vc=V-real  label=harmful
+[extraction] 463/678  vc=V-real  label=harmless
+[extraction] 496/678  vc=V-real  label=harmless
+[extraction] 529/678  vc=FigStep  label=harmful

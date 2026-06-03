@@ -56,7 +56,7 @@ Signal: `harmfulness`
 | FigStep | 5.5133 |
 | V-blank | 1.2269 |
 | V-noise | 1.5213 |
-| V-real | 1.2269 |
+| V-real | 2.5011 |
 
 **Audit verdict:** PASS — probe appears valid
 
@@ -69,7 +69,7 @@ Signal: `harmfulness`
 | Split | AUC |
 |---|:---:|
 | Train (full) | 0.9998 |
-| Held-out (random 20%) | N/A |
+| Held-out (random 20%) | 1.0000 |
 | Group split (by paired_id) | N/A (no paired ids) |
 | Permutation (mean over 100) | 0.6094 |
 
@@ -95,7 +95,7 @@ Signal: `harmfulness`
 | Split | AUC |
 |---|:---:|
 | Train (full) | 0.9995 |
-| Held-out (random 20%) | N/A |
+| Held-out (random 20%) | 0.9822 |
 | Group split (by paired_id) | N/A (no paired ids) |
 | Permutation (mean over 100) | 0.6079 |
 
@@ -120,23 +120,23 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9998 |
-| Held-out (random 20%) | N/A |
+| Train (full) | 0.9990 |
+| Held-out (random 20%) | 0.9941 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Permutation (mean over 100) | 0.6094 |
+| Permutation (mean over 100) | 0.5931 |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 5.8085 |
-| Median gap | 6.2395 |
-| IQR harmful | 1.6075 |
-| IQR harmless | 2.1088 |
+| Mean gap (harmful − harmless) | 5.0061 |
+| Median gap | 5.1774 |
+| IQR harmful | 1.3709 |
+| IQR harmless | 2.1752 |
 | N harmful | 64 |
 | N harmless | 64 |
 
-**Audit verdict:** WARN — permutation AUC high (0.609) — possible artifact
+**Audit verdict:** PASS — probe appears valid
 
 ---
 
@@ -147,7 +147,7 @@ Signal: `harmfulness`
 | Split | AUC |
 |---|:---:|
 | Train (full) | 1.0000 |
-| Held-out (random 20%) | N/A |
+| Held-out (random 20%) | 1.0000 |
 | Group split (by paired_id) | N/A (no paired ids) |
 | Permutation (mean over 100) | 0.4525 |
 
@@ -168,4 +168,4 @@ Signal: `harmfulness`
 
 ## Overall Audit Conclusion
 
-3/5 condition(s) flagged with warnings. Review per-condition sections above before proceeding to Phase 2.
+2/5 condition(s) flagged with warnings. Review per-condition sections above before proceeding to Phase 2.

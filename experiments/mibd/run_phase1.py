@@ -118,6 +118,7 @@ def main():
         visual_conditions=text_conditions,
         max_samples=cfg.max_samples,
         seed=cfg.seed,
+        mmsafety_dir=args.mmsafety_dir,
     )
     figstep_samples = []
     if "FigStep" in cfg.visual_conditions:
