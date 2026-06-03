@@ -31,6 +31,12 @@ def run_extraction(
         for (layer_idx, pos), vec in hidden_map.items():
             storage[sample.visual_condition][(layer_idx, pos)][sample.label].append(vec)
 
+    return _consolidate_storage(storage)
+
+
+def _consolidate_storage(
+    storage: dict,
+) -> dict[str, dict[tuple[int, int], dict[str, np.ndarray]]]:
     result: dict[str, dict[tuple[int, int], dict[str, np.ndarray]]] = {}
     for vc, lp_map in storage.items():
         result[vc] = {}
