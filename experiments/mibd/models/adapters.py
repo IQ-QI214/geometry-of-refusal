@@ -2,6 +2,7 @@
 
 Qwen3VLAdapter  — Qwen3-VL-8B-Instruct (qwen3-vl env, 36 LLM layers)
 InternVL3Adapter — InternVL3-8B       (rdo env,     28 LLM layers)
+Gemma3Adapter   — Gemma3-4B-IT        (qwen3-vl env, 34 LLM layers)
 """
 from __future__ import annotations
 
@@ -105,6 +106,81 @@ class Qwen3VLAdapter(MIBDModelAdapter):
         hooks = []
 
         for idx, layer in enumerate(self.model.model.language_model.layers):
+            if idx not in layer_set:
+                continue
+
+            def make_hook(i):
+                def hook(module, inp, out):
+                    h = out[0] if isinstance(out, tuple) else out
+                    captured[i] = h.detach().float().cpu()
+                return hook
+
+            hooks.append(layer.register_forward_hook(make_hook(idx)))
+
+        with torch.no_grad():
+            self.model(**inputs, output_hidden_states=False)
+
+        for h in hooks:
+            h.remove()
+
+        result: dict[tuple[int, int], np.ndarray] = {}
+        for layer_idx, hidden in captured.items():
+            seq_len = hidden.shape[1]
+            for pos in token_positions:
+                abs_pos = seq_len + pos if pos < 0 else pos
+                if 0 <= abs_pos < seq_len:
+                    result[(layer_idx, pos)] = hidden[0, abs_pos, :].numpy()
+        return result
+
+
+class Gemma3Adapter(MIBDModelAdapter):
+    """
+    Gemma3-4B-IT hidden state extraction adapter.
+    LLM layers: model.language_model.model.layers (34 layers for 4B variant).
+    Uses forward hooks to capture layer outputs.
+    """
+
+    def __init__(self, model, processor, device: str):
+        self.model = model
+        self.processor = processor
+        self.device = device
+
+    @property
+    def num_llm_layers(self) -> int:
+        return len(self.model.language_model.model.layers)
+
+    def prepare_inputs(
+        self, sample: MIBDSample, image: Image.Image | None
+    ) -> dict[str, Any]:
+        if image is None:
+            messages = [{"role": "user", "content": [
+                {"type": "text", "text": sample.text},
+            ]}]
+        else:
+            messages = [{"role": "user", "content": [
+                {"type": "image"},
+                {"type": "text", "text": sample.text},
+            ]}]
+        text = self.processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=False
+        )
+        if image is None:
+            inputs = self.processor(text=text, return_tensors="pt")
+        else:
+            inputs = self.processor(text=text, images=[image], return_tensors="pt")
+        return {k: v.to(self.device) for k, v in inputs.items()}
+
+    def extract_hidden(
+        self,
+        inputs: dict[str, Any],
+        layers: tuple[int, ...],
+        token_positions: tuple[int, ...],
+    ) -> dict[tuple[int, int], np.ndarray]:
+        layer_set = set(layers)
+        captured: dict[int, torch.Tensor] = {}
+        hooks = []
+
+        for idx, layer in enumerate(self.model.language_model.model.layers):
             if idx not in layer_set:
                 continue
 

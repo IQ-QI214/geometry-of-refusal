@@ -20,12 +20,26 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 import sys
-import functools
+from pathlib import Path
 
 # Force line-buffered stdout so every print() appears immediately in tee/tmux
 print = functools.partial(print, flush=True)
+
+
+class _Tee:
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for s in self._streams:
+            s.write(data)
+
+    def flush(self):
+        for s in self._streams:
+            s.flush()
 
 from experiments.mibd.config import load_experiment_config
 from experiments.mibd.data.loaders import load_harmbench_phase1, load_mmsafety_figstep
@@ -43,21 +57,39 @@ from experiments.mibd.probes.train import (
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True, choices=["qwen3vl", "internvl3"])
+    parser.add_argument("--model", required=True, choices=["qwen3vl", "internvl3", "gemma3"])
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--config", required=True)
+    parser.add_argument("--signal-type", default="harmfulness", choices=["harmfulness", "refusal"])
+    parser.add_argument(
+        "--refusal-labels",
+        default=None,
+        help="Path to JSON {sample_id: 'refusal'|'compliance'} (required when --signal-type=refusal)",
+    )
     parser.add_argument("--data-dir", default="data/saladbench_splits")
     parser.add_argument(
         "--mmsafety-dir",
         default="/inspire/hdd/global_user/wenming-253108090054/czk/MML/dataset/mm-safebench",
     )
+    parser.add_argument("--log-file", default=None,
+                        help="Path to save a copy of all stdout output (tee to file)")
     args = parser.parse_args()
+
+    if args.signal_type == "refusal" and args.refusal_labels is None:
+        parser.error("--refusal-labels is required when --signal-type=refusal")
+
+    if args.log_file:
+        log_path = Path(args.log_file)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        _log_fh = log_path.open("w", buffering=1)
+        sys.stdout = _Tee(sys.__stdout__, _log_fh)
+        sys.stderr = _Tee(sys.__stderr__, _log_fh)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     device = "cuda:0"
 
     cfg = load_experiment_config(args.config)
-    print(f"[run_phase1] model={args.model} gpu={args.gpu} "
+    print(f"[run_phase1] model={args.model} gpu={args.gpu} signal={args.signal_type} "
           f"conditions={cfg.visual_conditions} layers={len(cfg.layers)} "
           f"max_samples={cfg.max_samples}")
 
@@ -67,6 +99,11 @@ def main():
         from experiments.mibd.models.adapters import Qwen3VLAdapter
         model, processor = load_qwen3vl(cfg.model_id, device=device)
         adapter = Qwen3VLAdapter(model=model, processor=processor, device=device)
+    elif args.model == "gemma3":
+        from experiments.mibd.models.loader import load_gemma3
+        from experiments.mibd.models.adapters import Gemma3Adapter
+        model, processor = load_gemma3(cfg.model_id, device=device)
+        adapter = Gemma3Adapter(model=model, processor=processor, device=device)
     else:
         from experiments.mibd.models.loader import load_internvl3
         from experiments.mibd.models.adapters import InternVL3Adapter
@@ -111,6 +148,28 @@ def main():
         figstep_samples = figstep_harmful + figstep_harmless
     all_samples = text_samples + figstep_samples
     print(f"[run_phase1] loaded {len(all_samples)} samples")
+
+    if args.signal_type == "refusal":
+        import json as _json
+        with open(args.refusal_labels) as _f:
+            refusal_labels = _json.load(_f)
+        remapped = []
+        missing = 0
+        for s in all_samples:
+            behaviour = refusal_labels.get(s.id)
+            if behaviour is None:
+                missing += 1
+                continue
+            remapped.append(MIBDSample(
+                id=s.id, text=s.text, image_path=s.image_path,
+                label=behaviour, category=s.category, source=s.source,
+                paired_id=s.paired_id, visual_condition=s.visual_condition,
+            ))
+        if missing:
+            print(f"[run_phase1] WARNING: {missing} samples had no refusal label and were dropped")
+        all_samples = remapped
+        print(f"[run_phase1] after refusal remap: {len(all_samples)} samples")
+
     print(f"[run_phase1] starting hidden state extraction "
           f"({len(cfg.layers)} layers × {len(cfg.token_positions)} positions × {len(all_samples)} samples) ...")
     all_hidden = run_extraction(
@@ -148,7 +207,7 @@ def main():
 
     summary = build_phase1_summary(
         model_id=cfg.model_id,
-        signal_type="harmfulness",
+        signal_type=args.signal_type,
         probe_results_by_condition=probe_results_by_condition,
         condition_cosines=condition_cosines,
         static_transfer_auc=static_transfer,

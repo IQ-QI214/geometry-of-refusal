@@ -1,0 +1,21 @@
+[run_phase1p5_audit] model=qwen3vl gpu=1 signal=harmfulness conditions=('V-text', 'V-blank', 'V-noise', 'V-real', 'FigStep') layers=36
+[run_phase1p5_audit] loading model from /inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B ...
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|##5       | 1/4 [00:02<00:08,  2.69s/it]Loading checkpoint shards:  50%|#####     | 2/4 [00:06<00:06,  3.28s/it]Loading checkpoint shards:  75%|#######5  | 3/4 [00:09<00:03,  3.32s/it]Loading checkpoint shards: 100%|##########| 4/4 [00:10<00:00,  2.48s/it]Loading checkpoint shards: 100%|##########| 4/4 [00:10<00:00,  2.73s/it]
+[run_phase1p5_audit] model loaded, num_llm_layers=36
+[run_phase1p5_audit] loading datasets ...
+[run_phase1p5_audit] loaded 678 samples
+[run_phase1p5_audit] extracting hidden states (full dataset) ...
+[extraction] 1/678  vc=V-text  label=harmful
+[extraction] 34/678  vc=V-text  label=harmful
+[extraction] 67/678  vc=V-text  label=harmless
+[extraction] 100/678  vc=V-text  label=harmless
+[extraction] 133/678  vc=V-blank  label=harmful
+[extraction] 166/678  vc=V-blank  label=harmful
+[extraction] 199/678  vc=V-blank  label=harmless
+[extraction] 232/678  vc=V-blank  label=harmless
+[extraction] 265/678  vc=V-noise  label=harmful
+[extraction] 298/678  vc=V-noise  label=harmful
+[extraction] 331/678  vc=V-noise  label=harmless
+[extraction] 364/678  vc=V-noise  label=harmless
+[extraction] 397/678  vc=V-real  label=harmful
+[extraction] 430/678  vc=V-real  label=harmful

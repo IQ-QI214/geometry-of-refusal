@@ -36,3 +36,18 @@ def load_internvl3(model_path: str, device: str = "cuda:1"):
     ).to(device)
     model.eval()
     return model, tokenizer
+
+
+def load_gemma3(model_path: str, device: str = "cuda:0"):
+    """Load Gemma3-4B-IT multimodal model. Requires qwen3-vl env."""
+    from transformers import AutoProcessor, AutoModelForImageTextToText
+    import torch
+
+    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
+    model = AutoModelForImageTextToText.from_pretrained(
+        model_path,
+        torch_dtype=torch.bfloat16,
+        trust_remote_code=True,
+    ).to(device)
+    model.eval()
+    return model, processor

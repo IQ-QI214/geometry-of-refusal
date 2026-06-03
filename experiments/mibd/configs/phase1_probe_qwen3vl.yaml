@@ -1,0 +1,21 @@
+model_id: /inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B
+dataset: harmbench_phase1
+visual_conditions:
+  - V-text
+  - V-blank
+  - V-noise
+  - V-real
+  - FigStep
+layer_grid:
+  start: 0
+  stop: 36
+  step: 1
+token_grid:
+  - -8
+  - -5
+  - -3
+  - -1
+seed: 42
+max_samples: 512
+batch_size: 4
+output_dir: results/mibd/phase1_probe/qwen3_vl_8b
