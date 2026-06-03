@@ -15,9 +15,8 @@ def load_qwen3vl(model_path: str, device: str = "cuda:0"):
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         model_path,
         dtype=torch.bfloat16,
-        device_map={"": device},
         trust_remote_code=True,
-    )
+    ).to(device)
     model.eval()
     return model, processor
 
@@ -33,8 +32,7 @@ def load_internvl3(model_path: str, device: str = "cuda:1"):
     model = AutoModel.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
-        device_map={"": device},
         trust_remote_code=True,
-    )
+    ).to(device)
     model.eval()
     return model, tokenizer
