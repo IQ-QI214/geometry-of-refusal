@@ -1,0 +1,20 @@
+{
+  "carrier_counts": {
+    "blank": 40,
+    "figstep": 40,
+    "natural_risk": 40,
+    "noise": 40,
+    "typographic": 40
+  },
+  "dataset_hash": "2f688a9651b256b4",
+  "name": "mibd_phase2_pilot_paired",
+  "num_paired_ids": 200,
+  "num_samples": 400,
+  "risk_category_counts": {
+    "biosecurity": 50,
+    "cyber": 50,
+    "self_harm": 50,
+    "weapons": 50
+  },
+  "seed": 20260604
+}
