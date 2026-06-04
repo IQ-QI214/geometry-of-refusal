@@ -344,7 +344,7 @@ def main() -> None:
 
     # Train full probes per condition to find best locus
     probe_results_by_condition = {
-        vc: train_probes_for_condition(all_hidden[vc])
+        vc: train_probes_for_condition(all_hidden[vc], pos_label=pos_label, neg_label=neg_label)
         for vc in all_hidden
     }
 
@@ -367,6 +367,8 @@ def main() -> None:
         target_hidden_maps=all_hidden,
         layer=best_layer,
         pos=best_pos,
+        pos_label=pos_label,
+        neg_label=neg_label,
     )
 
     # All condition directions at best locus
@@ -379,7 +381,7 @@ def main() -> None:
     # Margin for V-text source (for transfer drop calculation)
     vtext_hidden_map = all_hidden.get("V-text", {})
     vtext_margin_dict = compute_score_margins(
-        vtext_direction, vtext_hidden_map, best_layer, best_pos
+        vtext_direction, vtext_hidden_map, best_layer, best_pos, pos_label, neg_label
     )
     vtext_mean_gap = vtext_margin_dict["mean_gap"]
 
@@ -397,7 +399,7 @@ def main() -> None:
     )
 
     # Per-condition margin table
-    all_margins = condition_margin_table(condition_directions, all_hidden, best_layer, best_pos)
+    all_margins = condition_margin_table(condition_directions, all_hidden, best_layer, best_pos, pos_label, neg_label)
 
     # --- Held-out split: proper sample-level stratified split ---
     print("[run_phase1p5_audit] computing held-out split AUC (V-text) ...")
@@ -532,7 +534,7 @@ def main() -> None:
                     continue
                 try:
                     target_margins = compute_score_margins(
-                        vtext_direction, target_hidden, best_layer, best_pos
+                        vtext_direction, target_hidden, best_layer, best_pos, pos_label, neg_label
                     )
                     drop = vtext_mean_gap - target_margins["mean_gap"]
                     transfer_margin_drop[target_vc] = drop

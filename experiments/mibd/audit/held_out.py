@@ -120,13 +120,13 @@ def array_held_out_auc_train_selected(
         en_idx = test_neg_global[test_neg_global < len(n)]
         if len(tp_idx) < 2 or len(tn_idx) < 2 or len(ep_idx) < 1 or len(en_idx) < 1:
             continue
-        train_hidden_map[key] = {"harmful": p[tp_idx], "harmless": n[tn_idx]}
-        test_hidden_map[key] = {"harmful": p[ep_idx], "harmless": n[en_idx]}
+        train_hidden_map[key] = {pos_label: p[tp_idx], neg_label: n[tn_idx]}
+        test_hidden_map[key] = {pos_label: p[ep_idx], neg_label: n[en_idx]}
 
     if not train_hidden_map:
         return _fail
 
-    probe_results = train_probes_for_condition(train_hidden_map)
+    probe_results = train_probes_for_condition(train_hidden_map, pos_label=pos_label, neg_label=neg_label)
     if not probe_results:
         return _fail
 

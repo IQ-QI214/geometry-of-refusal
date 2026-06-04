@@ -12,19 +12,21 @@ from experiments.mibd.probes.metrics import binary_auc
 
 def train_probes_for_condition(
     hidden_map: dict[tuple[int, int], dict[str, np.ndarray]],
+    pos_label: str = "harmful",
+    neg_label: str = "harmless",
 ) -> dict[tuple[int, int], dict]:
     """Train mean-difference probes for all (layer, pos) in one visual condition."""
     results = {}
     for (layer, pos), label_map in hidden_map.items():
-        harmful = label_map.get("harmful")
-        harmless = label_map.get("harmless")
-        if harmful is None or harmless is None:
+        pos_arr = label_map.get(pos_label)
+        neg_arr = label_map.get(neg_label)
+        if pos_arr is None or neg_arr is None:
             continue
-        if len(harmful) < 2 or len(harmless) < 2:
+        if len(pos_arr) < 2 or len(neg_arr) < 2:
             continue
-        direction = mean_difference_direction(harmful, harmless)
-        all_hidden = np.vstack([harmful, harmless])
-        labels = np.array([1] * len(harmful) + [0] * len(harmless))
+        direction = mean_difference_direction(pos_arr, neg_arr)
+        all_hidden = np.vstack([pos_arr, neg_arr])
+        labels = np.array([1] * len(pos_arr) + [0] * len(neg_arr))
         scores = project_scores(all_hidden, direction)
         auc = binary_auc(labels, scores)
         results[(layer, pos)] = {"direction": direction, "auc": auc}
@@ -58,6 +60,8 @@ def compute_static_transfer_aucs(
     target_hidden_maps: dict[str, dict[tuple[int, int], dict[str, np.ndarray]]],
     layer: int,
     pos: int,
+    pos_label: str = "harmful",
+    neg_label: str = "harmless",
 ) -> dict[tuple[str, str], float]:
     """Apply source_condition direction to target conditions at (layer, pos)."""
     aucs = {}
@@ -67,12 +71,12 @@ def compute_static_transfer_aucs(
         lp_map = hidden_map.get((layer, pos))
         if lp_map is None:
             continue
-        harmful = lp_map.get("harmful")
-        harmless = lp_map.get("harmless")
-        if harmful is None or harmless is None:
+        pos_arr = lp_map.get(pos_label)
+        neg_arr = lp_map.get(neg_label)
+        if pos_arr is None or neg_arr is None:
             continue
-        all_hidden = np.vstack([harmful, harmless])
-        labels = np.array([1] * len(harmful) + [0] * len(harmless))
+        all_hidden = np.vstack([pos_arr, neg_arr])
+        labels = np.array([1] * len(pos_arr) + [0] * len(neg_arr))
         scores = project_scores(all_hidden, source_direction)
         aucs[(source_condition, target_cond)] = binary_auc(labels, scores)
     return aucs
