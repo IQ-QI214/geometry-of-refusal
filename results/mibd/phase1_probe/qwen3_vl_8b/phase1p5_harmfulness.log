@@ -1,6 +1,6 @@
 [run_phase1p5_audit] model=qwen3vl gpu=1 signal=harmfulness conditions=('V-text', 'V-blank', 'V-noise', 'V-real', 'FigStep') layers=36
 [run_phase1p5_audit] loading model from /inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B ...
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|##5       | 1/4 [00:02<00:08,  2.69s/it]Loading checkpoint shards:  50%|#####     | 2/4 [00:06<00:06,  3.28s/it]Loading checkpoint shards:  75%|#######5  | 3/4 [00:09<00:03,  3.32s/it]Loading checkpoint shards: 100%|##########| 4/4 [00:10<00:00,  2.48s/it]Loading checkpoint shards: 100%|##########| 4/4 [00:10<00:00,  2.73s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|##########| 4/4 [00:00<00:00, 102.88it/s]
 [run_phase1p5_audit] model loaded, num_llm_layers=36
 [run_phase1p5_audit] loading datasets ...
 [run_phase1p5_audit] loaded 678 samples
@@ -22,3 +22,118 @@
 [extraction] 463/678  vc=V-real  label=harmless
 [extraction] 496/678  vc=V-real  label=harmless
 [extraction] 529/678  vc=FigStep  label=harmful
+[extraction] 562/678  vc=FigStep  label=harmful
+[extraction] 595/678  vc=FigStep  label=harmful
+[extraction] 628/678  vc=FigStep  label=harmless
+[extraction] 661/678  vc=FigStep  label=harmless
+[extraction] 678/678  vc=FigStep  label=harmless
+[extraction] done — 678 samples processed
+[run_phase1p5_audit] best locus: layer=15 pos=-1 auc=1.0000
+[run_phase1p5_audit] running identity diagnosis (detect condition cache mixing) ...
+[identity]   FigStep      harmful SHA1=059f10268267 shape=(102, 4096)
+[identity]   V-blank      harmful SHA1=d5bd28f2ac29 shape=(64, 4096)
+[identity]   V-noise      harmful SHA1=5babf91d002f shape=(64, 4096)
+[identity]   V-real       harmful SHA1=43600fe1ac46 shape=(64, 4096)
+[identity]   V-text       harmful SHA1=ed1c074f2a1c shape=(64, 4096)
+[run_phase1p5_audit] running nested permutation test on V-text ...
+[run_phase1p5_audit] permutation stats: mean=0.5169 std=0.1705 p95=0.7885 n=100
+[run_phase1p5_audit] computing held-out split AUC (V-text) ...
+[extraction] 1/102  vc=V-text  label=harmful
+[extraction] 6/102  vc=V-text  label=harmful
+[extraction] 11/102  vc=V-text  label=harmful
+[extraction] 16/102  vc=V-text  label=harmful
+[extraction] 21/102  vc=V-text  label=harmful
+[extraction] 26/102  vc=V-text  label=harmful
+[extraction] 31/102  vc=V-text  label=harmful
+[extraction] 36/102  vc=V-text  label=harmful
+[extraction] 41/102  vc=V-text  label=harmful
+[extraction] 46/102  vc=V-text  label=harmful
+[extraction] 51/102  vc=V-text  label=harmful
+[extraction] 56/102  vc=V-text  label=harmless
+[extraction] 61/102  vc=V-text  label=harmless
+[extraction] 66/102  vc=V-text  label=harmless
+[extraction] 71/102  vc=V-text  label=harmless
+[extraction] 76/102  vc=V-text  label=harmless
+[extraction] 81/102  vc=V-text  label=harmless
+[extraction] 86/102  vc=V-text  label=harmless
+[extraction] 91/102  vc=V-text  label=harmless
+[extraction] 96/102  vc=V-text  label=harmless
+[extraction] 101/102  vc=V-text  label=harmless
+[extraction] 102/102  vc=V-text  label=harmless
+[extraction] done — 102 samples processed
+[extraction] 1/26  vc=V-text  label=harmful
+[extraction] 2/26  vc=V-text  label=harmful
+[extraction] 3/26  vc=V-text  label=harmful
+[extraction] 4/26  vc=V-text  label=harmful
+[extraction] 5/26  vc=V-text  label=harmful
+[extraction] 6/26  vc=V-text  label=harmful
+[extraction] 7/26  vc=V-text  label=harmful
+[extraction] 8/26  vc=V-text  label=harmful
+[extraction] 9/26  vc=V-text  label=harmful
+[extraction] 10/26  vc=V-text  label=harmful
+[extraction] 11/26  vc=V-text  label=harmful
+[extraction] 12/26  vc=V-text  label=harmful
+[extraction] 13/26  vc=V-text  label=harmful
+[extraction] 14/26  vc=V-text  label=harmless
+[extraction] 15/26  vc=V-text  label=harmless
+[extraction] 16/26  vc=V-text  label=harmless
+[extraction] 17/26  vc=V-text  label=harmless
+[extraction] 18/26  vc=V-text  label=harmless
+[extraction] 19/26  vc=V-text  label=harmless
+[extraction] 20/26  vc=V-text  label=harmless
+[extraction] 21/26  vc=V-text  label=harmless
+[extraction] 22/26  vc=V-text  label=harmless
+[extraction] 23/26  vc=V-text  label=harmless
+[extraction] 24/26  vc=V-text  label=harmless
+[extraction] 25/26  vc=V-text  label=harmless
+[extraction] 26/26  vc=V-text  label=harmless
+[extraction] done — 26 samples processed
+[run_phase1p5_audit] held-out AUC: 1.0000
+[run_phase1p5_audit] no paired IDs found — group split AUC skipped
+[run_phase1p5_audit] computing cross-category AUCs for 20 categories ...
+[run_phase1p5_audit]   category=Disinformation and deception cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Economic harm cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Expert advice cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Fraud/Deception cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Government decision-making cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Harassment/Discrimination cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Hate, harassment and discrimination cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Illegal goods and services cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Non-violent crimes cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Physical harm cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Privacy cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Sexual content cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=Violence cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=chemical_biological cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=cybercrime_intrusion cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=general cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=harassment_bullying cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=harmful cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=illegal cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit]   category=misinformation_disinformation cross-cat AUC=N/A (single-class test set)
+[run_phase1p5_audit] held-out AUC for V-text ...
+[held_out]     train harmful=51 harmless=51 | test harmful=13 harmless=13
+[run_phase1p5_audit]   V-text held-out AUC = 1.0000
+[run_phase1p5_audit] train-only locus selection held-out AUC for V-text ...
+[run_phase1p5_audit]   V-text train-selected held-out AUC = 1.0000 locus=(16,-1)
+[run_phase1p5_audit] held-out AUC for V-blank ...
+[held_out]     train harmful=51 harmless=51 | test harmful=13 harmless=13
+[run_phase1p5_audit]   V-blank held-out AUC = 0.9941
+[run_phase1p5_audit] train-only locus selection held-out AUC for V-blank ...
+[run_phase1p5_audit]   V-blank train-selected held-out AUC = 1.0000 locus=(17,-1)
+[run_phase1p5_audit] held-out AUC for V-noise ...
+[held_out]     train harmful=51 harmless=51 | test harmful=13 harmless=13
+[run_phase1p5_audit]   V-noise held-out AUC = 1.0000
+[run_phase1p5_audit] train-only locus selection held-out AUC for V-noise ...
+[run_phase1p5_audit]   V-noise train-selected held-out AUC = 1.0000 locus=(16,-1)
+[run_phase1p5_audit] held-out AUC for V-real ...
+[held_out]     train harmful=51 harmless=51 | test harmful=13 harmless=13
+[run_phase1p5_audit]   V-real held-out AUC = 1.0000
+[run_phase1p5_audit] train-only locus selection held-out AUC for V-real ...
+[run_phase1p5_audit]   V-real train-selected held-out AUC = 1.0000 locus=(17,-1)
+[run_phase1p5_audit] held-out AUC for FigStep ...
+[held_out]     train harmful=82 harmless=51 | test harmful=20 harmless=13
+[run_phase1p5_audit]   FigStep held-out AUC = 1.0000
+[run_phase1p5_audit] train-only locus selection held-out AUC for FigStep ...
+[run_phase1p5_audit]   FigStep train-selected held-out AUC = 1.0000 locus=(3,-1)
+[run_phase1p5_audit] report saved to results/mibd/phase1_probe/qwen3_vl_8b/phase1p5_report.md

@@ -1,0 +1,34 @@
+[run_phase1p5_audit] model=internvl3 gpu=0 signal=refusal conditions=('V-text', 'V-blank', 'V-noise', 'V-real', 'FigStep') layers=28
+[run_phase1p5_audit] loading model from /inspire/hdd/global_user/wenming-253108090054/models/InternVL3-8B ...
+FlashAttention2 is not installed.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|##5       | 1/4 [00:00<00:00,  5.60it/s]Loading checkpoint shards:  75%|#######5  | 3/4 [00:00<00:00,  9.65it/s]Loading checkpoint shards: 100%|##########| 4/4 [00:00<00:00, 10.07it/s]
+[run_phase1p5_audit] model loaded, num_llm_layers=28
+[run_phase1p5_audit] loading datasets ...
+[run_phase1p5_audit] loaded 678 samples
+[run_phase1p5_audit] WARNING: 430 samples had no refusal label and were dropped
+[run_phase1p5_audit] after refusal remap: 248 samples
+[run_phase1p5_audit] extracting hidden states (full dataset) ...
+[extraction] 1/248  vc=V-text  label=refusal
+[extraction] 13/248  vc=V-text  label=refusal
+[extraction] 25/248  vc=V-text  label=refusal
+[extraction] 37/248  vc=V-text  label=refusal
+[extraction] 49/248  vc=V-text  label=refusal
+[extraction] 61/248  vc=V-text  label=compliance
+[extraction] 73/248  vc=V-blank  label=refusal
+[extraction] 85/248  vc=V-blank  label=refusal
+[extraction] 97/248  vc=V-blank  label=refusal
+[extraction] 109/248  vc=V-blank  label=refusal
+[extraction] 121/248  vc=V-blank  label=refusal
+[extraction] 133/248  vc=V-noise  label=refusal
+[extraction] 145/248  vc=V-noise  label=refusal
+[extraction] 157/248  vc=V-noise  label=refusal
+[extraction] 169/248  vc=V-noise  label=refusal
+[extraction] 181/248  vc=V-noise  label=refusal
+[extraction] 193/248  vc=V-real  label=refusal
+[extraction] 205/248  vc=V-real  label=refusal
+[extraction] 217/248  vc=V-real  label=refusal
+[extraction] 229/248  vc=V-real  label=refusal
+[extraction] 241/248  vc=V-real  label=refusal
+[extraction] 248/248  vc=V-real  label=compliance
+[extraction] done — 248 samples processed
+[run_phase1p5_audit] ERROR: no V-text probes trained, cannot continue
