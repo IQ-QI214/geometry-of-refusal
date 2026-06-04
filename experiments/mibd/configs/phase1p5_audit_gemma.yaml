@@ -18,4 +18,4 @@ token_grid:
 seed: 42
 max_samples: 512
 batch_size: 4
-output_dir: results/mibd/phase1_probe/gemma3_4b_it
+output_dir: results/mibd/phase1_probe/gemma3_4b

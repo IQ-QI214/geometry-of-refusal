@@ -1,0 +1,37 @@
+[run_phase1] model=gemma3 gpu=0 signal=harmfulness conditions=('V-text', 'V-blank', 'V-noise', 'V-real', 'FigStep') layers=34 max_samples=512
+[run_phase1] loading model from /inspire/hdd/global_user/wenming-253108090054/models/gemma-3-4b-it ...
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]
+Loading checkpoint shards: 100%|##########| 2/2 [00:00<00:00, 34.30it/s]
+[run_phase1] model loaded, num_llm_layers=34
+[run_phase1] loading datasets ...
+[run_phase1] loaded 678 samples
+[run_phase1] starting hidden state extraction (34 layers × 4 positions × 678 samples) ...
+[extraction] 1/678  vc=V-text  label=harmful
+[extraction] 34/678  vc=V-text  label=harmful
+[extraction] 67/678  vc=V-text  label=harmless
+[extraction] 100/678  vc=V-text  label=harmless
+[extraction] 133/678  vc=V-blank  label=harmful
+[extraction] 166/678  vc=V-blank  label=harmful
+[extraction] 199/678  vc=V-blank  label=harmless
+[extraction] 232/678  vc=V-blank  label=harmless
+[extraction] 265/678  vc=V-noise  label=harmful
+[extraction] 298/678  vc=V-noise  label=harmful
+[extraction] 331/678  vc=V-noise  label=harmless
+[extraction] 364/678  vc=V-noise  label=harmless
+[extraction] 397/678  vc=V-real  label=harmful
+[extraction] 430/678  vc=V-real  label=harmful
+[extraction] 463/678  vc=V-real  label=harmless
+[extraction] 496/678  vc=V-real  label=harmless
+[extraction] 529/678  vc=FigStep  label=harmful
+[extraction] 562/678  vc=FigStep  label=harmful
+[extraction] 595/678  vc=FigStep  label=harmful
+[extraction] 628/678  vc=FigStep  label=harmless
+[extraction] 661/678  vc=FigStep  label=harmless
+[extraction] 678/678  vc=FigStep  label=harmless
+[extraction] done — 678 samples processed
+[run_phase1] summary saved to results/mibd/phase1_probe/gemma3_4b_it/summary.json
+[run_phase1] decision=STOP_OR_PIVOT
+[run_phase1] report saved to results/mibd/phase1_probe/gemma3_4b_it/phase1_report.md
+

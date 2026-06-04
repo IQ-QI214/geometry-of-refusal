@@ -1,6 +1,6 @@
 # Phase 1.5 Probe Validity Audit: /inspire/hdd/global_user/wenming-253108090054/models/Qwen3-VL-8B
 
-Signal: `harmfulness`
+Signal: `refusal`
 
 ## Condition: V-text
 
@@ -9,10 +9,10 @@ Signal: `harmfulness`
 | Split | AUC |
 |---|:---:|
 | Train (full) | 1.0000 |
-| Held-out (random 20%) | 1.0000 |
+| Held-out (random 20%) | 0.5926 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=16 pos=-1) |
-| Permutation (nested) | 0.5169 ± 0.1705 (p95=0.7885, n=100) |
+| Train-only held-out AUC | 0.7778 (locus: layer=5 pos=-8) |
+| Permutation (nested) | 0.4448 ± 0.2317 (p95=0.8167, n=100) |
 
 ### Cross-Category AUCs
 
@@ -20,17 +20,17 @@ Signal: `harmfulness`
 |---|:---:|
 | Disinformation and deception | N/A (single-class test set) |
 | Economic harm | N/A (single-class test set) |
-| Expert advice | N/A (single-class test set) |
-| Fraud/Deception | N/A (single-class test set) |
-| Government decision-making | N/A (single-class test set) |
+| Expert advice | 0.5000 |
+| Fraud/Deception | 0.0000 |
+| Government decision-making | 0.5000 |
 | Harassment/Discrimination | N/A (single-class test set) |
-| Hate, harassment and discrimination | N/A (single-class test set) |
-| Illegal goods and services | N/A (single-class test set) |
+| Hate, harassment and discrimination | 0.5000 |
+| Illegal goods and services | 0.4167 |
 | Non-violent crimes | N/A (single-class test set) |
-| Physical harm | N/A (single-class test set) |
-| Privacy | N/A (single-class test set) |
+| Physical harm | 1.0000 |
+| Privacy | 0.0000 |
 | Sexual content | N/A (single-class test set) |
-| Violence | N/A (single-class test set) |
+| Violence | 0.5000 |
 | chemical_biological | N/A (single-class test set) |
 | cybercrime_intrusion | N/A (single-class test set) |
 | general | N/A (single-class test set) |
@@ -43,23 +43,22 @@ Signal: `harmfulness`
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 24.9020 |
-| Median gap | 25.2606 |
-| IQR harmful | 8.2605 |
-| IQR harmless | 5.4961 |
-| N harmful | 64 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 11.9572 |
+| Median gap | 11.4381 |
+| IQR harmful | 4.8919 |
+| IQR harmless | 3.9132 |
+| N harmful | 17 |
+| N harmless | 45 |
 
 ### Static Transfer Margin Drop (V-text probe → other conditions)
 
 | Target Condition | Margin Drop |
 |---|---:|
-| FigStep | 20.0866 |
-| V-blank | 5.9694 |
-| V-noise | 4.5113 |
-| V-real | 5.8369 |
+| V-blank | 0.2210 |
+| V-noise | 0.3279 |
+| V-real | 0.4087 |
 
-**Audit verdict:** PASS — probe appears valid
+**Audit verdict:** WARN — held-out AUC low (0.593); large train/held-out gap (0.407) — possible overfit
 
 ---
 
@@ -69,24 +68,24 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9995 |
-| Held-out (random 20%) | 0.9941 |
+| Train (full) | 1.0000 |
+| Held-out (random 20%) | 0.5556 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=17 pos=-1) |
-| Permutation (nested) | 0.5137 ± 0.1668 (p95=0.7988, n=100) |
+| Train-only held-out AUC | 0.6667 (locus: layer=1 pos=-8) |
+| Permutation (nested) | 0.4633 ± 0.2378 (p95=0.8537, n=100) |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 21.4197 |
-| Median gap | 21.9328 |
-| IQR harmful | 11.2975 |
-| IQR harmless | 4.1529 |
-| N harmful | 64 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 11.7925 |
+| Median gap | 11.4588 |
+| IQR harmful | 5.2036 |
+| IQR harmless | 3.9555 |
+| N harmful | 17 |
+| N harmless | 45 |
 
-**Audit verdict:** PASS — probe appears valid
+**Audit verdict:** WARN — held-out AUC low (0.556); large train/held-out gap (0.444) — possible overfit
 
 ---
 
@@ -96,24 +95,24 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9995 |
-| Held-out (random 20%) | 1.0000 |
+| Train (full) | 1.0000 |
+| Held-out (random 20%) | 0.6296 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=16 pos=-1) |
-| Permutation (nested) | 0.5047 ± 0.1755 (p95=0.7932, n=100) |
+| Train-only held-out AUC | 0.7778 (locus: layer=4 pos=-8) |
+| Permutation (nested) | 0.4615 ± 0.2387 (p95=0.8537, n=100) |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 22.3189 |
-| Median gap | 22.5420 |
-| IQR harmful | 8.5537 |
-| IQR harmless | 4.7865 |
-| N harmful | 64 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 11.7336 |
+| Median gap | 11.2066 |
+| IQR harmful | 4.4926 |
+| IQR harmless | 3.9200 |
+| N harmful | 17 |
+| N harmless | 45 |
 
-**Audit verdict:** PASS — probe appears valid
+**Audit verdict:** WARN — held-out AUC low (0.630); large train/held-out gap (0.370) — possible overfit
 
 ---
 
@@ -123,54 +122,27 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9998 |
-| Held-out (random 20%) | 1.0000 |
-| Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=17 pos=-1) |
-| Permutation (nested) | 0.4914 ± 0.1640 (p95=0.7589, n=100) |
-
-### Margin Statistics
-
-| Metric | Value |
-|---|---:|
-| Mean gap (harmful − harmless) | 21.8823 |
-| Median gap | 21.8169 |
-| IQR harmful | 8.6950 |
-| IQR harmless | 4.0616 |
-| N harmful | 64 |
-| N harmless | 64 |
-
-**Audit verdict:** PASS — probe appears valid
-
----
-
-## Condition: FigStep
-
-### Split AUCs
-
-| Split | AUC |
-|---|:---:|
 | Train (full) | 1.0000 |
-| Held-out (random 20%) | 1.0000 |
+| Held-out (random 20%) | 0.5556 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=3 pos=-1) |
-| Permutation (nested) | 0.5154 ± 0.2044 (p95=0.8467, n=100) |
+| Train-only held-out AUC | 0.7778 (locus: layer=4 pos=-8) |
+| Permutation (nested) | 0.4456 ± 0.2405 (p95=0.8519, n=100) |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 23.1043 |
-| Median gap | 23.1291 |
-| IQR harmful | 1.0188 |
-| IQR harmless | 5.5550 |
-| N harmful | 102 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 11.7179 |
+| Median gap | 11.1212 |
+| IQR harmful | 5.4627 |
+| IQR harmless | 4.1297 |
+| N harmful | 17 |
+| N harmless | 45 |
 
-**Audit verdict:** PASS — probe appears valid
+**Audit verdict:** WARN — held-out AUC low (0.556); large train/held-out gap (0.444) — possible overfit
 
 ---
 
 ## Overall Audit Conclusion
 
-All 5 condition(s) passed validity checks. Probes pass the implemented validity checks and generalize to random held-out splits; group/category controls remain unavailable under the current dataset structure.
+4/4 condition(s) flagged with warnings. Review per-condition sections above before proceeding to Phase 2.

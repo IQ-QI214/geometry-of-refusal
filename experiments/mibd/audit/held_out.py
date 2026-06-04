@@ -139,8 +139,8 @@ def array_held_out_auc_train_selected(
     if test_lp is None:
         return _fail
 
-    test_pos_arr = test_lp["harmful"]
-    test_neg_arr = test_lp["harmless"]
+    test_pos_arr = test_lp[pos_label]
+    test_neg_arr = test_lp[neg_label]
     test_all = np.vstack([test_pos_arr, test_neg_arr])
     test_labels = np.array([1] * len(test_pos_arr) + [0] * len(test_neg_arr))
     held_out_auc = float(binary_auc(test_labels, project_scores(test_all, direction)))
@@ -151,8 +151,8 @@ def array_held_out_auc_train_selected(
         "train_auc": train_auc,
         "best_layer": best_layer,
         "best_pos": best_pos,
-        "train_pos_n": len(train_lp["harmful"]),
-        "train_neg_n": len(train_lp["harmless"]),
+        "train_pos_n": len(train_lp[pos_label]),
+        "train_neg_n": len(train_lp[neg_label]),
         "test_pos_n": len(test_pos_arr),
         "test_neg_n": len(test_neg_arr),
     }

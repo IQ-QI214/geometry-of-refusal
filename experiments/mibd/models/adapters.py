@@ -147,7 +147,7 @@ class Gemma3Adapter(MIBDModelAdapter):
 
     @property
     def num_llm_layers(self) -> int:
-        return len(self.model.language_model.model.layers)
+        return len(self.model.model.language_model.layers)
 
     def prepare_inputs(
         self, sample: MIBDSample, image: Image.Image | None
@@ -180,7 +180,7 @@ class Gemma3Adapter(MIBDModelAdapter):
         captured: dict[int, torch.Tensor] = {}
         hooks = []
 
-        for idx, layer in enumerate(self.model.language_model.model.layers):
+        for idx, layer in enumerate(self.model.model.language_model.layers):
             if idx not in layer_set:
                 continue
 

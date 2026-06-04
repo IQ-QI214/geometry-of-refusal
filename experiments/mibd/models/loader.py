@@ -46,7 +46,7 @@ def load_gemma3(model_path: str, device: str = "cuda:0"):
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
     model = AutoModelForImageTextToText.from_pretrained(
         model_path,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         trust_remote_code=True,
     ).to(device)
     model.eval()

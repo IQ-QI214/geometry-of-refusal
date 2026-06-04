@@ -1,7 +1,11 @@
 [run_phase1p5_audit] model=internvl3 gpu=0 signal=harmfulness conditions=('V-text', 'V-blank', 'V-noise', 'V-real', 'FigStep') layers=28
 [run_phase1p5_audit] loading model from /inspire/hdd/global_user/wenming-253108090054/models/InternVL3-8B ...
 FlashAttention2 is not installed.
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|##5       | 1/4 [00:00<00:00,  8.56it/s]Loading checkpoint shards:  75%|#######5  | 3/4 [00:00<00:00, 11.77it/s]Loading checkpoint shards: 100%|##########| 4/4 [00:00<00:00, 11.83it/s]
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+Loading checkpoint shards:  25%|##5       | 1/4 [00:00<00:00,  8.56it/s]
+Loading checkpoint shards:  75%|#######5  | 3/4 [00:00<00:00, 11.77it/s]
+Loading checkpoint shards: 100%|##########| 4/4 [00:00<00:00, 11.83it/s]
 Traceback (most recent call last):
   File "/opt/conda/envs/rdo/lib/python3.10/runpy.py", line 196, in _run_module_as_main
     return _run_code(code, main_globals, None,
@@ -29,3 +33,13 @@ Traceback (most recent call last):
   File "/opt/conda/envs/rdo/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1326, in convert
     return t.to(
 KeyboardInterrupt
+
+/opt/conda/bin/conda run -n qwen3-vl python -m experiments.mibd.run_phase1p5_audit\
+    --model qwen3vl --gpu 1 \
+    --config experiments/mibd/configs/phase1_probe_qwen3vl.yaml \
+    --signal-type refusal \
+    --refusal-labels results/mibd/phase1_probe/qwen3_vl_8b/refusal_labels.json \
+    --n-permutations 100 \
+    --data-dir data/saladbench_splits \
+    --mmsafety-dir /inspire/hdd/global_user/wenming-253108090054/czk/MML/dataset/mm-safebench \
+    --log-file results/mibd/phase1_probe/qwen3_vl_8b/phase1p5_refusal.log

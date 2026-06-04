@@ -1,6 +1,6 @@
 # Phase 1.5 Probe Validity Audit: /inspire/hdd/global_user/wenming-253108090054/models/InternVL3-8B
 
-Signal: `harmfulness`
+Signal: `refusal`
 
 ## Condition: V-text
 
@@ -9,10 +9,10 @@ Signal: `harmfulness`
 | Split | AUC |
 |---|:---:|
 | Train (full) | 1.0000 |
-| Held-out (random 20%) | 1.0000 |
+| Held-out (random 20%) | 0.9091 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 0.9941 (locus: layer=5 pos=-3) |
-| Permutation (nested) | 0.4753 ± 0.1864 (p95=0.7589, n=200) |
+| Train-only held-out AUC | 0.9091 (locus: layer=0 pos=-8) |
+| Permutation (nested) | 0.4618 ± 0.2925 (p95=1.0000, n=100) |
 
 ### Cross-Category AUCs
 
@@ -25,7 +25,7 @@ Signal: `harmfulness`
 | Government decision-making | N/A (single-class test set) |
 | Harassment/Discrimination | N/A (single-class test set) |
 | Hate, harassment and discrimination | N/A (single-class test set) |
-| Illegal goods and services | N/A (single-class test set) |
+| Illegal goods and services | 1.0000 |
 | Non-violent crimes | N/A (single-class test set) |
 | Physical harm | N/A (single-class test set) |
 | Privacy | N/A (single-class test set) |
@@ -34,30 +34,29 @@ Signal: `harmfulness`
 | chemical_biological | N/A (single-class test set) |
 | cybercrime_intrusion | N/A (single-class test set) |
 | general | N/A (single-class test set) |
-| harassment_bullying | N/A (single-class test set) |
+| harassment_bullying | 0.0000 |
 | harmful | N/A (single-class test set) |
 | illegal | N/A (single-class test set) |
-| misinformation_disinformation | N/A (single-class test set) |
+| misinformation_disinformation | 0.5000 |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 6.3247 |
-| Median gap | 6.4955 |
-| IQR harmful | 2.0643 |
-| IQR harmless | 2.7206 |
-| N harmful | 64 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 5.3509 |
+| Median gap | 5.5253 |
+| IQR harmful | 0.5403 |
+| IQR harmless | 1.2488 |
+| N harmful | 56 |
+| N harmless | 6 |
 
 ### Static Transfer Margin Drop (V-text probe → other conditions)
 
 | Target Condition | Margin Drop |
 |---|---:|
-| FigStep | 5.5133 |
-| V-blank | 1.2269 |
-| V-noise | 1.5213 |
-| V-real | 2.5011 |
+| V-blank | 0.0180 |
+| V-noise | 0.0068 |
+| V-real | 0.0310 |
 
 **Audit verdict:** PASS — probe appears valid
 
@@ -69,22 +68,22 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9998 |
-| Held-out (random 20%) | 1.0000 |
+| Train (full) | 1.0000 |
+| Held-out (random 20%) | 0.9091 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=7 pos=-3) |
-| Permutation (nested) | 0.4715 ± 0.1731 (p95=0.7580, n=200) |
+| Train-only held-out AUC | 0.9091 (locus: layer=0 pos=-8) |
+| Permutation (nested) | 0.4864 ± 0.2890 (p95=1.0000, n=100) |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 5.8085 |
-| Median gap | 6.2395 |
-| IQR harmful | 1.6075 |
-| IQR harmless | 2.1088 |
-| N harmful | 64 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 5.4254 |
+| Median gap | 5.6445 |
+| IQR harmful | 0.6096 |
+| IQR harmless | 0.9935 |
+| N harmful | 56 |
+| N harmless | 6 |
 
 **Audit verdict:** PASS — probe appears valid
 
@@ -96,22 +95,22 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9995 |
-| Held-out (random 20%) | 0.9822 |
+| Train (full) | 1.0000 |
+| Held-out (random 20%) | 0.9091 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=7 pos=-3) |
-| Permutation (nested) | 0.4861 ± 0.1837 (p95=0.8047, n=200) |
+| Train-only held-out AUC | 0.9091 (locus: layer=0 pos=-8) |
+| Permutation (nested) | 0.4700 ± 0.2901 (p95=1.0000, n=100) |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 5.7641 |
-| Median gap | 6.1760 |
-| IQR harmful | 1.4194 |
-| IQR harmless | 2.2004 |
-| N harmful | 64 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 5.4381 |
+| Median gap | 5.6867 |
+| IQR harmful | 0.6091 |
+| IQR harmless | 0.9785 |
+| N harmful | 56 |
+| N harmless | 6 |
 
 **Audit verdict:** PASS — probe appears valid
 
@@ -123,49 +122,22 @@ Signal: `harmfulness`
 
 | Split | AUC |
 |---|:---:|
-| Train (full) | 0.9990 |
-| Held-out (random 20%) | 0.9941 |
-| Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=7 pos=-3) |
-| Permutation (nested) | 0.4736 ± 0.1668 (p95=0.7343, n=200) |
-
-### Margin Statistics
-
-| Metric | Value |
-|---|---:|
-| Mean gap (harmful − harmless) | 5.0061 |
-| Median gap | 5.1774 |
-| IQR harmful | 1.3709 |
-| IQR harmless | 2.1752 |
-| N harmful | 64 |
-| N harmless | 64 |
-
-**Audit verdict:** PASS — probe appears valid
-
----
-
-## Condition: FigStep
-
-### Split AUCs
-
-| Split | AUC |
-|---|:---:|
 | Train (full) | 1.0000 |
-| Held-out (random 20%) | 1.0000 |
+| Held-out (random 20%) | 0.9091 |
 | Group split (by paired_id) | N/A (no paired ids) |
-| Train-only held-out AUC | 1.0000 (locus: layer=0 pos=-1) |
-| Permutation (nested) | 0.4842 ± 0.2238 (p95=0.8704, n=200) |
+| Train-only held-out AUC | 0.9091 (locus: layer=0 pos=-8) |
+| Permutation (nested) | 0.4782 ± 0.2945 (p95=1.0000, n=100) |
 
 ### Margin Statistics
 
 | Metric | Value |
 |---|---:|
-| Mean gap (harmful − harmless) | 5.9540 |
-| Median gap | 6.3601 |
-| IQR harmful | 1.3720 |
-| IQR harmless | 1.7491 |
-| N harmful | 102 |
-| N harmless | 64 |
+| Mean gap (harmful − harmless) | 5.4152 |
+| Median gap | 5.6271 |
+| IQR harmful | 0.6038 |
+| IQR harmless | 0.9530 |
+| N harmful | 56 |
+| N harmless | 6 |
 
 **Audit verdict:** PASS — probe appears valid
 
@@ -173,4 +145,4 @@ Signal: `harmfulness`
 
 ## Overall Audit Conclusion
 
-All 5 condition(s) passed validity checks. Probes pass the implemented validity checks and generalize to random held-out splits; group/category controls remain unavailable under the current dataset structure.
+All 4 condition(s) passed validity checks. Probes pass the implemented validity checks and generalize to random held-out splits; group/category controls remain unavailable under the current dataset structure.

@@ -1,0 +1,54 @@
+{
+  "model_id": "/inspire/hdd/global_user/wenming-253108090054/models/gemma-3-4b-it",
+  "signal_type": "harmfulness",
+  "results": [
+    {
+      "visual_condition": "V-text",
+      "layer": 29,
+      "token_pos": -1,
+      "auc": 0.99951171875
+    },
+    {
+      "visual_condition": "V-blank",
+      "layer": 32,
+      "token_pos": -1,
+      "auc": 0.995849609375
+    },
+    {
+      "visual_condition": "V-noise",
+      "layer": 32,
+      "token_pos": -1,
+      "auc": 0.998291015625
+    },
+    {
+      "visual_condition": "V-real",
+      "layer": 32,
+      "token_pos": -3,
+      "auc": 0.998046875
+    },
+    {
+      "visual_condition": "FigStep",
+      "layer": 17,
+      "token_pos": -8,
+      "auc": 0.9993872549019608
+    }
+  ],
+  "condition_cosines": {
+    "FigStep|V-blank": 0.29968634039572667,
+    "FigStep|V-noise": 0.34417984634946036,
+    "FigStep|V-real": 0.40483003424641595,
+    "FigStep|V-text": 0.49306143322772095,
+    "V-blank|V-noise": 0.9579172357637897,
+    "V-blank|V-real": 0.9285155302199404,
+    "V-blank|V-text": 0.8921934419632147,
+    "V-noise|V-real": 0.9308065160425499,
+    "V-noise|V-text": 0.8935674807885656,
+    "V-real|V-text": 0.884649392357657
+  },
+  "static_transfer_auc": {
+    "V-text|V-blank": 0.993896484375,
+    "V-text|V-noise": 0.995849609375,
+    "V-text|V-real": 0.98681640625,
+    "V-text|FigStep": 0.9399509803921569
+  }
+}

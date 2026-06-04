@@ -124,13 +124,28 @@ def _generate_qwen3vl(model, processor, text: str, device: str, max_new_tokens: 
     return processor.decode(generated, skip_special_tokens=True)
 
 
+def _generate_gemma3(model, processor, text: str, device: str, max_new_tokens: int = 128) -> str:
+    messages = [{"role": "user", "content": [{"type": "text", "text": text}]}]
+    prompt = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    inputs = processor(text=prompt, return_tensors="pt")
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        out = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            do_sample=False,
+        )
+    generated = out[0][inputs["input_ids"].shape[1]:]
+    return processor.decode(generated, skip_special_tokens=True)
+
+
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True, choices=["internvl3", "qwen3vl"])
+    parser.add_argument("--model", required=True, choices=["internvl3", "qwen3vl", "gemma3"])
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--config", required=True)
     parser.add_argument("--data-dir", required=True)
@@ -159,11 +174,13 @@ def main() -> None:
     print(f"[generate_refusal_labels] model={args.model} gpu={args.gpu}")
     print(f"[generate_refusal_labels] loading model from {model_path} ...")
 
-    from experiments.mibd.models.loader import load_internvl3, load_qwen3vl
+    from experiments.mibd.models.loader import load_internvl3, load_qwen3vl, load_gemma3
     from experiments.mibd.data.loaders import load_harmbench_phase1
 
     if args.model == "internvl3":
         model, tokenizer_or_proc = load_internvl3(model_path, device=device)
+    elif args.model == "gemma3":
+        model, tokenizer_or_proc = load_gemma3(model_path, device=device)
     else:
         model, tokenizer_or_proc = load_qwen3vl(model_path, device=device)
 
@@ -182,6 +199,8 @@ def main() -> None:
     for i, sample in enumerate(samples, 1):
         if args.model == "internvl3":
             response = _generate_internvl3(model, tokenizer_or_proc, sample.text, device, args.max_new_tokens)
+        elif args.model == "gemma3":
+            response = _generate_gemma3(model, tokenizer_or_proc, sample.text, device, args.max_new_tokens)
         else:
             response = _generate_qwen3vl(model, tokenizer_or_proc, sample.text, device, args.max_new_tokens)
 

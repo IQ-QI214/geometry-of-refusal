@@ -390,7 +390,8 @@ def main() -> None:
 
     print("[run_phase1p5_audit] running nested permutation test on V-text ...")
     perm_stats = permutation_auc(
-        vtext_hidden_map, n_permutations=args.n_permutations, seed=cfg.seed
+        vtext_hidden_map, n_permutations=args.n_permutations, seed=cfg.seed,
+        pos_label=pos_label, neg_label=neg_label,
     )
     print(
         f"[run_phase1p5_audit] permutation stats: "
@@ -520,6 +521,7 @@ def main() -> None:
             try:
                 vc_perm_stats = permutation_auc(
                     vc_hidden, n_permutations=args.n_permutations, seed=cfg.seed,
+                    pos_label=pos_label, neg_label=neg_label,
                 )
             except (KeyError, ValueError):
                 vc_perm_stats = {}
