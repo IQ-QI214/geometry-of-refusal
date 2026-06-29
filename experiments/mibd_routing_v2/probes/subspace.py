@@ -10,7 +10,9 @@ Method (dependency-light, CPU-only):
 * Iteratively extract difference-of-means directions; after each one, project
   the residual hidden states orthogonal to the directions found so far
   (a simple INLP-style deflation). This yields ``rank`` orthonormal directions.
-* Score a sample as the L2 norm of its projection onto the subspace.
+* Score a sample as the signed sum of projections onto the extracted
+  risk-oriented directions. This preserves the harmful-vs-harmless orientation;
+  using only projection norms can destroy rank-1 separability.
 * Compare subspace AUC against the best single-direction AUC.
 
 numpy-only. No model, no GPU.
@@ -94,7 +96,7 @@ def extract_risk_subspace(
 
 def _subspace_scores(hidden: np.ndarray, directions: np.ndarray) -> np.ndarray:
     projections = np.asarray(hidden, dtype=float) @ directions.T  # (n, k)
-    return np.linalg.norm(projections, axis=1)
+    return projections.sum(axis=1)
 
 
 def evaluate_subspace_readout(

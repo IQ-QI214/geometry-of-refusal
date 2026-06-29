@@ -1,0 +1,136 @@
+{
+  "conditions": {
+    "FigStep": [
+      {
+        "layer": 0,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 4,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 8,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 12,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 16,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 20,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 24,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 27,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      }
+    ],
+    "V-real": [
+      {
+        "layer": 0,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 4,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 8,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 12,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 16,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 20,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 24,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 27,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      }
+    ]
+  }
+}

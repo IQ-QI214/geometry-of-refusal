@@ -17,7 +17,12 @@
   - `probes/dissociation.py` — H2 传感-门控解离角度量化
   - `probes/subspace.py` — 多方向拒绝子空间读出（diff-of-means 一阶矩方法，存在已知局限）
   - `data/matched_safe_images.py` — 类别匹配安全图选择
-  - `tests/test_v2_cpu.py` — 纯 CPU 测试（10 项全通过）
+  - `bridge/oracle_bridge.py` — H3 oracle dynamic sensor-to-gate bridge 的 CPU 侧聚合与效果摘要
+  - `data/build_phase2a_dataset.py` / `run_build_phase2a_dataset.py` — v2 专属 matched benign Phase 2A 数据构建入口
+  - `run_phase2a_vlm_behavior.py` / `run_phase2b_extract_probe.py` — 离线 GPU 环境的 behavior generation 与 hidden extraction/probe 入口
+  - `tests/test_v2_cpu.py` — 纯 CPU 测试（17 项全通过）
+- 本地真实 benign 图池准备说明见 `mibd_routing_v2_benign_pool_setup.md`。
+- 离线 GPU 启动命令见 `mibd_routing_v2_offline_gpu_runbook.md`。
 - GPU 相关部分（白盒 hidden-state 读写、门控前向筛选、Guard judge 接入、桥接驱动）为后续批次，需在有 GPU 的环境执行。
 
 > 注：文档文件名中的日期为撰写日期（YYYYMMDD），并非严格的版本号。

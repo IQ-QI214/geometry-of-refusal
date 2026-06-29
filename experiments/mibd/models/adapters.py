@@ -11,7 +11,9 @@ from typing import Any
 
 import numpy as np
 import torch
-from PIL import Image
+from pathlib import Path
+
+from PIL import Image, UnidentifiedImageError
 
 from experiments.mibd.data.schema import MIBDSample
 from experiments.mibd.data.image_utils import blank_image, noise_image
@@ -49,7 +51,13 @@ class MIBDModelAdapter(ABC):
         if vc in ("V-real", "FigStep"):
             if sample.image_path is None:
                 return blank_image()
-            return Image.open(sample.image_path).convert("RGB")
+            image_path = Path(sample.image_path)
+            if image_path.suffix == ".txt" or not image_path.exists():
+                return blank_image()
+            try:
+                return Image.open(image_path).convert("RGB")
+            except UnidentifiedImageError:
+                return blank_image()
         return None
 
 

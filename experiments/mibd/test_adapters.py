@@ -38,7 +38,7 @@ def test_gemma3_adapter_num_llm_layers():
     """Gemma3Adapter.num_llm_layers returns 34 for gemma-3-4b-it."""
     from experiments.mibd.models.adapters import Gemma3Adapter
     mock_model = MagicMock()
-    mock_model.language_model.model.layers = [MagicMock()] * 34
+    mock_model.model.language_model.layers = [MagicMock()] * 34
     mock_processor = MagicMock()
     adapter = Gemma3Adapter(model=mock_model, processor=mock_processor, device="cpu")
     assert adapter.num_llm_layers == 34
@@ -62,3 +62,26 @@ def test_gemma3_adapter_prepare_inputs_vtext():
     result = adapter.prepare_inputs(sample, image=None)
     assert result is not None
     assert "input_ids" in result
+
+
+def test_adapter_build_image_uses_blank_for_txt_placeholder(tmp_path):
+    from experiments.mibd.data.schema import MIBDSample
+    from experiments.mibd.models.adapters import Qwen3VLAdapter
+
+    placeholder = tmp_path / "safe_blank_0000.txt"
+    placeholder.write_text("blank safe control placeholder\n", encoding="utf-8")
+    adapter = Qwen3VLAdapter(model=MagicMock(), processor=MagicMock(), device="cpu")
+    sample = MIBDSample.from_dict({
+        "id": "safe",
+        "text": "describe the image",
+        "image_path": str(placeholder),
+        "label": "harmless",
+        "category": "04",
+        "source": "unit",
+        "paired_id": "pair",
+        "visual_condition": "V-real",
+    })
+
+    image = adapter.build_image_for_condition(sample)
+
+    assert image.mode == "RGB"
