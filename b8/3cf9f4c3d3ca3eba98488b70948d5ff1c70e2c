@@ -1,0 +1,14 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b83cf9f4c3d3ca3eba98488b70948d5ff1c70e2c",
+  "prompts": {},
+  "humans": {
+    "h_9b5de058c682fd": {
+      "author": "zhujiaqi <iqqi0214@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
