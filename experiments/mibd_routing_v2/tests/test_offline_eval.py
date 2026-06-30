@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 from experiments.mibd_routing_v2.eval import load_hidden_states as lh
+from experiments.mibd_routing_v2.eval import run_probe_audit as rpa
 from experiments.mibd_routing_v2.eval import run_offline_oracle as roo
 from experiments.mibd_routing_v2.eval import check_saturation as cs
 from experiments.mibd_routing_v2.routing import probe_bank as pb
@@ -180,6 +181,41 @@ class TestOfflineOracle:
             # lowest tau => everything activates; highest tau => nothing
             assert sweep[0]["harmful_activation_rate"] >= sweep[-1]["harmful_activation_rate"]
             assert sweep[0]["benign_leak_rate"] >= sweep[-1]["benign_leak_rate"]
+
+
+# ---------------------------------------------------------------------------
+# Leakage-aware probe audit: run_probe_audit
+# ---------------------------------------------------------------------------
+
+
+class TestProbeAudit:
+    def test_heldout_auc_detects_carrier_signal_without_same_set_leakage(self) -> None:
+        states = _make_states(layers=(0,), d=16, n_per_class=40, separable=True)
+        report = rpa.build_probe_audit_report(
+            states,
+            model_name="synthetic",
+            frac_train=0.5,
+            seed=123,
+            permutation_seed=999,
+        )
+        row = report["within_carrier"]["FigStep"]["0"]
+        assert row["same_set_auc"] == pytest.approx(1.0, abs=1e-9)
+        assert row["heldout_auc"] > 0.95
+        assert 0.35 <= row["permutation_heldout_auc"] <= 0.65
+
+    def test_audit_summary_reports_cross_transfer_drop_on_heldout_metric(self) -> None:
+        states = _make_states(layers=(0,), d=16, n_per_class=40, separable=True)
+        report = rpa.build_probe_audit_report(
+            states,
+            model_name="synthetic",
+            frac_train=0.5,
+            seed=123,
+            permutation_seed=999,
+        )
+        summary = report["summary"]
+        assert summary["model"] == "synthetic"
+        assert summary["mean_within_heldout_auc"] > summary["mean_cross_carrier_auc"]
+        assert summary["heldout_cross_carrier_transfer_drop"] > 0.1
 
 
 # ---------------------------------------------------------------------------
