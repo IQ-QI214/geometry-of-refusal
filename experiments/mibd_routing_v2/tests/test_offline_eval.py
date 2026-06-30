@@ -14,6 +14,7 @@ import pytest
 
 from experiments.mibd_routing_v2.eval import load_hidden_states as lh
 from experiments.mibd_routing_v2.eval import run_offline_oracle as roo
+from experiments.mibd_routing_v2.eval import check_saturation as cs
 from experiments.mibd_routing_v2.routing import probe_bank as pb
 
 
@@ -179,3 +180,44 @@ class TestOfflineOracle:
             # lowest tau => everything activates; highest tau => nothing
             assert sweep[0]["harmful_activation_rate"] >= sweep[-1]["harmful_activation_rate"]
             assert sweep[0]["benign_leak_rate"] >= sweep[-1]["benign_leak_rate"]
+
+
+# ---------------------------------------------------------------------------
+# Saturation guard: check_saturation
+# ---------------------------------------------------------------------------
+
+
+class TestSaturationGuard:
+    def test_flags_layer0_saturation(self) -> None:
+        # every layer AUC=1.0 incl layer 0 => blank-vs-content confound
+        summary = {
+            "conditions": {
+                "FigStep": [
+                    {"layer": 0, "single_direction_auc": 1.0},
+                    {"layer": 8, "single_direction_auc": 1.0},
+                ],
+                "V-real": [
+                    {"layer": 0, "single_direction_auc": 1.0},
+                    {"layer": 8, "single_direction_auc": 1.0},
+                ],
+            }
+        }
+        report = cs.evaluate_probe_summary(summary)
+        assert report["saturated"] is True
+
+    def test_passes_when_early_layers_weak(self) -> None:
+        # early layers weak, separability emerges later => semantics, not confound
+        summary = {
+            "conditions": {
+                "FigStep": [
+                    {"layer": 0, "single_direction_auc": 0.55},
+                    {"layer": 16, "single_direction_auc": 0.93},
+                ],
+            }
+        }
+        report = cs.evaluate_probe_summary(summary)
+        assert report["saturated"] is False
+
+    def test_empty_conditions_raises(self) -> None:
+        with pytest.raises(ValueError):
+            cs.evaluate_probe_summary({"conditions": {}})
