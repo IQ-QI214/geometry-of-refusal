@@ -1,0 +1,247 @@
+experiments/mibd_routing_v2/routing/gating.py
+  s_6152d4b07242c5::t_ab6a9884314e89 1-139 gitai:{"mixed_line_ranges":[{"Range":[62,65]},{"Single":71}],"operations":[{"operation_id":"6a4390e894d6f54aed133af0","tool_type":"builtin","tool_id":"icube:applyChatSnapshotPatch","line_ranges":[{"Range":[1,139]}]}]}
+experiments/mibd_routing_v2/routing/bridge_losses.py
+  s_6152d4b07242c5::t_6dd3936acaf33b 1-90 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a43918c94d6f54aed133b0b","tool_type":"builtin","tool_id":"icube:applyChatSnapshotPatch","line_ranges":[{"Range":[1,90]}]}]}
+experiments/mibd_routing_v2/tests/test_routing_core.py
+  s_6152d4b07242c5::t_fc4bab953fdd17 1-417 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a43909594d6f54aed133ae1","tool_type":"builtin","tool_id":"icube:applyChatSnapshotPatch","line_ranges":[{"Range":[1,417]}]}]}
+experiments/mibd_routing_v2/routing/router.py
+  s_6152d4b07242c5::t_7658b5af3598b3 1-138 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a43911794d6f54aed133af9","tool_type":"builtin","tool_id":"icube:applyChatSnapshotPatch","line_ranges":[{"Range":[1,138]}]}]}
+experiments/mibd_routing_v2/routing/gate.py
+  s_6152d4b07242c5::t_82f45ac67335b1 1-70 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a43913594d6f54aed133b02","tool_type":"builtin","tool_id":"icube:applyChatSnapshotPatch","line_ranges":[{"Range":[1,70]}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "82f84ffc6d4f7efd9867cf7d155337a1882bd54b",
+  "prompts": {},
+  "humans": {
+    "h_9b5de058c682fd": {
+      "author": "zhujiaqi <iqqi0214@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_6152d4b07242c5": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a438f9394d6f54aed133a7f",
+        "model": "openrouter-2o"
+      },
+      "human_author": "zhujiaqi <iqqi0214@gmail.com>"
+    }
+  },
+  "attestation_metadata": {
+    "experiments/mibd_routing_v2/routing/bridge_losses.py": [
+      {
+        "hash": "s_6152d4b07242c5::t_6dd3936acaf33b",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              90
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a43918c94d6f54aed133b0b",
+            "tool_type": "builtin",
+            "tool_id": "icube:applyChatSnapshotPatch",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  90
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "experiments/mibd_routing_v2/routing/gate.py": [
+      {
+        "hash": "s_6152d4b07242c5::t_82f45ac67335b1",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              70
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a43913594d6f54aed133b02",
+            "tool_type": "builtin",
+            "tool_id": "icube:applyChatSnapshotPatch",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  70
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "experiments/mibd_routing_v2/routing/gating.py": [
+      {
+        "hash": "s_6152d4b07242c5::t_ab6a9884314e89",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              139
+            ]
+          }
+        ],
+        "mixed_line_ranges": [
+          {
+            "Range": [
+              62,
+              65
+            ]
+          },
+          {
+            "Single": 71
+          }
+        ],
+        "operations": [
+          {
+            "operation_id": "6a4390e894d6f54aed133af0",
+            "tool_type": "builtin",
+            "tool_id": "icube:applyChatSnapshotPatch",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  139
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "experiments/mibd_routing_v2/routing/router.py": [
+      {
+        "hash": "s_6152d4b07242c5::t_7658b5af3598b3",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              138
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a43911794d6f54aed133af9",
+            "tool_type": "builtin",
+            "tool_id": "icube:applyChatSnapshotPatch",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  138
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "experiments/mibd_routing_v2/tests/test_routing_core.py": [
+      {
+        "hash": "s_6152d4b07242c5::t_fc4bab953fdd17",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              417
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a43909594d6f54aed133ae1",
+            "tool_type": "builtin",
+            "tool_id": "icube:applyChatSnapshotPatch",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  417
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "s_6152d4b07242c5": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_6dd3936acaf33b": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_7658b5af3598b3": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_82f45ac67335b1": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_9c3feaa7fc2182": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_ab6a9884314e89": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_db90415d4569fc": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_6152d4b07242c5::t_fc4bab953fdd17": {
+      "tool": "trae",
+      "conversation_id": "6a438f9394d6f54aed133a7f",
+      "session_id": "6a438f9394d6f54aed133a7f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
