@@ -30,6 +30,15 @@ from experiments.mibd_routing_v2.probes.subspace import (
     evaluate_subspace_readout,
     extract_risk_subspace,
 )
+from experiments.mibd_routing_v2.data.neutral_carrier_renderer import (
+    NEUTRAL_PHRASES,
+    NeutralPoolSpec,
+    NeutralRenderConfig,
+    generate_neutral_safe_pool,
+    render_figstep_neutral,
+    render_neutral_carrier,
+    render_typographic_neutral,
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -339,3 +348,94 @@ def test_summarize_bridge_effect_reports_go_no_go_inputs() -> None:
     assert summary["safe_policy_gain_pp"] == 15.0
     assert summary["over_refusal_delta_pp"] == 2.0
     assert summary["degeneration_delta_pp"] == -1.0
+
+
+# --------------------------------------------------------------------------- #
+# neutral carrier renderer (C1 format-matched safe controls)
+# --------------------------------------------------------------------------- #
+def test_typographic_neutral_is_white_canvas_with_text() -> None:
+    cfg = NeutralRenderConfig(size=(96, 96), font_size=14)
+    image = render_typographic_neutral("How to make a cup of tea", cfg)
+    assert image.size == (96, 96)
+    assert image.mode == "RGB"
+    colors = image.getcolors(maxcolors=100000)
+    # White background must dominate.
+    white_count = sum(c for c, rgb in colors if rgb == (255, 255, 255))
+    assert white_count > 0.5 * (96 * 96)
+    # Some dark text pixels must exist (NOT a blank canvas).
+    dark_count = sum(c for c, rgb in colors if max(rgb) < 80)
+    assert dark_count > 0
+
+
+def test_figstep_neutral_renders_numbered_blanks() -> None:
+    cfg = NeutralRenderConfig(size=(128, 160), font_size=14, figstep_num_items=3)
+    image = render_figstep_neutral("Steps to water a houseplant", cfg)
+    assert image.size == (128, 160)
+    # FigStep-style image still has rendered text (markers + phrase).
+    colors = image.getcolors(maxcolors=100000)
+    dark_count = sum(c for c, rgb in colors if max(rgb) < 80)
+    assert dark_count > 0
+
+
+def test_neutral_carrier_dispatch_and_validation() -> None:
+    assert render_neutral_carrier("Steps to brew morning coffee", "figstep").mode == "RGB"
+    assert render_neutral_carrier("How to fold a paper airplane", "typographic").mode == "RGB"
+    try:
+        render_neutral_carrier("x", "noise")
+    except ValueError as exc:
+        assert "Unsupported carrier" in str(exc)
+    else:
+        raise AssertionError("expected carrier validation error")
+
+
+def test_neutral_phrases_are_content_neutral() -> None:
+    # Guard against accidental risk wording leaking into the safe control bank.
+    banned = ("bomb", "kill", "weapon", "hack", "drug", "gun", "poison", "attack")
+    joined = " ".join(NEUTRAL_PHRASES).lower()
+    for word in banned:
+        assert word not in joined
+
+
+def test_generate_neutral_safe_pool_matches_category_layout(tmp_path: Path) -> None:
+    spec = NeutralPoolSpec(
+        categories=["02", "03"],
+        per_category=4,
+        carriers=("typographic", "figstep"),
+        config=NeutralRenderConfig(size=(80, 80), font_size=12),
+    )
+    written = generate_neutral_safe_pool(tmp_path, spec)
+    assert set(written) == {"02", "03"}
+    assert all(len(paths) == 4 for paths in written.values())
+
+    # Layout must be loadable by the existing category pool loader.
+    pool = load_category_safe_pool(tmp_path)
+    assert pool.by_category.keys() == {"02", "03"}
+    path, mode = select_matched_safe_image(pool, "02", index=0)
+    assert mode == "category_matched"
+    assert path.endswith(".png")
+
+
+def test_generate_neutral_safe_pool_is_deterministic(tmp_path: Path) -> None:
+    spec = NeutralPoolSpec(
+        categories=["01"],
+        per_category=3,
+        config=NeutralRenderConfig(size=(64, 64), font_size=12),
+    )
+    a_dir = tmp_path / "a"
+    b_dir = tmp_path / "b"
+    generate_neutral_safe_pool(a_dir, spec)
+    generate_neutral_safe_pool(b_dir, spec)
+    a_bytes = (a_dir / "01" / "neutral_typographic_00.png").read_bytes()
+    b_bytes = (b_dir / "01" / "neutral_typographic_00.png").read_bytes()
+    assert a_bytes == b_bytes
+
+
+def test_neutral_pool_rejects_bad_spec(tmp_path: Path) -> None:
+    try:
+        generate_neutral_safe_pool(
+            tmp_path, NeutralPoolSpec(categories=["01"], per_category=0)
+        )
+    except ValueError as exc:
+        assert "per_category" in str(exc)
+    else:
+        raise AssertionError("expected per_category validation error")
