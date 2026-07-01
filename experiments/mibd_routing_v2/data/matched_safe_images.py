@@ -72,23 +72,57 @@ def load_category_safe_pool(safe_image_dir: str | Path | None) -> CategorySafeIm
     return CategorySafeImagePool(by_category=by_category, global_pool=global_pool)
 
 
+def _carrier_token(carrier: str) -> str:
+    """Normalize a carrier label to the token used in neutral filenames."""
+    c = carrier.lower().replace("-", "_")
+    # CarrierType values: "typographic", "figstep". Filenames: neutral_<token>_NN.png
+    if "figstep" in c:
+        return "figstep"
+    if "typograph" in c:
+        return "typographic"
+    return c
+
+
+def _filter_by_carrier(images: list[str], carrier: str | None) -> list[str]:
+    """Keep only images whose filename encodes the requested carrier.
+
+    Neutral safe images are named ``neutral_<carrier>_NN.png``; when ``carrier``
+    is given we restrict to the matching subset so the safe control shares the
+    per-sample carrier FORMAT of its paired risk image. Returns the full list
+    unchanged when ``carrier`` is None or no image matches (caller then handles
+    the fallback / mismatch).
+    """
+    if carrier is None:
+        return images
+    token = _carrier_token(carrier)
+    matched = [p for p in images if f"neutral_{token}_" in Path(p).name.lower()]
+    return matched if matched else images
+
+
 def select_matched_safe_image(
     pool: CategorySafeImagePool,
     category: str,
     index: int,
+    carrier: str | None = None,
 ) -> tuple[str | None, str]:
-    """Pick a category-matched safe image.
+    """Pick a category-matched (and optionally carrier-matched) safe image.
 
     Returns ``(image_path_or_None, mode)`` where mode is one of:
-      * ``"category_matched"`` -- same-category benign image found.
+      * ``"carrier_matched"``  -- same-category AND same-carrier image found.
+      * ``"category_matched"`` -- same-category image found (carrier not matched
+        or not requested).
       * ``"global_fallback"``  -- no category match, used the global pool.
       * ``"none"``             -- pool empty; caller should generate a placeholder.
 
-    Deterministic given (category, index): selection is index-based, so the
-    builder stays reproducible under a fixed seed/order.
+    Deterministic given (category, index, carrier): selection is index-based, so
+    the builder stays reproducible under a fixed seed/order.
     """
     category_images = pool.by_category.get(category)
     if category_images:
+        if carrier is not None:
+            carrier_images = _filter_by_carrier(category_images, carrier)
+            if carrier_images is not category_images and carrier_images:
+                return carrier_images[index % len(carrier_images)], "carrier_matched"
         return category_images[index % len(category_images)], "category_matched"
     if pool.global_pool:
         return pool.global_pool[index % len(pool.global_pool)], "global_fallback"

@@ -62,6 +62,7 @@ def build_phase2a_paired_dataset_v2(
             safe_pool,
             category=item.category,
             index=index,
+            carrier=item.carrier_type.value if hasattr(item.carrier_type, "value") else item.carrier_type,
         )
         if safe_image is None:
             generated_safe_dir.mkdir(parents=True, exist_ok=True)

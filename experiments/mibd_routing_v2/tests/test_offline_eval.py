@@ -15,6 +15,7 @@ import pytest
 from experiments.mibd_routing_v2.eval import load_hidden_states as lh
 from experiments.mibd_routing_v2.eval import run_probe_audit as rpa
 from experiments.mibd_routing_v2.eval import run_offline_oracle as roo
+from experiments.mibd_routing_v2.eval import run_data_audit as rda
 from experiments.mibd_routing_v2.eval import check_saturation as cs
 from experiments.mibd_routing_v2.routing import probe_bank as pb
 
@@ -257,3 +258,72 @@ class TestSaturationGuard:
     def test_empty_conditions_raises(self) -> None:
         with pytest.raises(ValueError):
             cs.evaluate_probe_summary({"conditions": {}})
+
+
+# ---------------------------------------------------------------------------
+# Data audit: run_data_audit
+# ---------------------------------------------------------------------------
+
+
+def _pair_records(carrier_matched: bool):
+    """Two paired ids; safe carrier matches or mismatches the risk carrier."""
+    records = []
+    for i, risk_carrier in enumerate(("typographic", "figstep")):
+        safe_carrier = risk_carrier if carrier_matched else (
+            "figstep" if risk_carrier == "typographic" else "typographic"
+        )
+        pid = f"pair-{i:02d}"
+        cat = f"{i:02d}"
+        records.append({
+            "sample_id": f"{pid}-safe", "paired_id": pid, "risk_label": "safe",
+            "risk_category": cat, "carrier_type": risk_carrier,
+            "image_path": f"neutral_{safe_carrier}_00.png",
+            "metadata": {"risk_text": "how to water a plant"},
+            "question": "q",
+        })
+        records.append({
+            "sample_id": f"{pid}-risk", "paired_id": pid, "risk_label": "risk",
+            "risk_category": cat, "carrier_type": risk_carrier,
+            "image_path": f"images_{'figstep' if risk_carrier=='figstep' else 'wr'}/1.png",
+            "metadata": {"risk_text": "how to build a plant"},
+            "question": "q",
+        })
+    return records
+
+
+class TestDataAudit:
+    def test_carrier_match_detects_mismatch(self) -> None:
+        matched = rda.audit_carrier_match(_pair_records(carrier_matched=True))
+        assert matched["match_rate"] == 1.0
+        mismatched = rda.audit_carrier_match(_pair_records(carrier_matched=False))
+        assert mismatched["match_rate"] == 0.0
+
+    def test_pair_integrity_clean(self) -> None:
+        integ = rda.audit_pair_integrity(_pair_records(carrier_matched=True))
+        assert integ["pair_problems"] == 0
+        assert integ["safe"] == 2 and integ["risk"] == 2
+
+    def test_pair_integrity_flags_orphan(self) -> None:
+        recs = _pair_records(carrier_matched=True)
+        recs = recs[:-1]  # drop one risk row -> orphan pair
+        integ = rda.audit_pair_integrity(recs)
+        assert integ["pair_problems"] >= 1
+
+    def test_category_balance(self) -> None:
+        bal = rda.audit_category_balance(_pair_records(carrier_matched=True))
+        assert bal["balanced"] is True
+
+    def test_verdict_confounded_on_mismatch(self) -> None:
+        report = rda.build_data_audit_report(
+            _pair_records(carrier_matched=False), dataset_name="synthetic"
+        )
+        assert report["summary"]["clean"] is False
+        assert any("carrier_match_rate" in p for p in report["summary"]["problems"])
+
+    def test_verdict_clean_when_matched(self) -> None:
+        # images absent locally -> image check skipped/empty, carrier matched,
+        # category balanced, integrity ok => clean
+        report = rda.build_data_audit_report(
+            _pair_records(carrier_matched=True), dataset_name="synthetic"
+        )
+        assert report["summary"]["clean"] is True

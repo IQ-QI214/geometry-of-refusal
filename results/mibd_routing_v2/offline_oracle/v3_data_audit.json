@@ -1,0 +1,167 @@
+{
+  "summary": {
+    "dataset": "phase2a_matched_v3",
+    "clean": false,
+    "problems": [
+      "carrier_match_rate=0.55 < 0.99"
+    ],
+    "verdict": "CONFOUNDED: fix the listed problems before GPU extraction."
+  },
+  "pair_integrity": {
+    "pairs": 200,
+    "safe": 200,
+    "risk": 200,
+    "pair_problems": 0,
+    "problem_examples": []
+  },
+  "carrier_match": {
+    "matched": 110,
+    "mismatched": 90,
+    "match_rate": 0.55,
+    "mismatch_examples": [
+      {
+        "paired_id": "phase2a-v2-0000",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0001",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0003",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0006",
+        "safe": "typographic",
+        "risk": "figstep"
+      },
+      {
+        "paired_id": "phase2a-v2-0008",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0009",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0010",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0011",
+        "safe": "figstep",
+        "risk": "typographic"
+      },
+      {
+        "paired_id": "phase2a-v2-0012",
+        "safe": "typographic",
+        "risk": "figstep"
+      },
+      {
+        "paired_id": "phase2a-v2-0016",
+        "safe": "figstep",
+        "risk": "typographic"
+      }
+    ]
+  },
+  "text_length": {
+    "safe": {
+      "n": 200,
+      "mean": 99.005,
+      "std": 34.078,
+      "min": 35,
+      "max": 180
+    },
+    "risk": {
+      "n": 200,
+      "mean": 99.005,
+      "std": 34.078,
+      "min": 35,
+      "max": 180
+    }
+  },
+  "images": {
+    "status": "ok",
+    "resize_to": 336,
+    "safe_sizes": {
+      "n": 0,
+      "unique_sizes": []
+    },
+    "risk_sizes": {
+      "n": 0,
+      "unique_sizes": []
+    },
+    "safe_pixel_std": {
+      "n": 0,
+      "mean_std": null
+    },
+    "risk_pixel_std": {
+      "n": 0,
+      "mean_std": null
+    }
+  },
+  "category_balance": {
+    "balanced": true,
+    "per_category": {
+      "04": {
+        "safe": 22,
+        "risk": 22
+      },
+      "05": {
+        "safe": 11,
+        "risk": 11
+      },
+      "02": {
+        "safe": 25,
+        "risk": 25
+      },
+      "10": {
+        "safe": 12,
+        "risk": 12
+      },
+      "07": {
+        "safe": 6,
+        "risk": 6
+      },
+      "06": {
+        "safe": 24,
+        "risk": 24
+      },
+      "03": {
+        "safe": 8,
+        "risk": 8
+      },
+      "01": {
+        "safe": 16,
+        "risk": 16
+      },
+      "13": {
+        "safe": 12,
+        "risk": 12
+      },
+      "09": {
+        "safe": 23,
+        "risk": 23
+      },
+      "08": {
+        "safe": 22,
+        "risk": 22
+      },
+      "11": {
+        "safe": 8,
+        "risk": 8
+      },
+      "12": {
+        "safe": 11,
+        "risk": 11
+      }
+    }
+  }
+}

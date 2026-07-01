@@ -15,7 +15,7 @@ from typing import Sequence
 
 import numpy as np
 
-from experiments.mibd.extraction.pipeline import run_extraction
+from experiments.mibd.extraction.pipeline import run_extraction_with_metadata
 from experiments.mibd.models.adapters import InternVL3Adapter, Qwen3VLAdapter
 from experiments.mibd.models.loader import load_internvl3, load_qwen3vl
 from experiments.mibd.probes.train import train_probes_for_condition
@@ -59,9 +59,10 @@ def _load_adapter(model_name: str, device: str):
     return Qwen3VLAdapter(model=model, processor=processor, device=device)
 
 
-def _save_hidden_npz(output_path: Path, hidden: dict) -> None:
+def _save_hidden_npz(output_path: Path, hidden: dict, row_metadata: dict | None = None) -> None:
     arrays: dict[str, np.ndarray] = {}
     manifest = []
+    row_meta_out: dict[str, list[dict]] = {}
     for condition, locus_map in hidden.items():
         for (layer, pos), label_map in locus_map.items():
             for label, values in label_map.items():
@@ -77,7 +78,19 @@ def _save_hidden_npz(output_path: Path, hidden: dict) -> None:
                         "shape": list(values.shape),
                     }
                 )
+                # Attach per-row metadata for this key, in stacking order, so a
+                # later audit can recover sample_id / paired_id / row_index and
+                # do pair-level splits (v3 could not: no row identity was saved).
+                if row_metadata is not None:
+                    rows = (
+                        row_metadata.get(condition, {})
+                        .get((layer, pos), {})
+                        .get(label, [])
+                    )
+                    row_meta_out[key] = rows
     arrays["manifest_json"] = np.array(json.dumps(manifest, ensure_ascii=False))
+    if row_metadata is not None:
+        arrays["row_metadata_json"] = np.array(json.dumps(row_meta_out, ensure_ascii=False))
     np.savez_compressed(output_path, **arrays)
 
 
@@ -141,7 +154,7 @@ def run(
     adapter = _load_adapter(model_name, device)
     print(f"Model loaded; num_llm_layers={adapter.num_llm_layers}", flush=True)
 
-    hidden = run_extraction(
+    hidden, row_metadata = run_extraction_with_metadata(
         adapter=adapter,
         samples=mibd_samples,
         layers=layers,
@@ -150,7 +163,7 @@ def run(
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    _save_hidden_npz(output_dir / "hidden_states.npz", hidden)
+    _save_hidden_npz(output_dir / "hidden_states.npz", hidden, row_metadata=row_metadata)
     summary = _build_probe_summary(hidden, subspace_rank=subspace_rank)
     (output_dir / "probe_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True),
