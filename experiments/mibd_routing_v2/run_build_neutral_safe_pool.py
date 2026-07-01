@@ -50,6 +50,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--image-size", default=336, type=int)
     parser.add_argument("--font-size", default=22, type=int)
+    parser.add_argument(
+        "--text-repeat",
+        default=1,
+        type=int,
+        help="Repeat the phrase N times to raise ink density and match risk-image "
+        "pixel variance (v3 confound: safe std ~23 vs risk std ~73). Use >1 for v4.",
+    )
     return parser.parse_args(argv)
 
 
@@ -60,6 +67,7 @@ def main() -> None:
     config = NeutralRenderConfig(
         size=(args.image_size, args.image_size),
         font_size=args.font_size,
+        text_repeat=args.text_repeat,
     )
     spec = NeutralPoolSpec(
         categories=categories,
@@ -73,6 +81,7 @@ def main() -> None:
     print(f"Categories: {len(written)}  |  Images per category: {args.per_category}")
     print(f"Total images: {total}")
     print(f"Carriers: {carriers}")
+    print(f"Image size: {args.image_size}x{args.image_size}  |  Font size: {args.font_size}  |  Text repeat: {args.text_repeat}")
 
 
 if __name__ == "__main__":

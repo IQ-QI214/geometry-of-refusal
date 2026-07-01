@@ -1,0 +1,19 @@
+{
+  "pool": "data/mibd_routing_v2/benign_safe_images_v4",
+  "total_images": 130,
+  "categories": 13,
+  "sizes": {
+    "500x500": 130
+  },
+  "carriers": {
+    "typographic": 65,
+    "figstep": 65
+  },
+  "pixel_std_after_resize_336": {
+    "mean": 63.003,
+    "min": 58.573,
+    "max": 67.674,
+    "risk_reference_mean_from_v3": 73.16,
+    "ratio_vs_risk_reference": 1.161
+  }
+}

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from experiments.mibd_routing_v2.data.matched_safe_images import (
@@ -21,7 +22,9 @@ from experiments.mibd_routing_v2.data.matched_safe_images import (
 )
 from experiments.mibd_routing_v2.data.neutral_carrier_renderer import (
     NeutralPoolSpec,
+    NeutralRenderConfig,
     generate_neutral_safe_pool,
+    render_typographic_neutral,
 )
 
 
@@ -87,3 +90,24 @@ class TestNeutralPoolAndSelection:
             if f"neutral_{token}_" in Path(img).name:
                 matched += 1
         assert matched == len(risk_carriers)  # was ~0.55 in v3
+
+
+class TestTextDensity:
+    """text_repeat raises pixel variance to match dense risk carriers (std ~73)."""
+
+    def _std(self, image) -> float:
+        return float(np.asarray(image.resize((336, 336)), dtype=float).std())
+
+    def test_repeat_raises_pixel_std(self) -> None:
+        cfg_sparse = NeutralRenderConfig(size=(500, 500), font_size=40, text_repeat=1)
+        cfg_dense = NeutralRenderConfig(size=(500, 500), font_size=40, text_repeat=5)
+        sparse = self._std(render_typographic_neutral("Steps to water a plant", cfg_sparse))
+        dense = self._std(render_typographic_neutral("Steps to water a plant", cfg_dense))
+        assert dense > sparse
+        # dense should land in the risk-contrast band (well above sparse ~23)
+        assert dense > 45.0
+
+    def test_repeat_one_is_backward_compatible(self) -> None:
+        cfg = NeutralRenderConfig(size=(500, 500), font_size=40, text_repeat=1)
+        img = render_typographic_neutral("Steps to water a plant", cfg)
+        assert img.size == (500, 500)

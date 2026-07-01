@@ -113,6 +113,21 @@ class NeutralRenderConfig:
     wrap_width: int = 22
     background: tuple[int, int, int] = _BG_COLOR
     foreground: tuple[int, int, int] = _FG_COLOR
+    text_repeat: int = 1
+    """How many times to repeat the phrase to fill the canvas.
+
+    v3 audit found safe images (sparse, one short phrase) had far lower pixel
+    variance than MM-SafetyBench risk images (dense text): safe std ~23 vs risk
+    std ~73, a contrast confound a probe can exploit. Repeating the phrase
+    raises ink density so the neutral control matches the risk carrier's visual
+    density. ``text_repeat=1`` preserves the original sparse behaviour.
+    """
+
+
+def _densify(phrase: str, repeat: int) -> str:
+    if repeat <= 1:
+        return phrase
+    return (phrase.rstrip(". ") + ". ") * repeat
 
 
 def render_typographic_neutral(
@@ -128,7 +143,7 @@ def render_typographic_neutral(
     draw = ImageDraw.Draw(image)
     font = _load_font(cfg.font_size)
 
-    lines = textwrap.wrap(phrase, width=cfg.wrap_width) or [phrase]
+    lines = textwrap.wrap(_densify(phrase, cfg.text_repeat), width=cfg.wrap_width) or [phrase]
     line_heights = [_text_size(draw, line, font)[1] for line in lines]
     total_h = sum(line_heights) + cfg.line_spacing * (len(lines) - 1)
 
@@ -157,7 +172,7 @@ def render_figstep_neutral(
 
     x = cfg.margin
     y = cfg.margin
-    for line in textwrap.wrap(phrase, width=cfg.wrap_width) or [phrase]:
+    for line in textwrap.wrap(_densify(phrase, cfg.text_repeat), width=cfg.wrap_width) or [phrase]:
         draw.text((x, y), line, fill=cfg.foreground, font=font)
         y += _text_size(draw, line, font)[1] + cfg.line_spacing
 
