@@ -34,11 +34,15 @@ class CarrierSplit:
 def load_npz(path: str) -> dict[str, np.ndarray]:
     """Load the hidden-state archive as a plain dict of arrays.
 
-    The ``manifest_json`` scalar entry, if present, is dropped so that callers
-    only see numeric feature matrices.
+    Scalar metadata entries, if present, are dropped so that callers only see
+    numeric feature matrices keyed by carrier/layer/position/label.
     """
     archive = np.load(path, allow_pickle=True)
-    return {key: archive[key] for key in archive.files if key != "manifest_json"}
+    return {
+        key: archive[key]
+        for key in archive.files
+        if "__layer" in key and archive[key].ndim == 2
+    }
 
 
 def _key(carrier: str, layer: int, label: str, position: int = -1) -> str:

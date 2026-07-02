@@ -61,6 +61,23 @@ class TestLoader:
         assert lh.available_carriers(states) == ["FigStep", "V-real"]
         assert lh.available_layers(states, "FigStep") == [0, 4, 8]
 
+    def test_load_npz_ignores_metadata_entries(self, tmp_path) -> None:
+        path = tmp_path / "hidden_states.npz"
+        np.savez(
+            path,
+            **_make_states(carriers=("FigStep",), layers=(0,), n_per_class=2),
+            manifest_json=np.array("{}"),
+            row_metadata_json=np.array("{}"),
+        )
+
+        states = lh.load_npz(str(path))
+
+        assert sorted(states) == [
+            "FigStep__layer0__pos-1__harmful",
+            "FigStep__layer0__pos-1__harmless",
+        ]
+        assert lh.available_carriers(states) == ["FigStep"]
+
     def test_missing_carrier_raises(self) -> None:
         states = _make_states()
         with pytest.raises(ValueError):

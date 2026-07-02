@@ -1,0 +1,118 @@
+{
+  "summary": {
+    "dataset": "phase2a_matched_v4",
+    "clean": true,
+    "problems": [],
+    "verdict": "CLEAN: no gross visual/source confound detected; safe to extract."
+  },
+  "pair_integrity": {
+    "pairs": 200,
+    "safe": 200,
+    "risk": 200,
+    "pair_problems": 0,
+    "problem_examples": []
+  },
+  "carrier_match": {
+    "matched": 200,
+    "mismatched": 0,
+    "match_rate": 1.0,
+    "mismatch_examples": []
+  },
+  "text_length": {
+    "safe": {
+      "n": 200,
+      "mean": 99.005,
+      "std": 34.078,
+      "min": 35,
+      "max": 180
+    },
+    "risk": {
+      "n": 200,
+      "mean": 99.005,
+      "std": 34.078,
+      "min": 35,
+      "max": 180
+    }
+  },
+  "images": {
+    "status": "ok",
+    "resize_to": 336,
+    "safe_sizes": {
+      "n": 200,
+      "unique_sizes": [
+        "500x500"
+      ]
+    },
+    "risk_sizes": {
+      "n": 200,
+      "unique_sizes": [
+        "500x500"
+      ]
+    },
+    "safe_pixel_std": {
+      "n": 200,
+      "mean_std": 65.041
+    },
+    "risk_pixel_std": {
+      "n": 200,
+      "mean_std": 73.156
+    }
+  },
+  "category_balance": {
+    "balanced": true,
+    "per_category": {
+      "04": {
+        "safe": 22,
+        "risk": 22
+      },
+      "05": {
+        "safe": 11,
+        "risk": 11
+      },
+      "02": {
+        "safe": 25,
+        "risk": 25
+      },
+      "10": {
+        "safe": 12,
+        "risk": 12
+      },
+      "07": {
+        "safe": 6,
+        "risk": 6
+      },
+      "06": {
+        "safe": 24,
+        "risk": 24
+      },
+      "03": {
+        "safe": 8,
+        "risk": 8
+      },
+      "01": {
+        "safe": 16,
+        "risk": 16
+      },
+      "13": {
+        "safe": 12,
+        "risk": 12
+      },
+      "09": {
+        "safe": 23,
+        "risk": 23
+      },
+      "08": {
+        "safe": 22,
+        "risk": 22
+      },
+      "11": {
+        "safe": 8,
+        "risk": 8
+      },
+      "12": {
+        "safe": 11,
+        "risk": 11
+      }
+    }
+  }
+}
