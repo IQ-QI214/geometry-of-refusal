@@ -1,0 +1,28 @@
+nohup: ignoring input
+Loaded 400 samples; model=qwen3_vl_8b; layers=(0, 4, 8, 12, 16, 20, 24, 28, 32, 35); positions=(-1,)
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 63.29it/s]
+Model loaded; num_llm_layers=36
+[extraction] 1/400  vc=V-real  label=harmless
+[extraction] 21/400  vc=V-real  label=harmless
+[extraction] 41/400  vc=FigStep  label=harmless
+[extraction] 61/400  vc=V-real  label=harmless
+[extraction] 81/400  vc=V-real  label=harmless
+[extraction] 101/400  vc=V-real  label=harmless
+[extraction] 121/400  vc=FigStep  label=harmless
+[extraction] 141/400  vc=V-real  label=harmless
+[extraction] 161/400  vc=FigStep  label=harmless
+[extraction] 181/400  vc=V-real  label=harmless
+[extraction] 201/400  vc=V-real  label=harmless
+[extraction] 221/400  vc=FigStep  label=harmless
+[extraction] 241/400  vc=V-real  label=harmless
+[extraction] 261/400  vc=FigStep  label=harmless
+[extraction] 281/400  vc=V-real  label=harmless
+[extraction] 301/400  vc=FigStep  label=harmless
+[extraction] 321/400  vc=FigStep  label=harmless
+[extraction] 341/400  vc=FigStep  label=harmless
+[extraction] 361/400  vc=V-real  label=harmless
+[extraction] 381/400  vc=V-real  label=harmless
+[extraction] 400/400  vc=V-real  label=harmful
+[extraction] done — 400 samples processed
+Wrote results/mibd_routing_v2/sensor_probe/qwen3_vl_8b_v4/hidden_states.npz
+Wrote results/mibd_routing_v2/sensor_probe/qwen3_vl_8b_v4/probe_summary.json

@@ -1,0 +1,168 @@
+{
+  "conditions": {
+    "FigStep": [
+      {
+        "layer": 0,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9962515618492295,
+        "subspace_auc": 0.9962515618492295,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 4,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 8,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 12,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 16,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 20,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 24,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9557476051645147,
+        "subspace_auc": 0.9557476051645147,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 28,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9321116201582674,
+        "subspace_auc": 0.9321116201582674,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 32,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9403373594335693,
+        "subspace_auc": 0.9403373594335693,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 35,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9603290295710121,
+        "subspace_auc": 0.9603290295710121,
+        "subspace_gain": 0.0
+      }
+    ],
+    "V-real": [
+      {
+        "layer": 0,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 4,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 8,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 12,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9864475201845444,
+        "subspace_auc": 0.9864475201845444,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 16,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 20,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 1.0,
+        "subspace_auc": 1.0,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 24,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9929834678969627,
+        "subspace_auc": 0.9929834678969627,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 28,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9814494425221069,
+        "subspace_auc": 0.9814494425221069,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 32,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9883698577470204,
+        "subspace_auc": 0.9883698577470204,
+        "subspace_gain": 0.0
+      },
+      {
+        "layer": 35,
+        "position": -1,
+        "rank": 1,
+        "single_direction_auc": 0.9910611303344867,
+        "subspace_auc": 0.9910611303344867,
+        "subspace_gain": 0.0
+      }
+    ]
+  }
+}
